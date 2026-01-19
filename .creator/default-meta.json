@@ -1,5 +1,12 @@
 {
   "image": {
     "type": "sprite-frame"
+  },
+  "texture": {
+  "minfilter": "nearest",
+  "magfilter": "nearest"
+  },
+  "sprite-frame": {
+  "trimType": "none"
   }
 }

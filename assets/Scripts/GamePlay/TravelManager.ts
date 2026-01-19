@@ -1,4 +1,5 @@
 import { _decorator, Component, Node, input, Input, KeyCode, BoxCollider2D, PhysicsSystem2D, Camera, GeometryRenderer, Color, Intersection2D, Rect, Vec2 } from 'cc';
+import { PlayerController } from './PlayerController';
 const { ccclass, property } = _decorator;
 
 // 定义物理分组的常量 (需要根据你项目设置里的索引修改)
