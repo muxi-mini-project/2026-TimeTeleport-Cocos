@@ -1,171 +1,244 @@
-import { _decorator, Component, Node, input, Input, KeyCode, EventKeyboard, RigidBody2D, Vec2, Collider2D, Contact2DType, IPhysics2DContact, Vec3, PhysicsSystem2D, ERaycast2DType, BoxCollider2D } from 'cc';
-import { TimeTravelManager } from './TravelManager'; 
+import { _decorator, Component, Node, Input, input, EventKeyboard, KeyCode, Vec2, RigidBody2D, v2, Collider2D, Contact2DType, IPhysics2DContact, misc, PhysicsSystem2D, math } from 'cc';
+import { TimeTravelManager } from './TimeTravelManager';
 const { ccclass, property } = _decorator;
 
 @ccclass('PlayerController')
 export class PlayerController extends Component {
-
-    @property({ type: TimeTravelManager, tooltip: '引用时空穿越管理器' })
-    timeTravelManager: TimeTravelManager = null;
-
-    @property({ tooltip: '移动速度' })
+    // --- 新增/修改的移动参数 ---
+    @property({ group: "Movement", tooltip: "最大移动速度" })
     moveSpeed: number = 10;
 
-    @property({ tooltip: '跳跃力度' })
-    jumpForce: number = 20;
+    @property({ group: "Movement", tooltip: "加速度：从0加速到最大速度的快慢" })
+    acceleration: number = 40; 
 
-    @property({ tooltip: '土狼时间（秒）：离开平台后多少秒内仍可跳跃' })
-    coyoteTimeDuration: number = 0.1;
+    @property({ group: "Movement", tooltip: "减速度：不按键时的自然摩擦力" })
+    deceleration: number = 30;
 
-    // --- 新增属性 ---
-    @property({ tooltip: '地面检测射线的长度（比碰撞体略长一点点）' })
-    raycastLength: number = 0.1; 
+    @property({ group: "Movement", tooltip: "反向制动力：移动时按反方向键的减速力度 (建议比加速度大)" })
+    turnAcceleration: number = 80;
 
-    @property({ tooltip: '地面图层的 Group Index (可选，防止检测到自己或道具，根据项目设置填写，默认检测所有)' })
-    groundLayerMask: number = 0xffffffff;
-
-    @property({ tooltip: '玩家当前状态的Physics掩码'})
-    public playerMask: number = 0xffffffff;
-
-    // 内部状态
-    private rigidBody: RigidBody2D = null;
-    private collider: BoxCollider2D = null; // 建议明确类型为 BoxCollider2D 以便获取尺寸
+    // --- 原有参数 ---
+    @property({ group: "Movement", tooltip: "跳跃力度" })
+    jumpForce: number = 18;
     
-    // 移动输入状态 (-1, 0, 1)
-    private horizontalInput: number = 0;
+    @property({ group: "Movement", tooltip: "下降加速度乘数"})
+    fallMutiplier: number = 1.5;
+
+    @property({ group: "Dash", tooltip: "冲刺速度" })
+    dashSpeed: number = 25;
+
+    @property({ group: "Dash", tooltip: "冲刺时间" })
+    dashDuration: number = 0.15;
+
+    @property({ group: "Feel", tooltip: "土狼时间 (秒): 离开平台后多久内仍可起跳" })
+    coyoteTime: number = 0.1;
+
+    @property(TimeTravelManager)
+    timeTravelManager: TimeTravelManager = null;
+
+    // --- 内部变量 ---
+    private rb: RigidBody2D = null!;
+    private inputDir: Vec2 = v2(0, 0);
+    private facingDir: number = 1;
     
-    // 土狼时间计时器
+    // 状态标记
+    private isDashing: boolean = false;
+    private canDash: boolean = true;
+    
+    // 地面检测与土狼时间
+    private groundContactSet: Set<string> = new Set();
     private coyoteTimer: number = 0;
-    
-    // 是否在地面
-    private isGrounded: boolean = false;
 
     onLoad() {
-        this.rigidBody = this.getComponent(RigidBody2D);
-        this.collider = this.getComponent(BoxCollider2D); // 获取 BoxCollider
-
-        // 注册按键监听
+        this.rb = this.getComponent(RigidBody2D)!;
+        
         input.on(Input.EventType.KEY_DOWN, this.onKeyDown, this);
         input.on(Input.EventType.KEY_UP, this.onKeyUp, this);
+        
+        const collider = this.getComponent(Collider2D);
+        if (collider) {
+            collider.on(Contact2DType.BEGIN_CONTACT, this.onBeginContact, this);
+            collider.on(Contact2DType.END_CONTACT, this.onEndContact, this);
+        }
     }
 
     onDestroy() {
         input.off(Input.EventType.KEY_DOWN, this.onKeyDown, this);
         input.off(Input.EventType.KEY_UP, this.onKeyUp, this);
+        const collider = this.getComponent(Collider2D);
+        if (collider) {
+            collider.off(Contact2DType.BEGIN_CONTACT, this.onBeginContact, this);
+            collider.off(Contact2DType.END_CONTACT, this.onEndContact, this);
+        }
     }
 
-    update(deltaTime: number) {
-        // 1. 地面检测 (核心修改)
-        this.checkGroundStatus();
-
-        // 2. 处理土狼时间计时
+    update(dt: number) {
+        if (this.isDashing) return;
+        
         if (this.coyoteTimer > 0) {
-            this.coyoteTimer -= deltaTime;
+            this.coyoteTimer -= dt;
         }
 
-        // 3. 执行移动逻辑
-        this.applyMovement();
+        this.applyGravityControl();
+        
+        // 传入 dt (delta time) 用于平滑计算
+        this.handleMovement(dt);
     }
 
-    // --- 核心修改：使用射线检测代替碰撞回调 ---
-    private checkGroundStatus() {
-        if (!this.collider) return;
-
-        // 记录这一帧检测之前的状态
-        const wasGrounded = this.isGrounded;
-
-        // 1. 确定射线的起点：角色底部中心
-        // 获取世界坐标系的包围盒 (AABB)
-        const worldAABB = this.collider.worldAABB;
-        
-        // 起点：包围盒底部中心
-        // worldAABB.center.x 是中心 X
-        // worldAABB.yMin 是底部 Y (注意：Cocos坐标系中 yMin 是下方)
-        const startPoint = new Vec2(worldAABB.center.x, worldAABB.yMin + 0.05); // 起点稍微往上提一点，防止直接穿透地面导致检测不到
-        
-        // 终点：起点向下延伸 raycastLength
-        const endPoint = new Vec2(startPoint.x, startPoint.y - this.raycastLength);
-
-        // 2. 发射射线
-        // ERaycast2DType.Closest 表示只检测最近的一个物体
-        const results = PhysicsSystem2D.instance.raycast(startPoint, endPoint, ERaycast2DType.Closest, this.groundLayerMask);
-
-        // 3. 判定结果
-        let isHitGround = false;
-        if (results.length > 0) {
-            const result = results[0];
-            // 这里可以增加额外的判断，比如检测到的刚体不是自己，或者检测到的物体属于“地面”标签
-            if (result.collider !== this.collider) {
-                isHitGround = true;
-            }
-        }
-
-        this.isGrounded = isHitGround;
-
-        // --- 土狼时间逻辑 ---
-        // 如果上一帧在地面，这一帧不在地面，且垂直速度不是向上（意味着不是跳跃导致的离地，而是走下平台）
-        if (wasGrounded && !this.isGrounded) {
-            if (this.rigidBody.linearVelocity.y <= 0.1) { // 给一点浮点数容差
-                this.coyoteTimer = this.coyoteTimeDuration;
-            } else {
-                // 如果是跳跃导致的离地，立即清空土狼时间
-                this.coyoteTimer = 0;
-            }
+    private applyGravityControl() {
+        const vel = this.rb.linearVelocity;
+        if (vel.y < 0) { 
+            this.rb.gravityScale = this.fallMutiplier;
+        } else {
+            this.rb.gravityScale = 1;
         }
     }
 
     private onKeyDown(event: EventKeyboard) {
-        switch (event.keyCode) {
-            case KeyCode.KEY_A:
-                this.horizontalInput = -1;
-                this.node.setScale(new Vec3(-1, 1, 1)); 
-                break;
-            case KeyCode.KEY_D:
-                this.horizontalInput = 1;
-                this.node.setScale(new Vec3(1, 1, 1));
-                break;
-            case KeyCode.KEY_J:
+        switch(event.keyCode) {
+            case KeyCode.KEY_A: this.inputDir.x = -1; break;
+            case KeyCode.KEY_D: this.inputDir.x = 1; break;
+            case KeyCode.KEY_W: this.inputDir.y = 1; break;
+            case KeyCode.KEY_S: this.inputDir.y = -1; break;
+            
+            case KeyCode.SPACE:
+            case KeyCode.KEY_J: 
                 this.tryJump();
                 break;
+
             case KeyCode.KEY_K:
-                this.useItem();
+                this.tryDash();
                 break;
+
             case KeyCode.SHIFT_LEFT:
-                if (this.timeTravelManager) {
-                    this.timeTravelManager.tryTimeTravel(); 
-                }
+                this.timeTravelManager?.tryTimeTravel();
                 break;
         }
     }
 
     private onKeyUp(event: EventKeyboard) {
-        if (event.keyCode === KeyCode.KEY_A && this.horizontalInput === -1) {
-            this.horizontalInput = 0;
-        } else if (event.keyCode === KeyCode.KEY_D && this.horizontalInput === 1) {
-            this.horizontalInput = 0;
+        switch(event.keyCode) {
+            case KeyCode.KEY_A: if (this.inputDir.x < 0) this.inputDir.x = 0; break;
+            case KeyCode.KEY_D: if (this.inputDir.x > 0) this.inputDir.x = 0; break;
+            case KeyCode.KEY_W: if (this.inputDir.y > 0) this.inputDir.y = 0; break;
+            case KeyCode.KEY_S: if (this.inputDir.y < 0) this.inputDir.y = 0; break;
         }
     }
 
-    private applyMovement() {
-        if (!this.rigidBody) return;
-        const velocity = this.rigidBody.linearVelocity;
-        this.rigidBody.linearVelocity = new Vec2(this.horizontalInput * this.moveSpeed, velocity.y);
+    // --- 修改的核心部分：基于加速度的移动 ---
+    private handleMovement(dt: number) {
+        // 1. 处理朝向 (按键即转身，保持操作响应快)
+        if (this.inputDir.x !== 0) {
+            this.facingDir = this.inputDir.x;
+            this.node.setScale(this.facingDir, 1, 1);
+        }
+
+        // 2. 获取当前速度和目标速度
+        const currentVel = this.rb.linearVelocity;
+        const targetSpeedX = this.inputDir.x * this.moveSpeed;
+
+        // 3. 计算这一帧应该使用多大的加速度
+        let currentAccel = 0;
+
+        // 情况 A: 没有输入 -> 使用减速度 (摩擦力)
+        if (this.inputDir.x === 0) {
+            currentAccel = this.deceleration;
+        } 
+        // 情况 B: 有输入，且输入方向与当前速度方向相反 -> 使用反向制动力 (转身)
+        // (currentVel.x * inputDir.x < 0) 说明符号相反
+        else if (currentVel.x !== 0 && (Math.sign(currentVel.x) !== this.inputDir.x)) {
+            currentAccel = this.turnAcceleration;
+        }
+        // 情况 C: 正常加速
+        else {
+            currentAccel = this.acceleration;
+        }
+
+        // 4. 应用平滑移动 (MoveTowards 逻辑)
+        // 这里的逻辑是：让 currentVel.x 向 targetSpeedX 靠近，每秒变化 currentAccel
+        let newX = currentVel.x;
+        const speedDiff = targetSpeedX - newX;
+        const step = currentAccel * dt; // 这一帧允许变化的速度量
+
+        if (Math.abs(speedDiff) <= step) {
+            // 如果差距很小，直接设为目标值 (避免抖动)
+            newX = targetSpeedX;
+        } else {
+            // 否则，向目标方向移动 step
+            newX += Math.sign(speedDiff) * step;
+        }
+
+        // 5. 应用最终速度
+        this.rb.linearVelocity = v2(newX, currentVel.y);
     }
 
+    // --- 跳跃逻辑 ---
     private tryJump() {
-        // 跳跃判定：在地面 OR 在土狼时间内
-        if (this.isGrounded || this.coyoteTimer > 0) {
-            const velocity = this.rigidBody.linearVelocity;
-            
-            this.rigidBody.linearVelocity = new Vec2(velocity.x, this.jumpForce);
+        const isGrounded = this.groundContactSet.size > 0;
+        const canJump = isGrounded || this.coyoteTimer > 0;
 
-            // 跳跃后立即消耗掉状态
+        if (canJump) {
+            const vel = this.rb.linearVelocity;
+            this.rb.linearVelocity = v2(vel.x, this.jumpForce);
             this.coyoteTimer = 0;
-            this.isGrounded = false; 
         }
     }
 
-    private useItem() {
-        console.log("使用了道具！");
+    // --- 冲刺逻辑 ---
+    private tryDash() {
+        if (!this.canDash) return;
+        this.startDash();
+    }
+
+    private startDash() {
+        this.isDashing = true;
+        this.canDash = false; 
+
+        let dashDir = this.inputDir.clone();
+        if (dashDir.x === 0 && dashDir.y === 0) dashDir.x = this.facingDir;
+        dashDir.normalize();
+
+        this.rb.gravityScale = 0;
+        this.rb.linearVelocity = dashDir.multiplyScalar(this.dashSpeed);
+
+        this.scheduleOnce(this.endDash, this.dashDuration);
+    }
+
+    private endDash() {
+        this.isDashing = false;
+        this.rb.gravityScale = 1;
+        // 冲刺结束后减速，防止冲刺惯性过大导致飞出去
+        this.rb.linearVelocity = this.rb.linearVelocity.multiplyScalar(0.5);
+    }
+
+    // --- 碰撞检测保持不变 ---
+    private isValidGroundNormal(contact: IPhysics2DContact, selfCollider: Collider2D): boolean {
+        const worldManifold = contact.getWorldManifold();
+        const normal = worldManifold.normal; 
+        if (selfCollider === contact.colliderA) {
+            return normal.y < -0.7; 
+        } else {
+            return normal.y > 0.7;
+        }
+    }
+
+    private onBeginContact(self: Collider2D, other: Collider2D, contact: IPhysics2DContact | null) {
+        if (!contact) return;
+        if (this.isValidGroundNormal(contact, self)) {
+            this.groundContactSet.add(other.uuid); 
+            this.canDash = true; 
+            this.coyoteTimer = 0; 
+        }
+    }
+
+    private onEndContact(self: Collider2D, other: Collider2D, contact: IPhysics2DContact | null) {
+        if (this.groundContactSet.has(other.uuid)) {
+            this.groundContactSet.delete(other.uuid);
+            if (this.groundContactSet.size === 0) {
+                if (!this.isDashing) {
+                    this.coyoteTimer = this.coyoteTime;
+                }
+            }
+        }
     }
 }
