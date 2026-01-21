@@ -1,4 +1,4 @@
-import { _decorator, Component, Node, Input, input, EventKeyboard, KeyCode, Vec2, RigidBody2D, v2, Collider2D, Contact2DType, IPhysics2DContact, misc, PhysicsSystem2D, math, BoxCollider2D } from 'cc';
+import { _decorator, Component, Sprite, Color, Input, input, EventKeyboard, KeyCode, Vec2, RigidBody2D, v2, Collider2D, Contact2DType, IPhysics2DContact, AudioSource, tween, Vec3} from 'cc';
 import { TimeTravelManager } from './TimeTravelManager';
 import { GameManager } from '../Core/GameManager';
 import { Hazard } from '../Objects/Hazard';
@@ -40,6 +40,12 @@ export class PlayerController extends Component {
 
     @property(TimeTravelManager)
     timeTravelManager: TimeTravelManager = null;
+
+    @property(Animation)
+    deathAnim: Animation = null; // 拖入动画组件
+
+    @property(AudioSource)
+    deathSound: AudioSource = null; // 拖入死亡音效
 
     // --- 内部变量 ---
     private rb: RigidBody2D = null!;
@@ -111,6 +117,7 @@ export class PlayerController extends Component {
         if (rb){
             rb.linearVelocity = Vec2.ZERO.clone();
             rb.angularVelocity = 0;
+            rb.enabled = false;
         }
 
         const collider = this.getComponent(Collider2D);
@@ -118,9 +125,43 @@ export class PlayerController extends Component {
             collider.enabled = false;
         }
 
+        this.playDeathEffect();
+
         this.scheduleOnce(() => {
             this.respawn();
-        }, 1.0);
+        }, 1.6);
+    }
+
+    private playDeathEffect() {
+        // A. 播放音效
+        if (this.deathSound) {
+            this.deathSound.play();
+        }
+
+        // B. 播放动画 (如果有美术做的 Frame Animation)
+        if (this.deathAnim) {
+            this.deathAnim.play(); // 假设动画名叫 die_anim
+        } 
+        // C. 如果没有动画，用代码写一个简单的 Tween (比如变红 + 缩小 + 旋转)
+        else {
+            const sprite = this.getComponent(Sprite);
+            if (sprite) {
+                sprite.color = Color.RED; // 变红
+            }
+            
+            tween(this.node)
+            .delay(0.1) // 稍微停顿一下，让玩家意识到“我死了”
+            // 第一阶段：向上跳 (用 cubicOut 模拟减速上升)
+            .by(0.4, { position: new Vec3(0, 20, 0) }, { easing: 'cubicOut' })
+            // 第二阶段：掉出屏幕 (用 cubicIn 模拟重力加速下落)
+            // 下落 2000 像素确保肯定出屏幕
+            .by(0.8, { position: new Vec3(0, -2000, 0) }, { easing: 'cubicIn' })
+            // 动画结束的回调
+            .call(() => {
+                this.respawn();
+            })
+            .start();
+        }
     }
 
     private respawn(){
@@ -132,13 +173,21 @@ export class PlayerController extends Component {
         
         const rb = this.getComponent(RigidBody2D);
         if (rb){
+            rb.enabled = true;
             rb.linearVelocity = Vec2.ZERO.clone();
+            rb.wakeUp();
         }
 
         const collider = this.getComponent(Collider2D);
         if (collider){
             collider.enabled = true;
+            collider.apply();
         }
+
+        this.node.setScale(new Vec3(1, 1, 1));
+        this.node.angle = 0;
+        const sprite = this.getComponent(Sprite);
+        if (sprite) sprite.color = Color.WHITE;
     }
 
     private applyGravityControl() {
@@ -282,8 +331,11 @@ export class PlayerController extends Component {
         if (!contact) return;
 
         if (other.getComponent(Hazard)) {
+            if (this.isDead) return;
             console.log("撞到了危险物！");
-            this.die();
+            this.scheduleOnce(() => {
+                this.die();
+            }, 0);
             return; // 死了就不用检测地面逻辑了
         }
 
@@ -292,7 +344,7 @@ export class PlayerController extends Component {
             this.canDash = true; 
             this.coyoteTimer = 0; 
             
-            console.log('[DEBUG] Grounded');
+            // console.log('[DEBUG] Grounded');
         }
     }
 
