@@ -10,7 +10,7 @@ export enum GameState {
     Credits
 }
 
-@ccclass('GameManager')
+@ccclass('GameStageManager')
 export class GameManager extends Component {
 
     // --- 引用绑定 ---

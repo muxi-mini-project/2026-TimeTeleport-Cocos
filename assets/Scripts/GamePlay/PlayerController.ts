@@ -1,5 +1,7 @@
-import { _decorator, Component, Node, Input, input, EventKeyboard, KeyCode, Vec2, RigidBody2D, v2, Collider2D, Contact2DType, IPhysics2DContact, misc, PhysicsSystem2D, math } from 'cc';
+import { _decorator, Component, Node, Input, input, EventKeyboard, KeyCode, Vec2, RigidBody2D, v2, Collider2D, Contact2DType, IPhysics2DContact, misc, PhysicsSystem2D, math, BoxCollider2D } from 'cc';
 import { TimeTravelManager } from './TimeTravelManager';
+import { GameManager } from '../Core/GameManager';
+import { Hazard } from '../Objects/Hazard';
 const { ccclass, property } = _decorator;
 
 @ccclass('PlayerController')
@@ -33,6 +35,9 @@ export class PlayerController extends Component {
     @property({ group: "Feel", tooltip: "土狼时间 (秒): 离开平台后多久内仍可起跳" })
     coyoteTime: number = 0.1;
 
+    @property({ group: "gameplay"})
+    minYThreshold: number = -50;
+
     @property(TimeTravelManager)
     timeTravelManager: TimeTravelManager = null;
 
@@ -44,6 +49,7 @@ export class PlayerController extends Component {
     // 状态标记
     private isDashing: boolean = false;
     private canDash: boolean = true;
+    private isDead: boolean = false;
     
     // 地面检测与土狼时间
     private groundContactSet: Set<string> = new Set();
@@ -59,6 +65,8 @@ export class PlayerController extends Component {
         if (collider) {
             collider.on(Contact2DType.BEGIN_CONTACT, this.onBeginContact, this);
             collider.on(Contact2DType.END_CONTACT, this.onEndContact, this);
+        } else {
+            console.error("【严重错误】Player 节点上找不到任何 Collider2D 组件！请检查 Inspector。");
         }
     }
 
@@ -73,6 +81,14 @@ export class PlayerController extends Component {
     }
 
     update(dt: number) {
+        if (this.isDead) return;
+
+        if (this.node.getWorldPosition().y < this.minYThreshold){
+            console.log("因为掉落，立即执行死亡逻辑: CurY=" + this.node.position.y);
+            this.die();
+            return;
+        }
+
         if (this.isDashing) return;
         
         if (this.coyoteTimer > 0) {
@@ -83,6 +99,46 @@ export class PlayerController extends Component {
         
         // 传入 dt (delta time) 用于平滑计算
         this.handleMovement(dt);
+    }
+
+    public die(){
+        if (this.isDead) return;
+        this.isDead = true;
+
+        console.log("玩家死亡");
+
+        const rb = this.getComponent(RigidBody2D);
+        if (rb){
+            rb.linearVelocity = Vec2.ZERO.clone();
+            rb.angularVelocity = 0;
+        }
+
+        const collider = this.getComponent(Collider2D);
+        if (collider){
+            collider.enabled = false;
+        }
+
+        this.scheduleOnce(() => {
+            this.respawn();
+        }, 1.0);
+    }
+
+    private respawn(){
+        const gm = GameManager.instance;
+        const targetPos = gm.currentCheckpointPos ? gm.currentCheckpointPos : gm.defaultSpawnPos;
+
+        this.node.setWorldPosition(targetPos);
+        this.isDead = false;
+        
+        const rb = this.getComponent(RigidBody2D);
+        if (rb){
+            rb.linearVelocity = Vec2.ZERO.clone();
+        }
+
+        const collider = this.getComponent(Collider2D);
+        if (collider){
+            collider.enabled = true;
+        }
     }
 
     private applyGravityControl() {
@@ -224,10 +280,19 @@ export class PlayerController extends Component {
 
     private onBeginContact(self: Collider2D, other: Collider2D, contact: IPhysics2DContact | null) {
         if (!contact) return;
+
+        if (other.getComponent(Hazard)) {
+            console.log("撞到了危险物！");
+            this.die();
+            return; // 死了就不用检测地面逻辑了
+        }
+
         if (this.isValidGroundNormal(contact, self)) {
             this.groundContactSet.add(other.uuid); 
             this.canDash = true; 
             this.coyoteTimer = 0; 
+            
+            console.log('[DEBUG] Grounded');
         }
     }
 
