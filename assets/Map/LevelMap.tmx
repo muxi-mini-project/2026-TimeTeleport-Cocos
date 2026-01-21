@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<map version="1.4" tiledversion="1.4.3" orientation="orthogonal" renderorder="left-down" width="80" height="45" tilewidth="16" tileheight="16" infinite="0" nextlayerid="15" nextobjectid="12">
+ <tileset firstgid="1" source="floor.tsx"/>
+ <group id="8" name="World_Past">
+  <layer id="9" name="图块层 1" width="80" height="45">
+   <data encoding="base64" compression="zlib">
+   eJzt1DEOAiEQBdDt1EOozXoCtdH738tpNpLYTEHCuLyX/AwFoeHDsgAAAAAAAAAAwP9aI7edzBFekfdO5ggVeqN/NeYIFXqjfzXmCBV6o3815ggVeqN/33mIHCOnzufO0r9z5BK5dj53lv7dI4/Is/O5+qd/+ver/e8z6+2+M3tn6F/73jLr7b4ze2foX/veMuvtvjN7Z+jfB06Rml0=
+  </data>
+  </layer>
+  <objectgroup id="10" name="Col_Past">
+   <object id="6" x="0" y="672" width="192" height="48"/>
+   <object id="7" x="224" y="672" width="144" height="48"/>
+   <object id="8" x="320" y="592" width="48" height="80"/>
+  </objectgroup>
+ </group>
+</map>

@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<map version="1.4" tiledversion="1.4.3" orientation="orthogonal" renderorder="left-down" width="120" height="45" tilewidth="16" tileheight="16" infinite="0" nextlayerid="6" nextobjectid="16">
+ <tileset firstgid="1" source="floor.tsx"/>
+ <layer id="1" name="Future_Art" width="120" height="45">
+  <data encoding="base64" compression="zlib">
+   eJzt1FEKwjAMAND9qYdQD6HeTi+hF7Z+DMqgsoGrafcehORDaTqSDgMAAAAAAAAAAAAAAAAAQH/ujZxVs8+SNXuIcL+ofBu+WWs+Is7dv97QOf/91W96srX75j53f8iLcoQe5uZnipe8KEfoYW6OMGOt5Qg92F/729v+7lLsUxwmtf3tIx9TnFKcJ7X97SNfUlxT3Cb1lve39Ka1XuczHKGfsa59ZulNa73OZzhCP2Nd+8zSm9Z6ne9vhH7GuvaZb1kh5Rs=
+  </data>
+ </layer>
+ <objectgroup id="2" name="Future_Col">
+  <object id="1" x="0" y="672" width="672" height="48"/>
+  <object id="2" x="672" y="672" width="192" height="48"/>
+  <object id="3" x="816" y="624" width="96" height="48"/>
+  <object id="6" x="912" y="672" width="1008" height="48"/>
+ </objectgroup>
+ <layer id="3" name="Past_Art" width="120" height="45">
+  <data encoding="base64" compression="zlib">
+   eJzt0zEOQEAUBFAdDoGGE6Dh/vcyB1Bu2PBeMpkpt9jfNAAAAAAAAAAAAAAAAAAAADxhThb92T6SU3+23/5f2v1q96vd7x/77f+l3a92v/q+26RLeruad5TcQzImk13NO0ruNdmS3a7mHSX3BTXs7Wc=
+  </data>
+ </layer>
+ <objectgroup id="4" name="Past_Col">
+  <object id="8" x="0" y="672" width="1696" height="48"/>
+  <object id="9" x="1696" y="672" width="224" height="48"/>
+ </objectgroup>
+ <objectgroup id="5" name="Objects">
+  <object id="10" name="spike" x="704" y="592" width="64" height="64"/>
+  <object id="13" name="spike" x="1056" y="592" width="64" height="64"/>
+  <object id="15" name="checkpoint" x="544" y="640" width="32" height="32"/>
+ </objectgroup>
+</map>
