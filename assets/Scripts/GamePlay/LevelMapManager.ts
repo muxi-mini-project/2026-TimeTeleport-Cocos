@@ -1,4 +1,5 @@
-import { _decorator, Component, Node, TiledMap, RigidBody2D, Collider2D, BoxCollider2D, ERigidBody2DType, Size, v3, PhysicsSystem2D, EPhysics2DDrawFlags, UIOpacity, UITransform, Prefab, instantiate } from 'cc';
+import { _decorator, Component, Node, TiledMap, RigidBody2D, Collider2D, BoxCollider2D, ERigidBody2DType, Size, v3, PhysicsSystem2D, EPhysics2DDrawFlags, UIOpacity, UITransform, Prefab, instantiate, Rect, Vec3 } from 'cc';
+import { CameraFollow } from '../CameraFollow';
 const { ccclass, property } = _decorator;
 
 const GROUP_LEVEL = 1 << 2;
@@ -15,6 +16,13 @@ export class LevelMapManager extends Component {
 
     @property({ tooltip: "淡入淡出耗时(秒)" })
     fadeDuration: number = 0.5;
+
+    @property({ type: Node, tooltip: "玩家节点，用于检测卡墙" })
+    playerNode: Node | null = null!;
+
+    @property({ type: CameraFollow, tooltip: "镜头节点"})
+    cameraNode: CameraFollow | null = null!;
+
     //世界状态的只读出口
     public getCurrentState(): TimeState {
         return this.currentState;
@@ -45,6 +53,14 @@ export class LevelMapManager extends Component {
 
     @property({ type: Prefab, tooltip: "碎裂地面预制体"})
     crumblingPlatformPrefab: Prefab = null!;
+
+    @property({ 
+        slide: true, 
+        range: [0, 0.45], 
+        step: 0.01, 
+        tooltip: "防卡墙容错率：0=非常严格(碰一点就不行)，0.2=忽略边缘20%的碰撞" 
+    })
+    stuckForgiveness: number = 0.15;
 
     // 用来存储生成的碰撞体父节点，方便整体开关
     private pastColRoot: Node = null;
@@ -83,6 +99,10 @@ export class LevelMapManager extends Component {
             EPhysics2DDrawFlags.CenterOfMass |
             EPhysics2DDrawFlags.Joint |
             EPhysics2DDrawFlags.Shape;
+
+        if (!this.playerNode) {
+            console.warn("【警告】LevelMapManager 未绑定 Player Node，防卡墙检测将无法生效！");
+        }
 
         this.pastColRoot = this.generateColliders("Past_Col", GROUP_LEVEL);
         this.futureColRoot = this.generateColliders("Future_Col", GROUP_LEVEL);
@@ -242,6 +262,20 @@ export class LevelMapManager extends Component {
 
     public toggleTime() {
         const nextState = this.currentState === TimeState.Past ? TimeState.Future : TimeState.Past;
+        
+        // 1. 获取目标时间线的碰撞体根节点
+        const targetRoot = nextState === TimeState.Past ? this.pastColRoot : this.futureColRoot;
+
+        // 2. 执行防卡墙预检测
+        if (this.checkIfStuck(targetRoot)) {
+            console.log("【拒绝切换】目标时空有墙体，防止卡死。");
+            if (this.cameraNode){
+                this.cameraNode.shake(0.5, 5);
+            }
+            return; 
+        }
+
+        // 3. 检测通过，允许切换
         this.switchTime(nextState);
     }
 
@@ -358,5 +392,86 @@ export class LevelMapManager extends Component {
         }
 
         return rootNode;
+    }
+
+    private checkIfStuck(targetColRoot: Node): boolean {
+        if (!this.playerNode || !targetColRoot) return false;
+
+        // 1. 获取玩家的包围盒（世界坐标）
+        const playerUI = this.playerNode.getComponent(UITransform);
+        if (!playerUI) return false;
+        
+        // 获取玩家的世界包围盒
+        const playerWorldRect = playerUI.getBoundingBoxToWorld();
+
+        const shrinkX = playerWorldRect.width * this.stuckForgiveness;
+        const shrinkY = playerWorldRect.height * this.stuckForgiveness;
+
+        // x, y 是矩形左下角坐标，所以 x 加，y 加，宽高减双倍
+        playerWorldRect.x += shrinkX;
+        playerWorldRect.y += shrinkY;
+        playerWorldRect.width -= (shrinkX * 2);
+        playerWorldRect.height -= (shrinkY * 2);
+        
+        // 保护：防止容错率设太大导致宽变成负数
+        if (playerWorldRect.width < 0) playerWorldRect.width = 0;
+        if (playerWorldRect.height < 0) playerWorldRect.height = 0;
+
+        
+        const mapUI = this.tiledMap.node.getComponent(UITransform);
+        
+        // 玩家矩形中心点（世界）
+        const pWorldCenter = v3(playerWorldRect.center.x, playerWorldRect.center.y, 0);
+        // 玩家矩形中心点（Map局部）
+        const pLocalCenter = mapUI.convertToNodeSpaceAR(pWorldCenter);
+        
+        // 构建玩家在 Map 下的局部 Rect
+        const playerLocalRect = new Rect(
+            pLocalCenter.x - playerWorldRect.width / 2,
+            pLocalCenter.y - playerWorldRect.height / 2,
+            playerWorldRect.width,
+            playerWorldRect.height
+        );
+
+        // 4. 遍历目标根节点下的所有墙体
+        // 注意：这里我们利用了 generateColliders 中生成的结构，所有墙都是 targetColRoot 的直接子节点
+        const walls = targetColRoot.children;
+        
+        for (let i = 0; i < walls.length; i++) {
+            const wallNode = walls[i];
+            const collider = wallNode.getComponent(BoxCollider2D);
+            if (!collider) continue;
+
+            // 获取墙体的尺寸 (generateColliders 里设置了 size)
+            const w = collider.size.width;
+            const h = collider.size.height;
+            // 墙体的位置 (generateColliders 里设置了 position，它是相对于 TiledMap 根节点的)
+            // *注意*：你的 generateColliders 把 targetColRoot 放在了 this.tiledMap.node 下，
+            // 而 wallNode 是 targetColRoot 的子节点。
+            // 修正逻辑：我们需要确保坐标系一致。
+            // 如果 targetColRoot 的 position 是 (0,0)，那么 wallNode.position 就是相对于 TiledMap 的。
+            // 你的 generateColliders 代码中：rootNode 被 addChild 到 tiledMap.node，且默认位置是 (0,0)。
+            // 所以 wallNode.position 直接可用。
+
+            const wx = wallNode.position.x;
+            const wy = wallNode.position.y;
+
+            // 构建墙体的 Rect (锚点 0.5, 0.5 -> 转换为左下角原点)
+            const wallRect = new Rect(
+                wx - w / 2,
+                wy - h / 2,
+                w,
+                h
+            );
+
+            // 5. 纯数学矩形相交检测
+            if (playerLocalRect.intersects(wallRect)) {
+                // 发生重叠，判定为会卡墙
+                console.log(`[Stuck Check] 玩家与墙体 ${wallNode.name} 重叠，禁止切换。`);
+                return true;
+            }
+        }
+
+        return false;
     }
 }
