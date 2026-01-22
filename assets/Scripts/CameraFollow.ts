@@ -1,95 +1,165 @@
-import { _decorator, Component, Node, Vec3, math, view, UITransform, misc } from 'cc';
+import { _decorator, Component, Node, Vec3, TiledMap, UITransform, view, math, randomRange } from 'cc';
 const { ccclass, property } = _decorator;
 
-@ccclass('CameraController')
-export class CameraController extends Component {
-    
-    @property({ type: Node, tooltip: "平滑跟随玩家的镜头"})
-    target: Node = null;
+@ccclass('CameraFollow')
+export class CameraFollow extends Component {
 
-    @property({ type: Node, tooltip: "地图边界信息"})
-    mapNode: Node = null;
+    @property({ type: Node, tooltip: '需要跟随的玩家节点' })
+    target: Node | null = null;
 
-    @property({ range:[0,1], tooltip: "平滑系数"})
-    smoothSpeed: number = 0.125
+    @property({ type: TiledMap, tooltip: '用于限制边界的 TiledMap' })
+    tiledMap: TiledMap | null = null;
 
-    private _targetPos: Vec3 = new Vec3();
-    private _currentPos: Vec3 = new Vec3();
-    private _lerpPos: Vec3 = new Vec3();
-    
-    // 边界限制参数
+    @property({ tooltip: '跟随平滑度 (0-1)，越小越慢' })
+    smoothSpeed: number = 0.125;
+
+    @property({ tooltip: '镜头偏移量 (例如希望主角稍微偏下一点)' })
+    offset: Vec3 = new Vec3(0, 0, 0);
+
+    private _viewSize: math.Size = new math.Size();
+    private _targetPos: Vec3 = new Vec3(); // 目标最终位置
+    private _currentPos: Vec3 = new Vec3(); // 当前摄像机位置
     private _minX: number = 0;
     private _maxX: number = 0;
     private _minY: number = 0;
     private _maxY: number = 0;
 
+    // --- 震动相关变量 ---
+    private _shakeDuration: number = 0;    // 当前剩余震动时间
+    private _shakeIntensity: number = 0;   // 当前震动强度
+    private _shakeOffset: Vec3 = new Vec3(); // 这一帧计算出的震动偏移量
+
+    private _debugFrameCount: number = 0;
+
     start() {
-        this.initBounds();
-    }
+        if (!this.tiledMap || !this.target) {
+            console.error("❌【CameraFollow】缺少 Target 或 TiledMap 绑定！");
+            return;
+        }
+        if (!this.tiledMap) {
+        console.warn("【CameraFollow】警告：未绑定 TiledMap，边界限制将不生效。");
+        return;
+        }
 
-    // 初始化地图边界计算
-    initBounds() {
-        if (!this.mapNode) return;
-
-        // 1. 获取屏幕可视范围的一半 (Half Size)
-        // 因为摄像机坐标是中心点，我们要限制的是中心点能移动的范围
-        const visibleSize = view.getVisibleSize();
-        const camHalfH = visibleSize.height / 2;
-        const camHalfW = visibleSize.width / 2;
-
-        // 2. 获取地图的世界尺寸
-        // 假设 Map 的锚点是 (0, 0) 左下角
-        const mapTransform = this.mapNode.getComponent(UITransform);
-        const mapWidth = mapTransform.width;
-        const mapHeight = mapTransform.height;
-        const mapWorldPos = this.mapNode.worldPosition;
-
-        // 3. 计算摄像机中心点允许移动的 Min/Max 范围
-        // 左边界 = 地图左边 + 摄像机半宽
-        this._minX = mapWorldPos.x + camHalfW;
-        // 右边界 = 地图右边 - 摄像机半宽
-        this._maxX = mapWorldPos.x + mapWidth - camHalfW;
+        // 2. 检查绑定的节点上是否有有效的 TiledMap 组件和资源
+        // 这一步是为了防止 'vb' 错误
+        if (!this.tiledMap.tmxAsset) {
+            console.error("【CameraFollow】严重错误：绑定的 TiledMap 节点丢失 .tmx 资源文件！请在编辑器中修复。");
+            // 强制置空，防止后续代码继续运行导致崩溃
+            this.tiledMap = null; 
+            return;
+        }
+        console.log("========== 📷 镜头脚本启动诊断 ==========");
         
-        // 下边界
-        this._minY = mapWorldPos.y + camHalfH;
-        // 上边界
-        this._maxY = mapWorldPos.y + mapHeight - camHalfH;
+        const mapTrans = this.tiledMap.node.getComponent(UITransform);
+        console.log(`🗺️ 地图信息: 
+        - 世界坐标: ${this.tiledMap.node.worldPosition}
+        - 尺寸(ContentSize): ${mapTrans.contentSize}
+        - 锚点(Anchor): ${mapTrans.anchorPoint}
+        - 缩放(Scale): ${this.tiledMap.node.scale}`);
+
+        console.log(`📺 屏幕信息: 
+        - 可见尺寸(VisibleSize): ${view.getVisibleSize()}`);
+        
+        if (this.tiledMap) {
+            this.calculateMapBounds();
+        }
+
+        console.log(`🔒 计算出的边界限制: 
+        - X轴范围: [${this._minX}, ${this._maxX}]
+        - Y轴范围: [${this._minY}, ${this._maxY}]`);
+        
+        console.log("========================================");
+        // 初始化当前位置
+        this.node.getPosition(this._currentPos);
     }
 
     /**
-     * 关键点：使用 lateUpdate 而不是 update
-     * 确保玩家先移动完了，摄像机再跟过去，防止画面抖动
+     * [新增 Public API] 外部调用此方法来触发屏幕震动
+     * @param duration 持续时间 (秒)，例如 0.2
+     * @param intensity 震动强度 (像素偏移量)，例如 5 到 15 之间效果较好
      */
-    lateUpdate(deltaTime: number) {
+    public shake(duration: number, intensity: number) {
+        // 每次调用都重置时间和强度
+        this._shakeDuration = duration;
+        this._shakeIntensity = intensity;
+    }
+
+    calculateMapBounds() {
+        if (!this.tiledMap) return;
+
+        const mapUITrans = this.tiledMap.node.getComponent(UITransform);
+        const mapSize = mapUITrans.contentSize;
+        const mapAnchor = mapUITrans.anchorPoint;
+        const mapWorldPos = this.tiledMap.node.worldPosition;
+
+        this._viewSize = view.getVisibleSize();
+        const halfViewW = this._viewSize.width / 2;
+        const halfViewH = this._viewSize.height / 2;
+
+        // 1. 计算地图在世界坐标系中的“绝对左/右/下/上”边缘
+        // 公式：世界坐标 - (尺寸 * 锚点) = 左/下边缘
+        const mapLeft = mapWorldPos.x - (mapSize.width * mapAnchor.x);
+        const mapBottom = mapWorldPos.y - (mapSize.height * mapAnchor.y);
+        const mapRight = mapLeft + mapSize.width;
+        const mapTop = mapBottom + mapSize.height;
+
+        // 2. 计算摄像机中心点允许移动的范围
+        // 摄像机中心 = 地图边缘 + 屏幕一半
+        this._minX = mapLeft + halfViewW;
+        this._maxX = mapRight - halfViewW;
+        this._minY = mapBottom + halfViewH;
+        this._maxY = mapTop - halfViewH;
+    }
+
+    lateUpdate(dt: number) {
         if (!this.target) return;
 
-        // 1. 获取目标当前位置
-        // 注意：如果 target 和 camera 父节点不同，最好统一转成世界坐标计算
-        // 这里假设它们都在 Canvas 下或者是世界坐标逻辑
+        // 1. 获取目标的世界坐标 (这是绝对坐标)
         const targetWorldPos = this.target.worldPosition;
+        
+        // 2. 目标位置也是世界坐标
+        const desiredPos = new Vec3(
+            targetWorldPos.x + this.offset.x,
+            targetWorldPos.y + this.offset.y,
+            this._currentPos.z // 下面会获取最新的 Z
+        );
 
-        // 2. 平滑插值 (Lerp)
-        // 公式：Current = Current + (Target - Current) * Factor
-        // Vec3.lerp(输出, 当前值, 目标值, 系数)
+        // 【关键修改点 1】获取摄像机当前的世界坐标
         this.node.getWorldPosition(this._currentPos);
-        Vec3.lerp(this._lerpPos, this._currentPos, targetWorldPos, this.smoothSpeed);
+        
+        // 确保 Z 轴不乱跑 (使用摄像机当前的 Z，通常是 1000)
+        desiredPos.z = this._currentPos.z;
 
-        // 3. 边界限制 (Clamping)
-        // 如果地图比屏幕还小，就不要 Clamp 了，或者居中显示
-        let finalX = this._lerpPos.x;
-        let finalY = this._lerpPos.y;
+        // 插值计算
+        Vec3.lerp(this._targetPos, this._currentPos, desiredPos, this.smoothSpeed);
 
-        // 只有当地图足够大时才限制
-        if (this._maxX >= this._minX) {
-            finalX = math.clamp(finalX, this._minX, this._maxX);
+        // 3. 边界限制 (这里用的 _minX 等本身就是基于世界坐标算的，所以匹配了)
+        if (this.tiledMap) {
+            // X轴限制
+            if (this._maxX >= this._minX) {
+                this._targetPos.x = math.clamp(this._targetPos.x, this._minX, this._maxX);
+            } else {
+                this._targetPos.x = (this._minX + this._maxX - this._viewSize.width) / 2 + (this._viewSize.width / 2);
+            }
+
+            // Y轴限制
+            if (this._maxY >= this._minY) {
+                this._targetPos.y = math.clamp(this._targetPos.y, this._minY, this._maxY);
+            } else {
+                 const mapCenterY = (this._minY + this._maxY - this._viewSize.height)/2 + this._viewSize.height/2; 
+                 this._targetPos.y = mapCenterY;
+            }
         }
-        if (this._maxY >= this._minY) {
-            finalY = math.clamp(finalY, this._minY, this._maxY);
+
+        // 4. 震动 (可选)
+        if (this._shakeDuration > 0) {
+            this._shakeDuration -= dt;
+            const offsetX = randomRange(-this._shakeIntensity, this._shakeIntensity);
+            const offsetY = randomRange(-this._shakeIntensity, this._shakeIntensity);
+            this._targetPos.add3f(offsetX, offsetY, 0);
         }
 
-        // 4. 应用坐标 (保持 Z 轴不变，通常是 1000)
-        this.node.setWorldPosition(finalX, finalY, this._currentPos.z);
+        this.node.setWorldPosition(this._targetPos);
     }
 }
-
-
