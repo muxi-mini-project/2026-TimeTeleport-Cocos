@@ -1,7 +1,8 @@
-import { _decorator, Component, Sprite, Color, Input, input, EventKeyboard, KeyCode, Vec2, RigidBody2D, v2, Collider2D, Contact2DType, IPhysics2DContact, AudioSource, tween, Vec3} from 'cc';
+import { _decorator, Component, Sprite, UITransform, Color, Input, input, EventKeyboard, KeyCode, Vec2, ERaycast2DType, RigidBody2D, v2, Collider2D, Contact2DType, IPhysics2DContact, AudioSource, tween, Vec3, PhysicsSystem2D} from 'cc';
 import { TimeTravelManager } from './TimeTravelManager';
 import { GameManager } from '../Core/GameManager';
 import { Hazard } from '../Objects/Hazard';
+import { CrumblingPlatform } from '../Objects/CrumblingPlatform';
 const { ccclass, property } = _decorator;
 
 @ccclass('PlayerController')
@@ -35,8 +36,14 @@ export class PlayerController extends Component {
     @property({ group: "Feel", tooltip: "土狼时间 (秒): 离开平台后多久内仍可起跳" })
     coyoteTime: number = 0.1;
 
-    @property({ group: "gameplay"})
+    @property({ group: "Feel", tooltip: "射线检测的长度（超出脚底的距离）" })
+    raycastLength: number = 10;
+
+    @property({ group: "GamePlay"})
     minYThreshold: number = -50;
+
+    @property({ group: "GamePlay"})
+    groundLayerMask: number = 0xffffffff;
 
     @property(TimeTravelManager)
     timeTravelManager: TimeTravelManager = null;
@@ -56,6 +63,9 @@ export class PlayerController extends Component {
     private isDashing: boolean = false;
     private canDash: boolean = true;
     private isDead: boolean = false;
+    private _isGrounded: boolean = false;
+    private _collider: Collider2D | null = null;
+    private _uiTransform: UITransform | null = null;
     
     // 地面检测与土狼时间
     private groundContactSet: Set<string> = new Set();
@@ -63,6 +73,8 @@ export class PlayerController extends Component {
 
     onLoad() {
         this.rb = this.getComponent(RigidBody2D)!;
+        this._collider = this.getComponent(Collider2D);
+        this._uiTransform = this.getComponent(UITransform);
         
         input.on(Input.EventType.KEY_DOWN, this.onKeyDown, this);
         input.on(Input.EventType.KEY_UP, this.onKeyUp, this);
@@ -70,7 +82,6 @@ export class PlayerController extends Component {
         const collider = this.getComponent(Collider2D);
         if (collider) {
             collider.on(Contact2DType.BEGIN_CONTACT, this.onBeginContact, this);
-            collider.on(Contact2DType.END_CONTACT, this.onEndContact, this);
         } else {
             console.error("【严重错误】Player 节点上找不到任何 Collider2D 组件！请检查 Inspector。");
         }
@@ -82,28 +93,29 @@ export class PlayerController extends Component {
         const collider = this.getComponent(Collider2D);
         if (collider) {
             collider.off(Contact2DType.BEGIN_CONTACT, this.onBeginContact, this);
-            collider.off(Contact2DType.END_CONTACT, this.onEndContact, this);
         }
     }
 
-    update(dt: number) {
+   update(dt: number) {
         if (this.isDead) return;
 
+        // 掉落死亡检测
         if (this.node.getWorldPosition().y < this.minYThreshold){
-            console.log("因为掉落，立即执行死亡逻辑: CurY=" + this.node.position.y);
             this.die();
             return;
         }
 
         if (this.isDashing) return;
+
+        // 1. 先检测地面
+        this.checkGroundedWithRaycast();
         
-        if (this.coyoteTimer > 0) {
+        // 2. 处理土狼时间倒计时 (如果在空中)
+        if (!this._isGrounded && this.coyoteTimer > 0) {
             this.coyoteTimer -= dt;
         }
 
         this.applyGravityControl();
-        
-        // 传入 dt (delta time) 用于平滑计算
         this.handleMovement(dt);
     }
 
@@ -166,6 +178,8 @@ export class PlayerController extends Component {
 
         this.node.setWorldPosition(targetPos);
         this.isDead = false;
+        
+        console.log(`玩家复活,位置${targetPos}`);
         
         const rb = this.getComponent(RigidBody2D);
         if (rb){
@@ -276,7 +290,7 @@ export class PlayerController extends Component {
     // --- 跳跃逻辑 ---
     private tryJump() {
         const isGrounded = this.groundContactSet.size > 0;
-        const canJump = isGrounded || this.coyoteTimer > 0;
+        const canJump = this._isGrounded || this.coyoteTimer > 0;
 
         if (canJump) {
             const vel = this.rb.linearVelocity;
@@ -312,46 +326,68 @@ export class PlayerController extends Component {
         this.rb.linearVelocity = this.rb.linearVelocity.multiplyScalar(0.5);
     }
 
-    // --- 碰撞检测保持不变 ---
-    private isValidGroundNormal(contact: IPhysics2DContact, selfCollider: Collider2D): boolean {
-        const worldManifold = contact.getWorldManifold();
-        const normal = worldManifold.normal; 
-        if (selfCollider === contact.colliderA) {
-            return normal.y < -0.7; 
-        } else {
-            return normal.y > 0.7;
+    private checkGroundedWithRaycast() {
+        if (!this._collider || !this._uiTransform) return;
+
+        const aabb = this._collider.worldAABB;
+        // 建议稍微调大一点，避免因为浮点数精度问题导致判定失效
+        const startY = aabb.center.y; 
+        const halfHeight = aabb.height / 2;
+        const totalRayLength = halfHeight + this.raycastLength;
+
+        // 收缩一点 X 范围，防止贴墙时卡在墙缝里被判定为着地
+        const xMin = aabb.xMin + 5; 
+        const xMax = aabb.xMax - 5;
+        const xCenter = aabb.center.x;
+
+        const startPoints = [
+            v2(xMin, startY),
+            v2(xCenter, startY),
+            v2(xMax, startY)
+        ];
+
+        let isHitGround = false;
+
+        for (const startPoint of startPoints) {
+            const p2 = v2(startPoint.x, startPoint.y - totalRayLength); 
+            
+            // 绘制调试射线 (Cocos Creator 3.x 调试用，不用时注释掉)
+            // PhysicsSystem2D.instance.debugDrawFlags = 1; 
+
+            const results = PhysicsSystem2D.instance.raycast(startPoint, p2, ERaycast2DType.All, this.groundLayerMask);
+
+            for (const result of results) {
+                if (result.collider.node === this.node) continue;
+                if (result.collider.sensor) continue;
+                isHitGround = true;
+                
+                const crumbleComp = result.collider.getComponent(CrumblingPlatform);
+                if (crumbleComp) {
+                    crumbleComp.onPlayerStay();
+                }
+
+                break; 
+                
+            }
+            if (isHitGround) break;
+        }
+
+        this._isGrounded = isHitGround;
+
+        // 【关键修复】着地时重置土狼时间
+        if (isHitGround) {
+            this.coyoteTimer = this.coyoteTime;
+            this.canDash = true;
         }
     }
 
     private onBeginContact(self: Collider2D, other: Collider2D, contact: IPhysics2DContact | null) {
         if (!contact) return;
-
+        // 撞到刺
         if (other.getComponent(Hazard)) {
             if (this.isDead) return;
             console.log("撞到了危险物！");
-            this.scheduleOnce(() => {
-                this.die();
-            }, 0);
-            return; // 死了就不用检测地面逻辑了
-        }
-
-        if (this.isValidGroundNormal(contact, self)) {
-            this.groundContactSet.add(other.uuid); 
-            this.canDash = true; 
-            this.coyoteTimer = 0; 
-            
-            // console.log('[DEBUG] Grounded');
-        }
-    }
-
-    private onEndContact(self: Collider2D, other: Collider2D, contact: IPhysics2DContact | null) {
-        if (this.groundContactSet.has(other.uuid)) {
-            this.groundContactSet.delete(other.uuid);
-            if (this.groundContactSet.size === 0) {
-                if (!this.isDashing) {
-                    this.coyoteTimer = this.coyoteTime;
-                }
-            }
+            this.die();
         }
     }
 }

@@ -43,6 +43,9 @@ export class LevelMapManager extends Component {
     @property({ type: Prefab, tooltip: "尖刺预制体"})
     spikePrefab: Prefab = null!;
 
+    @property({ type: Prefab, tooltip: "碎裂地面预制体"})
+    crumblingPlatformPrefab: Prefab = null!;
+
     // 用来存储生成的碰撞体父节点，方便整体开关
     private pastColRoot: Node = null;
     private futureColRoot: Node = null;
@@ -110,8 +113,7 @@ export class LevelMapManager extends Component {
 
         this.spawnPrefbs("Objects");
 
-        // 3. 初始化状态（默认进入过去）
-        this.switchTime(TimeState.Past);
+        this.toggleTime();
 
         console.log("地图重组与初始化完成");
     }
@@ -178,6 +180,12 @@ export class LevelMapManager extends Component {
                     }
                     targetPrefab = this.spikePrefab;
                     break;
+                case "crumbling_platform":
+                    if (!this.crumblingPlatformPrefab) {
+                        console.warn(`未绑定${name}预制体`)
+                        return;
+                    }
+                    targetPrefab = this.crumblingPlatformPrefab;
                 default:
                     break;
             }
@@ -217,7 +225,7 @@ export class LevelMapManager extends Component {
             const collider = newNode.getComponent(Collider2D);
             if (collider) {
                 // 设置分组 (假设 GROUP_LEVEL 是你的常量)
-                // collider.group = GROUP_LEVEL; 
+                collider.group = GROUP_LEVEL; 
                 collider.apply(); 
             }
         }
@@ -245,10 +253,16 @@ export class LevelMapManager extends Component {
 
         console.log(`[TimeSwitch] 切换到: ${isPast ? "过去 (Past)" : "未来 (Future)"}`);
 
-        if (this.pastArtLayer) {
-            console.log(`设置 Past_Art 显隐: ${isPast}, 当前节点 Active: ${this.pastArtLayer.active}`);
+        if (this.pastColRoot) {
+            this.pastColRoot.active = isPast;
         } else {
-            console.error("switchTime 失败: pastArtLayer 引用为空！");
+            console.warn("警告: pastColRoot 未赋值");
+        }
+
+        if (this.futureColRoot) {
+            this.futureColRoot.active = !isPast;
+        } else {
+            console.warn("警告: futureColRoot 未赋值");
         }
 
         // 核心逻辑：通过 active 控制显隐和碰撞生效
@@ -276,7 +290,7 @@ export class LevelMapManager extends Component {
 
         // 创建一个独立的父节点来管理这组碰撞体
         const rootNode = new Node(layerName + "_Root");
-        rootNode.active = false;
+        rootNode.active = true;
         rootNode.addComponent(UITransform);
         this.tiledMap.node.addChild(rootNode);
 
