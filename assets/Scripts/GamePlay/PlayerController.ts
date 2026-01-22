@@ -126,10 +126,6 @@ export class PlayerController extends Component {
         }
 
         this.playDeathEffect();
-
-        this.scheduleOnce(() => {
-            this.respawn();
-        }, 1.6);
     }
 
     private playDeathEffect() {
