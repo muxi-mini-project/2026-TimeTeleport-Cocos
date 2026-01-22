@@ -2,12 +2,12 @@
   "ver": "1.1.50",
   "importer": "prefab",
   "imported": true,
-  "uuid": "a85af770-dd02-4d8a-a5c3-4e070d4c6b38",
+  "uuid": "fb763646-5c01-4809-90e9-37e5ee4c9dfa",
   "files": [
     ".json"
   ],
   "subMetas": {},
   "userData": {
-    "syncNodeName": "MapLevel"
+    "syncNodeName": "crumbling_platform"
   }
 }
