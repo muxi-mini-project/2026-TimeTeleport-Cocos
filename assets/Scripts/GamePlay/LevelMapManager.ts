@@ -206,6 +206,7 @@ export class LevelMapManager extends Component {
                         return;
                     }
                     targetPrefab = this.crumblingPlatformPrefab;
+                    break;
                 default:
                     break;
             }
