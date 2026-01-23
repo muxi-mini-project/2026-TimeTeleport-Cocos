@@ -1,7 +1,7 @@
 [
   {
     "__type__": "cc.Prefab",
-    "_name": "enemy",
+    "_name": "SimpleEnemy",
     "_objFlags": 0,
     "__editorExtras__": {},
     "_native": "",
@@ -13,7 +13,7 @@
   },
   {
     "__type__": "cc.Node",
-    "_name": "enemy",
+    "_name": "SimpleEnemy",
     "_objFlags": 0,
     "__editorExtras__": {},
     "_parent": null,
@@ -41,8 +41,8 @@
     },
     "_lpos": {
       "__type__": "cc.Vec3",
-      "x": 244.194,
-      "y": -297.521,
+      "x": 0,
+      "y": 0,
       "z": 0
     },
     "_lrot": {
@@ -94,7 +94,7 @@
   },
   {
     "__type__": "cc.CompPrefabInfo",
-    "fileId": "cdkYvew1FD078eU3/Kg4Z8"
+    "fileId": "fczFhfA35G0YfrAYyxmCGn"
   },
   {
     "__type__": "cc.Sprite",
@@ -119,7 +119,7 @@
       "a": 255
     },
     "_spriteFrame": {
-      "__uuid__": "f4c4faca-3c87-4cd5-9169-72cb8a906cdf@f9941",
+      "__uuid__": "bc8171a7-7409-4c47-b170-92fa818cb1e9@f9941",
       "__expectedType__": "cc.SpriteFrame"
     },
     "_type": 0,
@@ -139,7 +139,7 @@
   },
   {
     "__type__": "cc.CompPrefabInfo",
-    "fileId": "26MMlaOWFCm5o1X4T4+bt3"
+    "fileId": "8dxrUh51FMWK2Oo00cOQB+"
   },
   {
     "__type__": "cc.BoxCollider2D",
@@ -173,46 +173,7 @@
   },
   {
     "__type__": "cc.CompPrefabInfo",
-    "fileId": "baPWsIEkFPUpqu5HzvLiLr"
-  },
-  {
-    "__type__": "7bbf5r/85pJz77L9UOVbHuY",
-    "_name": "",
-    "_objFlags": 0,
-    "__editorExtras__": {},
-    "node": {
-      "__id__": 1
-    },
-    "_enabled": true,
-    "__prefab": {
-      "__id__": 9
-    },
-    "activeTimeState": 0,
-    "followMode": 0,
-    "delaySeconds": 2,
-    "pathIndexOffset": 60,
-    "followSpeed": 1,
-    "useSmoothing": true,
-    "smoothSpeed": 0.1,
-    "enableYFollow": true,
-    "positionOffset": {
-      "__type__": "cc.Vec3",
-      "x": 0,
-      "y": 0,
-      "z": 0
-    },
-    "movementMode": 0,
-    "maxMoveSpeed": 10,
-    "damageCooldown": 0.5,
-    "damageOnlyWhenActive": true,
-    "respawnDelay": 2,
-    "damageActivationDistance": 150,
-    "playerNode": null,
-    "_id": ""
-  },
-  {
-    "__type__": "cc.CompPrefabInfo",
-    "fileId": "220bwReDJMQIAVWU/Fk1aD"
+    "fileId": "52m10vSMdLapLAmLjvDd+h"
   },
   {
     "__type__": "cc.RigidBody2D",
@@ -224,7 +185,7 @@
     },
     "_enabled": true,
     "__prefab": {
-      "__id__": 11
+      "__id__": 9
     },
     "enabledContactListener": true,
     "bullet": false,
@@ -246,7 +207,33 @@
   },
   {
     "__type__": "cc.CompPrefabInfo",
-    "fileId": "83BBM4KapLvYoarib5VAk3"
+    "fileId": "f7kzx8j+VHe5Wo3Ugq43Dl"
+  },
+  {
+    "__type__": "05abbUhxRlLXaiY2VW4Kn2y",
+    "_name": "",
+    "_objFlags": 0,
+    "__editorExtras__": {},
+    "node": {
+      "__id__": 1
+    },
+    "_enabled": true,
+    "__prefab": {
+      "__id__": 11
+    },
+    "moveSpeed": 3,
+    "leftBoundary": -100,
+    "rightBoundary": 100,
+    "groundCheckDistance": 20,
+    "wallCheckDistance": 10,
+    "canBeStomped": true,
+    "stompBounceForce": 15,
+    "shieldBounceBonus": 10,
+    "_id": ""
+  },
+  {
+    "__type__": "cc.CompPrefabInfo",
+    "fileId": "64vKLp0DdCe6b2gPJ/Q86C"
   },
   {
     "__type__": "cc.PrefabInfo",
@@ -256,7 +243,7 @@
     "asset": {
       "__id__": 0
     },
-    "fileId": "37opKfgs9AGINKgjN9aYQM",
+    "fileId": "f03Y3m3H1JvKMNZAf36A/2",
     "targetOverrides": null
   }
 ]

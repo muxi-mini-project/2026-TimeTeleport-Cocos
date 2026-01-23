@@ -54,6 +54,13 @@ export class PlayerController extends Component {
     @property(AudioSource)
     deathSound: AudioSource = null; // 拖入死亡音效
 
+    // --- 护盾设置 ---
+    @property({ group: "Shield", tooltip: "护盾是否激活（仅供调试查看）" })
+    private _shieldActive: boolean = false;
+
+    @property({ group: "Shield", tooltip: "护盾剩余时间（仅供调试查看）" })
+    private _shieldTimeRemaining: number = 0;
+
     // --- 内部变量 ---
     private rb: RigidBody2D = null!;
     private inputDir: Vec2 = v2(0, 0);
@@ -131,10 +138,20 @@ export class PlayerController extends Component {
 
         this.applyGravityControl();
         this.handleMovement(dt);
+
+        // 更新护盾计时
+        this.updateShield(dt);
     }
 
     public die(){
         if (this.isDead) return;
+
+        // 护盾期间无敌
+        if (this._shieldActive) {
+            console.log("护盾保护中，免疫伤害！");
+            return;
+        }
+
         this.isDead = true;
 
         console.log("玩家死亡");
@@ -424,5 +441,73 @@ export class PlayerController extends Component {
             console.log("撞到了危险物！");
             this.die();
         }
+    }
+
+    // ========== 护盾系统 ==========
+
+    /**
+     * 激活护盾
+     * @param duration 护盾持续时间（秒）
+     */
+    public activateShield(duration: number): void {
+        this._shieldActive = true;
+        this._shieldTimeRemaining = duration;
+
+        console.log(`[护盾] 激活护盾，持续 ${duration} 秒`);
+
+        // 发送护盾激活事件（可用于播放特效、音效等）
+        this.node.emit('shield-activated', { duration: duration });
+    }
+
+    /**
+     * 更新护盾计时
+     */
+    private updateShield(dt: number): void {
+        if (!this._shieldActive) return;
+
+        this._shieldTimeRemaining -= dt;
+
+        if (this._shieldTimeRemaining <= 0) {
+            this.deactivateShield();
+        }
+    }
+
+    /**
+     * 停用护盾
+     */
+    private deactivateShield(): void {
+        if (!this._shieldActive) return;
+
+        this._shieldActive = false;
+        this._shieldTimeRemaining = 0;
+
+        console.log("[护盾] 护盾已失效");
+
+        // 发送护盾失效事件
+        this.node.emit('shield-deactivated');
+    }
+
+    /**
+     * 检查是否拥有护盾
+     */
+    public hasShield(): boolean {
+        return this._shieldActive;
+    }
+
+    /**
+     * 获取护盾剩余时间
+     */
+    public getShieldTimeRemaining(): number {
+        return this._shieldTimeRemaining;
+    }
+
+    /**
+     * 向上弹跳（用于踩踏敌人）
+     * @param force 弹跳力度
+     */
+    public bounceUp(force: number): void {
+        const vel = this.rb.linearVelocity;
+        this.rb.linearVelocity = v2(vel.x, force);
+        console.log(`[弹跳] 向上跳跃，力度: ${force}`);
     }
 }
