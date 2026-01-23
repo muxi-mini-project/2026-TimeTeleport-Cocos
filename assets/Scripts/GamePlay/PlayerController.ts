@@ -114,6 +114,7 @@ export class PlayerController extends Component {
 
         // 掉落死亡检测
         if (this.node.getWorldPosition().y < this.minYThreshold){
+            console.log(`[Info]玩家掉出世界, y:${this.node.getWorldPosition().y}`);
             this.die();
             return;
         }

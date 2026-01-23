@@ -23,7 +23,7 @@
     "_active": true,
     "_components": [],
     "_prefab": {
-      "__id__": 59
+      "__id__": 60
     },
     "_lpos": {
       "__type__": "cc.Vec3",
@@ -54,7 +54,7 @@
     },
     "autoReleaseAssets": false,
     "_globals": {
-      "__id__": 60
+      "__id__": 61
     },
     "_id": "d31f85c1-7041-4d25-a79b-243768cff87a"
   },
@@ -80,19 +80,19 @@
         "__id__": 6
       },
       {
-        "__id__": 45
+        "__id__": 46
       }
     ],
     "_active": true,
     "_components": [
       {
-        "__id__": 56
-      },
-      {
         "__id__": 57
       },
       {
         "__id__": 58
+      },
+      {
+        "__id__": 59
       }
     ],
     "_prefab": null,
@@ -303,11 +303,14 @@
       },
       {
         "__id__": 43
+      },
+      {
+        "__id__": 44
       }
     ],
     "removedComponents": [
       {
-        "__id__": 44
+        "__id__": 45
       }
     ]
   },
@@ -337,8 +340,8 @@
     ],
     "value": {
       "__type__": "cc.Vec3",
-      "x": -842.884,
-      "y": -454.32,
+      "x": -854.939,
+      "y": -417.581,
       "z": 0
     }
   },
@@ -1122,6 +1125,16 @@
     "value": 1.5
   },
   {
+    "__type__": "CCPropertyOverrideInfo",
+    "targetInfo": {
+      "__id__": 19
+    },
+    "propertyPath": [
+      "minYThreshold"
+    ],
+    "value": -200
+  },
+  {
     "__type__": "cc.TargetInfo",
     "localID": [
       "cfcWuRnShPvaHqQN3YmzAx"
@@ -1134,14 +1147,14 @@
       "__id__": 2
     },
     "_prefab": {
-      "__id__": 46
+      "__id__": 47
     },
     "__editorExtras__": {}
   },
   {
     "__type__": "cc.PrefabInfo",
     "root": {
-      "__id__": 45
+      "__id__": 46
     },
     "asset": {
       "__uuid__": "e8f5da4d-ed56-4b4c-aa66-8fe52f79a766",
@@ -1149,7 +1162,7 @@
     },
     "fileId": "ddLFmmMRJNo4536YDHTdot",
     "instance": {
-      "__id__": 47
+      "__id__": 48
     },
     "targetOverrides": null,
     "nestedPrefabInstanceRoots": null
@@ -1162,10 +1175,7 @@
     "mountedComponents": [],
     "propertyOverrides": [
       {
-        "__id__": 48
-      },
-      {
-        "__id__": 50
+        "__id__": 49
       },
       {
         "__id__": 51
@@ -1177,7 +1187,10 @@
         "__id__": 53
       },
       {
-        "__id__": 55
+        "__id__": 54
+      },
+      {
+        "__id__": 56
       }
     ],
     "removedComponents": []
@@ -1185,7 +1198,7 @@
   {
     "__type__": "CCPropertyOverrideInfo",
     "targetInfo": {
-      "__id__": 49
+      "__id__": 50
     },
     "propertyPath": [
       "_lpos"
@@ -1206,7 +1219,7 @@
   {
     "__type__": "CCPropertyOverrideInfo",
     "targetInfo": {
-      "__id__": 49
+      "__id__": 50
     },
     "propertyPath": [
       "_name"
@@ -1216,7 +1229,7 @@
   {
     "__type__": "CCPropertyOverrideInfo",
     "targetInfo": {
-      "__id__": 49
+      "__id__": 50
     },
     "propertyPath": [
       "_lrot"
@@ -1232,7 +1245,7 @@
   {
     "__type__": "CCPropertyOverrideInfo",
     "targetInfo": {
-      "__id__": 49
+      "__id__": 50
     },
     "propertyPath": [
       "_euler"
@@ -1247,7 +1260,7 @@
   {
     "__type__": "CCPropertyOverrideInfo",
     "targetInfo": {
-      "__id__": 54
+      "__id__": 55
     },
     "propertyPath": [
       "mapManager"
@@ -1265,7 +1278,7 @@
   {
     "__type__": "CCPropertyOverrideInfo",
     "targetInfo": {
-      "__id__": 54
+      "__id__": 55
     },
     "propertyPath": [
       "cameraFollow"
@@ -1354,35 +1367,35 @@
         "__id__": 6
       },
       {
-        "__id__": 45
+        "__id__": 46
       }
     ]
   },
   {
     "__type__": "cc.SceneGlobals",
     "ambient": {
-      "__id__": 61
-    },
-    "shadows": {
       "__id__": 62
     },
-    "_skybox": {
+    "shadows": {
       "__id__": 63
     },
-    "fog": {
+    "_skybox": {
       "__id__": 64
     },
-    "octree": {
+    "fog": {
       "__id__": 65
     },
-    "skin": {
+    "octree": {
       "__id__": 66
     },
-    "lightProbeInfo": {
+    "skin": {
       "__id__": 67
     },
-    "postSettings": {
+    "lightProbeInfo": {
       "__id__": 68
+    },
+    "postSettings": {
+      "__id__": 69
     },
     "bakedWithStationaryMainLight": false,
     "bakedWithHighpLightmap": false

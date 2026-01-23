@@ -177,7 +177,7 @@ export class Telescope extends Component {
         // 归一化，防止斜向移动速度变快
         if (inputDir.lengthSqr() > 0) {
             inputDir.normalize();
-            console.log(`[Telescope] handleInputMovement: 输入方向=(${inputDir.x.toFixed(2)}, ${inputDir.y.toFixed(2)}), _pressedKeys.size=${this._pressedKeys.size}`);
+            // console.log(`[Telescope] handleInputMovement: 输入方向=(${inputDir.x.toFixed(2)}, ${inputDir.y.toFixed(2)}), _pressedKeys.size=${this._pressedKeys.size}`);
         }
 
         // 传递给 CameraFollow
