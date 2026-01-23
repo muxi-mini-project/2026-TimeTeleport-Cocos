@@ -170,6 +170,14 @@ export class EnemyFollower extends Component {
     public damageOnlyWhenActive: boolean = true;
 
     /**
+     * 玩家复活后延迟激活时间（秒）
+     * 玩家复活后，敌人会等待这段时间后再开始追踪
+     * 给玩家一些反应时间
+     */
+    @property({ tooltip: '玩家复活后延迟激活时间（秒）' })
+    public respawnDelay: number = 1.0;
+
+    /**
      * 玩家节点引用（可选）
      * 如果留空，会自动在场景中查找名为 "Player" 的节点
      * 推荐手动绑定以确保准确性
@@ -334,6 +342,15 @@ export class EnemyFollower extends Component {
 
         // 玩家死亡时不追踪
         if (this.isPlayerDead) {
+            // 强制停止在初始位置
+            const currentPos = this.node.worldPosition;
+            const dist = Vec3.distance(currentPos, this.initialPosition);
+
+            if (dist > 0.1) {
+                // 如果不在初始位置，强制回去
+                this.node.setWorldPosition(this.initialPosition);
+                console.log(`[EnemyFollower] ${this.node.name}: 玩家死亡中，强制保持在初始位置`);
+            }
             return;
         }
 
@@ -371,15 +388,21 @@ export class EnemyFollower extends Component {
     private setupCollision(): void {
         const collider = this.getComponent(Collider2D);
         if (collider) {
+            console.log(`[EnemyFollower] ${this.node.name}: Collider2D 配置：`);
+            console.log(`  - Sensor: ${collider.sensor}`);
+            console.log(`  - Group: ${collider.group}`);
+
             // 确保是 Trigger 模式（不会推挤玩家）
             if (!collider.sensor) {
                 console.warn(`[EnemyFollower] ${this.node.name}: Collider2D 的 Sensor 未勾选，已自动设置`);
                 collider.sensor = true;
             }
+
             // 启用接触监听
             collider.on(Contact2DType.BEGIN_CONTACT, this.onBeginContact, this);
+            console.log(`[EnemyFollower] ${this.node.name}: ✅ 碰撞监听已注册`);
         } else {
-            console.warn(`[EnemyFollower] ${this.node.name}: 节点上没有找到 Collider2D 组件！将无法造成伤害。`);
+            console.error(`[EnemyFollower] ${this.node.name}: 节点上没有找到 Collider2D 组件！将无法造成伤害。`);
         }
     }
 
@@ -451,8 +474,14 @@ export class EnemyFollower extends Component {
      * 玩家复活回调
      */
     private onPlayerRespawned(): void {
-        console.log(`[EnemyFollower] ${this.node.name}: 玩家复活，恢复追踪`);
-        this.isPlayerDead = false;
+        console.log(`[EnemyFollower] ${this.node.name}: 玩家复活，${this.respawnDelay}秒后恢复追踪`);
+        console.log(`[EnemyFollower] ${this.node.name}: 等待期间敌人将停留在初始位置`);
+
+        // 延迟指定时间后才恢复追踪
+        this.scheduleOnce(() => {
+            this.isPlayerDead = false;
+            console.log(`[EnemyFollower] ${this.node.name}: ✅ 延迟结束，恢复追踪玩家`);
+        }, this.respawnDelay);
 
         // 确保在初始位置
         this.resetToInitialPosition();
@@ -464,13 +493,38 @@ export class EnemyFollower extends Component {
     private resetToInitialPosition(): void {
         console.log(`[EnemyFollower] ${this.node.name}: 重置位置到 (${this.initialPosition.x}, ${this.initialPosition.y})`);
 
-        // 直接设置世界位置
-        this.node.setWorldPosition(this.initialPosition);
-
-        // 如果有 RigidBody2D，清空速度
         if (this.rb) {
+            console.log(`[EnemyFollower] ${this.node.name}: RigidBody2D Type = ${this.rb.type}`);
+
+            // 对于 Kinematic 类型，需要特殊处理
+            // 先清空速度，再设置位置
             this.rb.linearVelocity = Vec2.ZERO.clone();
             this.rb.angularVelocity = 0;
+
+            // 直接设置位置
+            this.node.setWorldPosition(this.initialPosition);
+
+            // 唤醒刚体（Kinematic 也需要 wakeUp）
+            this.rb.wakeUp();
+
+            // 验证位置是否设置成功
+            this.scheduleOnce(() => {
+                const currentPos = this.node.worldPosition;
+                console.log(`[EnemyFollower] ${this.node.name}: 重置后位置验证: (${currentPos.x}, ${currentPos.y})`);
+
+                // 如果位置不对，再次尝试
+                const dist = Vec3.distance(currentPos, this.initialPosition);
+                if (dist > 1) {
+                    console.warn(`[EnemyFollower] ${this.node.name}: ⚠️ 位置重置可能失败，距离目标: ${dist}`);
+                    // 再次强制设置
+                    this.node.setWorldPosition(this.initialPosition);
+                    this.rb.wakeUp();
+                }
+            }, 0.016); // 等待一帧（约 16ms）
+        } else {
+            // 没有 RigidBody2D，直接设置位置
+            this.node.setWorldPosition(this.initialPosition);
+            console.log(`[EnemyFollower] ${this.node.name}: ✅ 无 RigidBody2D，直接设置位置`);
         }
 
         // 更新目标位置为初始位置

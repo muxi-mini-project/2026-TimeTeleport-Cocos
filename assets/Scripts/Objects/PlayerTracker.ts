@@ -13,6 +13,7 @@ interface PathPoint {
  * 玩家轨迹追踪器
  * 负责记录玩家的移动路径，供敌人跟随使用
  * 支持时间穿越系统，轨迹在时间切换时保持连续
+ * 玩家死亡时会自动清除轨迹，防止敌人追踪死亡动画路径
  */
 @ccclass('PlayerTracker')
 export class PlayerTracker extends Component {
@@ -38,10 +39,10 @@ export class PlayerTracker extends Component {
 
     /**
      * 玩家死亡时是否清除轨迹
-     * 关闭后轨迹会保留，敌人会沿着玩家死亡前的路径继续移动
+     * 开启后，玩家死亡时会清除所有已记录的轨迹点，防止敌人追踪死亡动画路径
      */
-    @property({ tooltip: '玩家死亡时是否清除轨迹' })
-    public clearOnDeath: boolean = false;
+    @property({ tooltip: '玩家死亡时是否清除轨迹（推荐开启）' })
+    public clearOnPlayerDeath: boolean = true;
 
     // 轨迹点队列
     private pathPoints: PathPoint[] = [];
@@ -62,8 +63,44 @@ export class PlayerTracker extends Component {
             console.warn('[PlayerTracker] Multiple instances detected. Keeping only the first one.');
         }
 
-        // 监听时间切换事件（不需要处理，轨迹持续记录）
-        // 敌人会自己根据时间状态决定是否追踪
+        // 监听玩家死亡事件
+        this.node.on('player-died', this.onPlayerDied, this);
+        this.node.on('player-respawned', this.onPlayerRespawned, this);
+    }
+
+    onDestroy() {
+        // 移除事件监听
+        this.node.off('player-died', this.onPlayerDied, this);
+        this.node.off('player-respawned', this.onPlayerRespawned, this);
+    }
+
+    /**
+     * 玩家死亡回调
+     */
+    private onPlayerDied(): void {
+        console.log('[PlayerTracker] 玩家死亡，停止记录轨迹');
+
+        if (this.clearOnPlayerDeath) {
+            this.clearPath();
+        }
+
+        // 暂停记录（玩家死亡时不记录死亡动画路径）
+        this.isEnabled = false;
+    }
+
+    /**
+     * 玩家复活回调
+     */
+    private onPlayerRespawned(): void {
+        console.log('[PlayerTracker] 玩家复活，恢复记录轨迹');
+
+        // 清除死亡前的旧轨迹
+        if (this.clearOnPlayerDeath) {
+            this.clearPath();
+        }
+
+        // 恢复记录
+        this.isEnabled = true;
     }
 
     update(dt: number) {
