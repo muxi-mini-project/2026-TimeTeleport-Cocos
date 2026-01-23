@@ -1,4 +1,4 @@
-import { _decorator, Component, Node, TiledMap, RigidBody2D, Collider2D, BoxCollider2D, ERigidBody2DType, Size, v3, PhysicsSystem2D, EPhysics2DDrawFlags, UIOpacity, UITransform, Prefab, instantiate, Rect, Vec3 } from 'cc';
+import { _decorator, Component, Node, TiledMap, math, RigidBody2D, Collider2D, BoxCollider2D, ERigidBody2DType, Size, v3, PhysicsSystem2D, EPhysics2DDrawFlags, UIOpacity, UITransform, Prefab, instantiate, Rect, Vec3 } from 'cc';
 import { CameraFollow } from '../CameraFollow';
 const { ccclass, property } = _decorator;
 
@@ -7,6 +7,11 @@ const GROUP_LEVEL = 1 << 2;
 export enum TimeState {
     Past,
     Future
+}
+
+export interface ScopeData {
+    rect: math.Rect;
+    center: Vec3;
 }
 
 @ccclass('LevelMapManager')
@@ -54,6 +59,11 @@ export class LevelMapManager extends Component {
     @property({ type: Prefab, tooltip: "碎裂地面预制体"})
     crumblingPlatformPrefab: Prefab = null!;
 
+    @property
+    debugDraw: boolean = true;
+
+    private _boundsMap: Map<number, ScopeData> = new Map();
+
     @property({ 
         slide: true, 
         range: [0, 0.45], 
@@ -83,7 +93,7 @@ export class LevelMapManager extends Component {
 
     start() {
         if (!this.tiledMap) {
-            console.log("getting component");
+            // console.log("getting component");
             this.tiledMap = this.getComponent(TiledMap);
         }
 
@@ -165,8 +175,94 @@ export class LevelMapManager extends Component {
         for (const object of objects){
             const rawName = object.name || "Unknown";
             const name = rawName.toLowerCase();
-            
-            console.log(`[TiledDebug] 发现对象 Name: ${rawName}, Type: ${object.type}`);
+            // console.log(`[TiledDebug] 发现对象 Name: ${rawName}, 转小写: ${name}, Type: ${object.type}`);
+
+            if (name === "viewzone" || name.includes("viewzone")) {
+                // console.log(`[ViewZone检测] 匹配成功! 原始名称: ${rawName}, 小写名称: ${name}`);
+                console.log(`获取并开始处理 ${rawName}`);
+                // 提取 boundID
+                // 注意：Tiled 对象属性在 properties 字段中 (object.properties)
+                // 不同的导出格式访问方式略有不同，通常是 object.properties.xxx 或者 object.xxx
+                const props = object.properties || {}; // 防空
+                const boundID = props["boundID"] || props["scopeID"]; // 兼容两种写法
+                console.log(`获取 ${boundID}`);
+
+                if (boundID != null) {
+                    // 计算世界坐标矩形 (复用你的坐标公式，或者 MapManager 内部计算)
+                    const w = object.width || 0;
+                    const h = object.height || 0;
+                    const tiledX = object.x || 0;
+                    const tiledY = object.y || 0;
+
+                    console.log(`[ViewZone原始数据] tiledX=${tiledX}, tiledY=${tiledY}, w=${w}, h=${h}, halfW=${halfW}, halfH=${halfH}`);
+
+                    // 计算中心点坐标（与预制体生成使用相同的公式）
+                    const centerX = -halfW + tiledX + (w / 2);
+                    const centerY = -halfH + tiledY - (h / 2);
+
+                    console.log(`[ViewZone中心点] centerX=${centerX.toFixed(2)}, centerY=${centerY.toFixed(2)}`);
+
+                    // 将中心点转换为 Rect 左下角坐标
+                    // Rect 的 x,y 是左下角，而 centerX,centerY 是中心点
+                    let rectX = centerX - w / 2;
+                    let rectY = centerY - h / 2;
+
+                    // 【重要修正】让 ViewZone 与地图内容对齐
+                    // 使用与 CameraFollow.calculateMapBounds() 相同的计算方式
+                    // 确保地图内容的实际边界与 ViewZone 边界对齐
+                    const tiledMapWorldPos = this.tiledMap.node.getWorldPosition();
+                    const mapUITrans = this.tiledMap.node.getComponent(UITransform);
+                    const mapSize = mapUITrans.contentSize;
+                    const mapAnchor = mapUITrans.anchorPoint;
+
+                    // 计算地图实际内容的边界（与 CameraFollow 相同的公式）
+                    const mapLeft = tiledMapWorldPos.x - (mapSize.width * mapAnchor.x);
+                    const mapBottom = tiledMapWorldPos.y - (mapSize.height * mapAnchor.y);
+                    const mapRight = mapLeft + mapSize.width;
+                    const mapTop = mapBottom + mapSize.height;
+
+                    console.log(`[ViewZone] 地图实际边界: left=${mapLeft}, right=${mapRight}, bottom=${mapBottom}, top=${mapTop}`);
+
+                    // 【关键】限制 ViewZone 高度不超过地图高度，避免显示黑边
+                    // 如果 ViewZone 高度大于地图高度，使用地图高度
+                    const desiredViewZoneHeight = Math.min(1440, mapSize.height);
+                    const desiredViewZoneWidth = Math.min(1600, mapSize.width);
+
+                    // 以地图内容中心为基准，创建 ViewZone
+                    const mapCenterX = (mapLeft + mapRight) / 2;
+                    const mapCenterY = (mapBottom + mapTop) / 2;
+
+                    const newRectX = mapCenterX - desiredViewZoneWidth / 2;
+                    const newRectY = mapCenterY - desiredViewZoneHeight / 2;
+
+                    console.log(`[ViewZone] 修正后尺寸: ${desiredViewZoneWidth}x${desiredViewZoneHeight} (原预期: 1600x1440)`);
+
+                    console.warn(`[ViewZone] 重新定位：从 (${rectX.toFixed(1)}, ${rectY.toFixed(1)}, ${w}, ${h}) 改为 (${newRectX.toFixed(1)}, ${newRectY.toFixed(1)}, ${desiredViewZoneWidth}, ${desiredViewZoneHeight})`);
+                    console.log(`[ViewZone] 原位置偏离地图中心 ${Math.abs(centerY).toFixed(1)} 像素，已自动修正`);
+
+                    rectX = newRectX;
+                    rectY = newRectY;
+
+                    // 注册时使用新的尺寸
+                    const finalWidth = desiredViewZoneWidth;
+                    const finalHeight = desiredViewZoneHeight;
+
+                    console.log(`[ViewZone矩形] rectX=${rectX.toFixed(2)}, rectY=${rectY.toFixed(2)}, 最终范围: [${rectY.toFixed(1)}, ${(rectY + finalHeight).toFixed(1)}]`);
+
+                    // newRectX/newRectY 已经是世界坐标，直接注册
+                    console.log(`[ViewZone] 使用世界坐标: (${newRectX.toFixed(1)}, ${newRectY.toFixed(1)})`);
+
+                    // 获取 MapManager 并注册（使用世界坐标）
+                    const mapManager = this.getComponent(LevelMapManager);
+                    if (mapManager) {
+                        mapManager.registerScope(Number(boundID), newRectX, newRectY, finalWidth, finalHeight);
+                        console.log(`[Map] 注册 ViewZone ID: ${boundID}, 世界坐标: x=${newRectX.toFixed(2)}, y=${newRectY.toFixed(2)}, w=${finalWidth}, h=${finalHeight}`);
+                    }
+                }
+                continue; // 处理完 ViewZone 直接跳过后续 Prefab 生成
+            }
+
+            console.log(`[Prefab处理] 开始检查对象 ${rawName} (小写: ${name}) 是否需要生成预制体`);
             
             const w = object.width;
             const h = object.height;
@@ -185,6 +281,8 @@ export class LevelMapManager extends Component {
             }
 
             let targetPrefab: Prefab | null = null;
+            let shouldScale = true;
+
             switch (name) {
                 case "checkpoint":
                     if (!this.checkpointPrefab) {
@@ -208,6 +306,7 @@ export class LevelMapManager extends Component {
                     targetPrefab = this.crumblingPlatformPrefab;
                     break;
                 default:
+                    console.log(`[Switch跳过] 对象 ${rawName} (小写: ${name}) 不匹配任何预制体类型`);
                     break;
             }
 
@@ -224,24 +323,20 @@ export class LevelMapManager extends Component {
             objectsRoot.addChild(newNode);
 
             newNode.name = rawName;
-
-            const uiTransform = newNode.getComponent(UITransform);
-            // 设置默认值，防止组件丢失报错
-            let originalWidth = 100; 
-            let originalHeight = 100;
-            if (uiTransform && uiTransform.contentSize.width > 0) {
-                originalWidth = uiTransform.contentSize.width;
-                originalHeight = uiTransform.contentSize.height;
-            }
-
-            const scaleX = w / originalWidth;
-            const scaleY = h / originalHeight;
-
-            newNode.setScale(v3(scaleX, scaleY, 1));
-
             newNode.setPosition(v3(finalX, finalY, 0));
             console.log(`生成对象 [${rawName}] 位置 x:${finalX} y:${finalY}`);
 
+                const uiTransform = newNode.getComponent(UITransform);
+                let originalWidth = 100; 
+                let originalHeight = 100;
+                if (uiTransform && uiTransform.contentSize.width > 0) {
+                    originalWidth = uiTransform.contentSize.width;
+                    originalHeight = uiTransform.contentSize.height;
+                }
+                const scaleX = w / originalWidth;
+                const scaleY = h / originalHeight;
+                newNode.setScale(v3(scaleX, scaleY, 1));
+            
             // 处理拉伸Checkpoint的碰撞箱尺寸(报错就改)
             const collider = newNode.getComponent(Collider2D);
             if (collider) {
@@ -344,7 +439,7 @@ export class LevelMapManager extends Component {
         const halfW = totalW / 2;
         const halfH = totalH / 2;
 
-        console.log(`[MapDebug] Layer:${layerName} W:${totalW} H:${totalH}`);
+        // console.log(`[MapDebug] Layer:${layerName} W:${totalW} H:${totalH}`);
 
         for (const object of objects) {
             const colliderNode = new Node();
@@ -474,5 +569,18 @@ export class LevelMapManager extends Component {
         }
 
         return false;
+    }
+
+    public registerScope(id: number, x: number, y: number, w: number, h: number) {
+        const rect = new math.Rect(x, y, w, h);
+        // 存入 Map
+        this._boundsMap.set(id, {
+            rect: rect,
+            center: new Vec3(rect.center.x, rect.center.y, 0)
+        });
+    }
+
+    public getScopeData(scopeID: number): ScopeData | undefined {
+        return this._boundsMap.get(scopeID);
     }
 }
