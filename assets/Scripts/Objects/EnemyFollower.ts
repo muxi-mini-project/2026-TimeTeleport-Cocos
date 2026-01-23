@@ -118,7 +118,7 @@ export class EnemyFollower extends Component {
      * 值越大移动越快（0.01-1.0）
      */
     @property({
-        tooltip: '平滑速度（0.01-1.0）',
+        tooltip: '平滑速度(0.01-1.0)',
         visible: function(this: EnemyFollower) { return this.useSmoothing; }
     })
     public smoothSpeed: number = 0.1;
@@ -178,11 +178,19 @@ export class EnemyFollower extends Component {
     public respawnDelay: number = 1.0;
 
     /**
+     * 伤害激活距离
+     * 敌人从初始位置移动超过这个距离后，才能造成伤害
+     * 给玩家更多反应时间
+     */
+    @property({ tooltip: '伤害激活距离（像素）：敌人从初始位置移动超过这个距离后才能造成伤害' })
+    public damageActivationDistance: number = 100;
+
+    /**
      * 玩家节点引用（可选）
      * 如果留空，会自动在场景中查找名为 "Player" 的节点
      * 推荐手动绑定以确保准确性
      */
-    @property({ type: Node, tooltip: '玩家节点（可选，留空则自动查找）' })
+    @property({ type: Node, tooltip: '玩家节点(可选，留空则自动查找)' })
     public playerNode: Node | null = null;
 
     // ========== 内部变量 ==========
@@ -204,10 +212,13 @@ export class EnemyFollower extends Component {
     // 玩家是否死亡
     private isPlayerDead: boolean = false;
 
+    // 是否可以造成伤害(从初始位置移动一定距离后才开启)
+    private canDamage: boolean = false;
+
     // 伤害冷却计时器
     private damageCooldownTimer: number = 0;
 
-    // RigidBody2D 引用（仅 RigidBody 模式使用）
+    // RigidBody2D 引用(仅 RigidBody 模式使用)
     private rb: RigidBody2D | null = null;
 
     // LevelMapManager 引用
@@ -270,8 +281,8 @@ export class EnemyFollower extends Component {
     }
 
     start() {
-        console.log(`[EnemyFollower] ${this.node.name} 初始化开始...`);
-        console.log(`[EnemyFollower] ${this.node.name}: 初始位置: ${this.initialPosition.x}, ${this.initialPosition.y}`);
+        // console.log(`[EnemyFollower] ${this.node.name} 初始化开始...`);
+        // console.log(`[EnemyFollower] ${this.node.name}: 初始位置: ${this.initialPosition.x}, ${this.initialPosition.y}`);
 
         // 检查是否有 Collider2D
         const collider = this.getComponent(Collider2D);
@@ -314,7 +325,7 @@ export class EnemyFollower extends Component {
         if (this.playerController) {
             this.playerController.node.on('player-died', this.onPlayerDied, this);
             this.playerController.node.on('player-respawned', this.onPlayerRespawned, this);
-            console.log(`[EnemyFollower] ${this.node.name}: ✅ 已注册玩家死亡/复活监听`);
+            // console.log(`[EnemyFollower] ${this.node.name}: ✅ 已注册玩家死亡/复活监听`);
         } else {
             console.warn(`[EnemyFollower] ${this.node.name}: ⚠️ 找不到 PlayerController，无法监听玩家死亡`);
         }
@@ -325,13 +336,13 @@ export class EnemyFollower extends Component {
             console.error(`[EnemyFollower] ${this.node.name}: ❌ 找不到 PlayerTracker！请确保 Player 节点上有 PlayerTracker 组件。`);
             this.isTracking = false;
         } else {
-            console.log(`[EnemyFollower] ${this.node.name}: ✅ PlayerTracker 已找到，开始追踪`);
+            // console.log(`[EnemyFollower] ${this.node.name}: ✅ PlayerTracker 已找到，开始追踪`);
             this.isTracking = true;
         }
 
         // 初始化激活状态
         this.updateActiveState();
-        console.log(`[EnemyFollower] ${this.node.name}: 当前激活状态: ${this.shouldBeActive}`);
+        // console.log(`[EnemyFollower] ${this.node.name}: 当前激活状态: ${this.shouldBeActive}`);
     }
 
     update(dt: number) {
@@ -378,6 +389,9 @@ export class EnemyFollower extends Component {
             this.targetPosition.y = this.node.worldPosition.y;
         }
 
+        // 检查是否需要开启伤害检测
+        this.checkDamageActivation();
+
         // 移动到目标位置
         this.moveToTarget(dt);
     }
@@ -388,9 +402,9 @@ export class EnemyFollower extends Component {
     private setupCollision(): void {
         const collider = this.getComponent(Collider2D);
         if (collider) {
-            console.log(`[EnemyFollower] ${this.node.name}: Collider2D 配置：`);
-            console.log(`  - Sensor: ${collider.sensor}`);
-            console.log(`  - Group: ${collider.group}`);
+            // console.log(`[EnemyFollower] ${this.node.name}: Collider2D 配置：`);
+            // console.log(`  - Sensor: ${collider.sensor}`);
+            // console.log(`  - Group: ${collider.group}`);
 
             // 确保是 Trigger 模式（不会推挤玩家）
             if (!collider.sensor) {
@@ -400,7 +414,7 @@ export class EnemyFollower extends Component {
 
             // 启用接触监听
             collider.on(Contact2DType.BEGIN_CONTACT, this.onBeginContact, this);
-            console.log(`[EnemyFollower] ${this.node.name}: ✅ 碰撞监听已注册`);
+            // console.log(`[EnemyFollower] ${this.node.name}: ✅ 碰撞监听已注册`);
         } else {
             console.error(`[EnemyFollower] ${this.node.name}: 节点上没有找到 Collider2D 组件！将无法造成伤害。`);
         }
@@ -411,6 +425,12 @@ export class EnemyFollower extends Component {
      */
     private onBeginContact(selfCollider: Collider2D, otherCollider: Collider2D, contact: IPhysics2DContact | null): void {
         console.log(`[EnemyFollower] ${this.node.name}: 检测到碰撞，对方节点: ${otherCollider.node.name}`);
+
+        // 检查伤害检测是否开启
+        if (!this.canDamage) {
+            console.log(`[EnemyFollower] ${this.node.name}: ⚠️ 伤害检测未开启，跳过伤害（距离初始位置: ${this.getDistanceFromInitial().toFixed(1)}像素）`);
+            return;
+        }
 
         // 检查是否只在激活时造成伤害
         if (this.damageOnlyWhenActive && !this.shouldBeActive) {
@@ -463,6 +483,10 @@ export class EnemyFollower extends Component {
         console.log(`[EnemyFollower] ${this.node.name}: 玩家死亡，重置敌人位置`);
         this.isPlayerDead = true;
 
+        // 关闭伤害检测
+        this.canDamage = false;
+        console.log(`[EnemyFollower] ${this.node.name}: ❌ 伤害检测已关闭（将在移动${this.damageActivationDistance}像素后重新开启）`);
+
         // 重置到初始位置
         this.resetToInitialPosition();
 
@@ -474,13 +498,17 @@ export class EnemyFollower extends Component {
      * 玩家复活回调
      */
     private onPlayerRespawned(): void {
-        console.log(`[EnemyFollower] ${this.node.name}: 玩家复活，${this.respawnDelay}秒后恢复追踪`);
-        console.log(`[EnemyFollower] ${this.node.name}: 等待期间敌人将停留在初始位置`);
+        // console.log(`[EnemyFollower] ${this.node.name}: 玩家复活，${this.respawnDelay}秒后恢复追踪`);
+        // console.log(`[EnemyFollower] ${this.node.name}: 等待期间敌人将停留在初始位置`);
+
+        // 确保伤害检测是关闭的
+        this.canDamage = false;
 
         // 延迟指定时间后才恢复追踪
         this.scheduleOnce(() => {
             this.isPlayerDead = false;
-            console.log(`[EnemyFollower] ${this.node.name}: ✅ 延迟结束，恢复追踪玩家`);
+            // console.log(`[EnemyFollower] ${this.node.name}: ✅ 延迟结束，恢复追踪玩家`);
+            // console.log(`[EnemyFollower] ${this.node.name}: ⚠️ 伤害检测仍关闭，需要移动${this.damageActivationDistance}像素后开启`);
         }, this.respawnDelay);
 
         // 确保在初始位置
@@ -491,10 +519,10 @@ export class EnemyFollower extends Component {
      * 重置到初始位置
      */
     private resetToInitialPosition(): void {
-        console.log(`[EnemyFollower] ${this.node.name}: 重置位置到 (${this.initialPosition.x}, ${this.initialPosition.y})`);
+        // console.log(`[EnemyFollower] ${this.node.name}: 重置位置到 (${this.initialPosition.x}, ${this.initialPosition.y})`);
 
         if (this.rb) {
-            console.log(`[EnemyFollower] ${this.node.name}: RigidBody2D Type = ${this.rb.type}`);
+            // console.log(`[EnemyFollower] ${this.node.name}: RigidBody2D Type = ${this.rb.type}`);
 
             // 对于 Kinematic 类型，需要特殊处理
             // 先清空速度，再设置位置
@@ -593,7 +621,7 @@ export class EnemyFollower extends Component {
         }
 
         if (trackerNode) {
-            console.log(`[EnemyFollower] ${this.node.name}: ✅ 自动找到 Player 节点: ${trackerNode.name}`);
+            // console.log(`[EnemyFollower] ${this.node.name}: ✅ 自动找到 Player 节点: ${trackerNode.name}`);
             const tracker = trackerNode.getComponent(PlayerTracker);
             if (tracker) {
                 console.log(`[EnemyFollower] ${this.node.name}: ✅ 找到 PlayerTracker 组件`);
@@ -746,6 +774,33 @@ export class EnemyFollower extends Component {
     public getDistanceToTarget(): number {
         const currentPos = this.node.worldPosition;
         return Vec3.distance(currentPos, this.targetPosition);
+    }
+
+    /**
+     * 获取距离初始位置的距离
+     */
+    private getDistanceFromInitial(): number {
+        const currentPos = this.node.worldPosition;
+        return Vec3.distance(currentPos, this.initialPosition);
+    }
+
+    /**
+     * 检查是否需要开启伤害检测
+     */
+    private checkDamageActivation(): void {
+        // 如果伤害检测已经开启，不需要检查
+        if (this.canDamage) {
+            return;
+        }
+
+        // 计算距离初始位置的距离
+        const distance = this.getDistanceFromInitial();
+
+        // 如果移动距离超过阈值，开启伤害检测
+        if (distance >= this.damageActivationDistance) {
+            this.canDamage = true;
+            console.log(`[EnemyFollower] ${this.node.name}: ✅ 伤害检测已开启！已移动${distance.toFixed(1)}像素（阈值: ${this.damageActivationDistance}）`);
+        }
     }
 
     /**
