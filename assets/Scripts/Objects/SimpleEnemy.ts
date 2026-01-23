@@ -1,4 +1,4 @@
-import { _decorator, Component, RigidBody2D, Vec2, Collider2D, Contact2DType, IPhysics2DContact, UITransform, v2, PhysicsSystem2D, ERaycast2DType, Node, Sprite, Color, Vec3 } from 'cc';
+import { _decorator, Component, RigidBody2D, Vec2, Collider2D, Contact2DType, IPhysics2DContact, UITransform, v2, PhysicsSystem2D, ERaycast2DType, Node, Sprite, Color, Vec3, Graphics, Camera, Layers } from 'cc';
 import { PlayerController } from '../GamePlay/PlayerController';
 const { ccclass, property } = _decorator;
 
@@ -72,17 +72,17 @@ export class SimpleEnemy extends Component {
         if (this.collider) {
             this.collider.on(Contact2DType.BEGIN_CONTACT, this.onBeginContact, this);
         }
-
-        // 创建边界可视化标记
-        if (this.showBoundaryMarkers) {
-            this.createBoundaryMarkers();
-        }
     }
 
     onEnable() {
         // 初始化位置
         this.initialPosition.x = this.node.worldPosition.x;
         this.initialPosition.y = this.node.worldPosition.y;
+
+        // 创建边界可视化标记（在 onEnable 中创建，确保位置已初始化）
+        if (this.showBoundaryMarkers) {
+            this.createBoundaryMarkers();
+        }
     }
 
     onDisable() {
@@ -289,115 +289,186 @@ export class SimpleEnemy extends Component {
     // ========== 可视化边界标记方法 ==========
 
     /**
-     * 创建边界可视化标记
+     * 创建边界可视化标记（使用 Graphics 组件，固定在世界空间）
      */
     private createBoundaryMarkers(): void {
+        // 获取敌人的父节点（确保坐标系统一致）
+        const parentNode = this.node.parent;
+        if (!parentNode) {
+            console.error(`[SimpleEnemy] 无法创建边界标记：敌人没有父节点`);
+            return;
+        }
+
+        // 获取敌人的实际本地位置
+        const enemyLocalPos = this.node.position;
+        const localX = enemyLocalPos.x;
+        const localY = enemyLocalPos.y;
+
+        // 计算边界位置（敌人位置 + 偏移）
+        const leftLocalX = localX + this.leftBoundary;
+        const rightLocalX = localX + this.rightBoundary;
+
+        console.log(`[SimpleEnemy] 创建边界标记:`);
+        console.log(`  - 父节点: ${parentNode.name}`);
+        console.log(`  - 敌人本地位置: (${localX}, ${localY})`);
+        console.log(`  - 敌人世界位置: (${this.node.worldPosition.x}, ${this.node.worldPosition.y})`);
+        console.log(`  - 左边界本地X: ${leftLocalX} (敌人X ${localX} + 偏移 ${this.leftBoundary})`);
+        console.log(`  - 右边界本地X: ${rightLocalX} (敌人X ${localX} + 偏移 ${this.rightBoundary})`);
+
         // ========== 1. 创建左边界标记（红色柱子）==========
         this.leftMarker = this.createMarker(
+            parentNode,
             'LeftBoundaryMarker',
-            this.leftBoundary,
-            new Color(255, 0, 0, 180)
+            leftLocalX,
+            localY,
+            new Color(255, 0, 0, 255)
         );
-        if (this.leftMarker) {
-            this.leftMarker.setParent(this.node);
-        }
 
         // ========== 2. 创建右边界标记（绿色柱子）==========
         this.rightMarker = this.createMarker(
+            parentNode,
             'RightBoundaryMarker',
-            this.rightBoundary,
-            new Color(0, 255, 0, 180)
+            rightLocalX,
+            localY,
+            new Color(0, 255, 0, 255)
         );
-        if (this.rightMarker) {
-            this.rightMarker.setParent(this.node);
-        }
 
         // ========== 3. 创建巡逻范围线（黄色横线）==========
-        this.rangeLine = this.createRangeLine();
-        if (this.rangeLine) {
-            this.rangeLine.setParent(this.node);
-        }
-
-        // ========== 4. 可选：添加文本标签 ==========
-        this.createTextLabel(this.leftMarker, "左");
-        this.createTextLabel(this.rightMarker, "右");
+        this.rangeLine = this.createRangeLine(
+            parentNode,
+            leftLocalX,
+            rightLocalX,
+            localY
+        );
     }
 
     /**
-     * 创建单个边界标记（柱子）
+     * 创建单个边界标记（使用 Graphics 绘制矩形）
+     * @param parent 父节点
      * @param name 节点名称
-     * @param xOffset X轴偏移量
+     * @param x 本地坐标X（相对于父节点）
+     * @param y 本地坐标Y（相对于父节点）
      * @param color 标记颜色
      */
-    private createMarker(name: string, xOffset: number, color: Color): Node {
+    private createMarker(
+        parent: Node,
+        name: string,
+        x: number,
+        y: number,
+        color: Color
+    ): Node {
         const marker = new Node(name);
 
-        // 设置位置
-        marker.setPosition(new Vec3(xOffset, 0, 0));
+        // 添加 UITransform 组件（Graphics节点必须有）
+        const transform = marker.addComponent(UITransform);
+        transform.setContentSize(100, 100); // 设置一个足够大的内容区域
+        transform.setAnchorPoint(0.5, 0); // 锚点在底部中心
 
-        // 添加 Sprite 组件
-        const sprite = marker.addComponent(Sprite);
-        sprite.color = color;
+        // 设置Layer为默认层（与游戏对象相同）
+        marker.layer = this.node.layer; // 使用与敌人相同的 layer
 
-        // 添加 UITransform 并设置大小
-        const transform = marker.getComponent(UITransform);
-        if (!transform) {
-            marker.addComponent(UITransform);
-        }
+        // 设置本地坐标位置（相对于父节点）
+        marker.setPosition(new Vec3(x, y, 0));
 
-        // 设置标记尺寸（宽5像素，高60像素）
-        marker.getComponent(UITransform)!.setContentSize(5, 60);
+        console.log(`[SimpleEnemy] 创建标记 ${name} 在本地位置 (${x}, ${y})`);
 
-        // 设置锚点在底部中心
-        marker.getComponent(UITransform)!.setAnchorPoint(0.5, 0);
+        // 添加 Graphics 组件
+        const graphics = marker.addComponent(Graphics);
+
+        // 绘制矩形柱子（宽10像素，高60像素，向上延伸）
+        const width = 10;
+        const height = 80;
+
+        // 使用更粗、更高的矩形
+        graphics.fillColor = color;
+        graphics.rect(-width / 2, 0, width, height); // 从底部开始向上绘制
+        graphics.fill();
+
+        // 再绘制一个边框使其更明显
+        graphics.strokeColor = new Color(255, 255, 255, 255); // 白色边框
+        graphics.lineWidth = 1;
+        graphics.rect(-width / 2, 0, width, height);
+        graphics.stroke();
+
+        // 添加到父节点（与敌人相同的父节点）
+        marker.setParent(parent);
+
+        // 确保节点激活
+        marker.active = true;
+
+        console.log(`[SimpleEnemy] 标记 ${name} 已创建，active=${marker.active}, 世界位置=(${marker.worldPosition.x}, ${marker.worldPosition.y})`);
 
         return marker;
     }
 
     /**
-     * 创建巡逻范围横线
+     * 创建巡逻范围横线（使用 Graphics 绘制线条）
+     * @param parent 父节点
+     * @param leftX 左边界本地坐标X
+     * @param rightX 右边界本地坐标X
+     * @param y 本地坐标Y
      */
-    private createRangeLine(): Node {
+    private createRangeLine(
+        parent: Node,
+        leftX: number,
+        rightX: number,
+        y: number
+    ): Node {
         const line = new Node('RangeLine');
 
-        // 计算中心位置
-        const centerX = (this.leftBoundary + this.rightBoundary) / 2;
-        line.setPosition(new Vec3(centerX, -30, 0)); // 放在敌人下方
-
-        // 添加 Sprite
-        const sprite = line.addComponent(Sprite);
-        sprite.color = new Color(255, 255, 0, 100); // 半透明黄色
-
         // 添加 UITransform
-        line.addComponent(UITransform);
+        const transform = line.addComponent(UITransform);
+        const rangeWidth = Math.abs(rightX - leftX);
+        transform.setContentSize(rangeWidth + 50, 50);
+        transform.setAnchorPoint(0.5, 0.5);
 
-        // 计算宽度
-        const rangeWidth = Math.abs(this.rightBoundary - this.leftBoundary);
-        line.getComponent(UITransform)!.setContentSize(rangeWidth, 3);
+        // 设置Layer
+        line.layer = this.node.layer; // 使用与敌人相同的 layer
+
+        // 计算中心位置
+        const centerX = (leftX + rightX) / 2;
+        line.setPosition(new Vec3(centerX, y - 20, 0)); // 放在敌人下方20像素
+
+        console.log(`[SimpleEnemy] 创建范围线 本地中心位置(${centerX}, ${y - 20}), 宽度=${rangeWidth}`);
+
+        // 添加 Graphics 组件
+        const graphics = line.addComponent(Graphics);
+
+        // 计算相对坐标（相对于中心点）
+        const halfWidth = (rightX - leftX) / 2;
+
+        // 绘制多条线条使其更明显
+        // 主线
+        graphics.strokeColor = new Color(255, 255, 0, 255); // 黄色
+        graphics.lineWidth = 3;
+        graphics.moveTo(-halfWidth, 0);
+        graphics.lineTo(halfWidth, 0);
+        graphics.stroke();
+
+        // 再绘制一条细一点的亮色线
+        graphics.strokeColor = new Color(255, 255, 255, 200); // 白色半透明
+        graphics.lineWidth = 1;
+        graphics.moveTo(-halfWidth, 0);
+        graphics.lineTo(halfWidth, 0);
+        graphics.stroke();
+
+        // 在两端绘制大圆点作为端点标记
+        graphics.fillColor = new Color(255, 0, 0, 255); // 红色
+        graphics.circle(-halfWidth, 0, 8);
+        graphics.fill();
+        graphics.fillColor = new Color(0, 255, 0, 255); // 绿色
+        graphics.circle(halfWidth, 0, 8);
+        graphics.fill();
+
+        // 添加到父节点
+        line.setParent(parent);
+
+        // 确保节点激活
+        line.active = true;
+
+        console.log(`[SimpleEnemy] 范围线已创建，active=${line.active}, 世界位置=(${line.worldPosition.x}, ${line.worldPosition.y})`);
 
         return line;
-    }
-
-    /**
-     * 创建文本标签
-     */
-    private createTextLabel(parentNode: Node | null, text: string): void {
-        if (!parentNode) return;
-
-        const label = new Node('Label');
-        label.setParent(parentNode);
-        label.setPosition(new Vec3(0, 70, 0)); // 在柱子上方
-
-        const LabelComponent = label.addComponent('cc.Label') as any;
-        if (LabelComponent) {
-            LabelComponent.string = text;
-            LabelComponent.fontSize = 20;
-            LabelComponent.color = new Color(255, 255, 255, 255);
-            LabelComponent.lineHeight = 20;
-        }
-
-        label.addComponent(UITransform);
-        label.getComponent(UITransform)!.setContentSize(40, 20);
     }
 
     /**
@@ -407,12 +478,14 @@ export class SimpleEnemy extends Component {
         if (this.leftMarker) this.leftMarker.active = show;
         if (this.rightMarker) this.rightMarker.active = show;
         if (this.rangeLine) this.rangeLine.active = show;
+        console.log(`[SimpleEnemy] 切换标记显示: ${show}`);
     }
 
     /**
      * 销毁标记节点（清理）
      */
     private destroyMarkers(): void {
+        console.log(`[SimpleEnemy] 销毁标记节点`);
         if (this.leftMarker) {
             this.leftMarker.destroy();
             this.leftMarker = null;

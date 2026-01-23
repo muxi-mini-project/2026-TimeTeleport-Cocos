@@ -61,6 +61,12 @@ export class PlayerController extends Component {
     @property({ group: "Shield", tooltip: "护盾剩余时间（仅供调试查看）" })
     private _shieldTimeRemaining: number = 0;
 
+    @property({ group: "Shield", tooltip: "护盾库存数量（仅供调试查看）" })
+    private _shieldInventoryCount: number = 0;
+
+    // 护盾库存系统：存储每个护盾的持续时间
+    private _shieldInventory: number[] = [];
+
     // --- 内部变量 ---
     private rb: RigidBody2D = null!;
     private inputDir: Vec2 = v2(0, 0);
@@ -267,14 +273,18 @@ export class PlayerController extends Component {
             case KeyCode.KEY_D: this.inputDir.x = 1; break;
             case KeyCode.KEY_W: this.inputDir.y = 1; break;
             case KeyCode.KEY_S: this.inputDir.y = -1; break;
-            
+
             case KeyCode.SPACE:
-            case KeyCode.KEY_J: 
+            case KeyCode.KEY_J:
                 this.tryJump();
                 break;
 
             case KeyCode.KEY_K:
                 this.tryDash();
+                break;
+
+            case KeyCode.KEY_I:
+                this.tryUseShield();
                 break;
 
             case KeyCode.SHIFT_LEFT:
@@ -444,6 +454,64 @@ export class PlayerController extends Component {
     }
 
     // ========== 护盾系统 ==========
+
+    /**
+     * 添加护盾到库存
+     * @param duration 护盾持续时间（秒）
+     */
+    public addShieldToInventory(duration: number): void {
+        this._shieldInventory.push(duration);
+        this._shieldInventoryCount = this._shieldInventory.length;
+
+        console.log(`[护盾库存] 添加护盾（${duration}秒），当前库存: ${this._shieldInventoryCount}`);
+
+        // 发送护盾收集事件（可用于更新UI）
+        this.node.emit('shield-collected', {
+            duration: duration,
+            inventoryCount: this._shieldInventoryCount
+        });
+    }
+
+    /**
+     * 获取护盾库存数量
+     */
+    public getShieldInventoryCount(): number {
+        return this._shieldInventoryCount;
+    }
+
+    /**
+     * 尝试使用护盾（按 I 键调用）
+     */
+    private tryUseShield(): void {
+        // 检查是否有护盾库存
+        if (this._shieldInventory.length === 0) {
+            console.log("[护盾] 没有可用护盾！");
+            // 发送使用失败事件（可用于播放提示音）
+            this.node.emit('shield-use-failed');
+            return;
+        }
+
+        // 检查是否已有激活的护盾
+        if (this._shieldActive) {
+            console.log("[护盾] 护盾已激活中，无需重复使用！");
+            return;
+        }
+
+        // 从库存中取出一个护盾（先进先出）
+        const shieldDuration = this._shieldInventory.shift();
+        this._shieldInventoryCount = this._shieldInventory.length;
+
+        // 激活护盾
+        this.activateShield(shieldDuration);
+
+        console.log(`[护盾] 使用护盾！剩余库存: ${this._shieldInventoryCount}`);
+
+        // 发送护盾使用事件（可用于更新UI）
+        this.node.emit('shield-used', {
+            duration: shieldDuration,
+            inventoryCount: this._shieldInventoryCount
+        });
+    }
 
     /**
      * 激活护盾

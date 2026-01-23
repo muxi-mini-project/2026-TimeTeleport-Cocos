@@ -3,13 +3,13 @@ import { PlayerController } from '../GamePlay/PlayerController';
 const { ccclass, property } = _decorator;
 
 /**
- * 护盾道具
- * 玩家触碰后获得护盾，持续一定时间（默认3秒）
+ * 护盾道具（手持物版本）
+ * 玩家触碰后收集到库存，按 I 键激活
  * 护盾期间玩家无敌，且踩踏敌人时获得额外跳跃力
  */
 @ccclass('ShieldItem')
 export class ShieldItem extends Component {
-    @property({ tooltip: '护盾持续时间（秒）' })
+    @property({ tooltip: '单个护盾的持续时间（秒）' })
     shieldDuration: number = 3.0;
 
     @property({ tooltip: '拾取后是否销毁道具' })
@@ -50,14 +50,19 @@ export class ShieldItem extends Component {
         const playerController = otherCollider.node.getComponent(PlayerController);
         if (!playerController) return;
 
-        // 给玩家添加护盾
-        playerController.activateShield(this.shieldDuration);
+        // 添加护盾到库存（而不是立即激活）
+        playerController.addShieldToInventory(this.shieldDuration);
 
         // 标记已拾取
         this.isPickedUp = true;
 
         // 发送拾取事件（可用于播放音效、特效等）
-        this.node.emit('shield-picked-up');
+        this.node.emit('shield-picked-up', {
+            duration: this.shieldDuration,
+            inventoryCount: playerController.getShieldInventoryCount()
+        });
+
+        console.log(`[ShieldItem] 护盾已收集，持续时间: ${this.shieldDuration}秒`);
 
         // 销毁道具
         if (this.destroyOnPickup) {
