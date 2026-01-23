@@ -1,4 +1,4 @@
-import { _decorator, Component, Sprite, UITransform, Color, Input, input, EventKeyboard, KeyCode, Vec2, ERaycast2DType, RigidBody2D, v2, Collider2D, Contact2DType, IPhysics2DContact, AudioSource, tween, Vec3, PhysicsSystem2D } from 'cc';
+import { _decorator, Component, Sprite, UITransform, Color, Input, input, EventKeyboard, KeyCode, Vec2, ERaycast2DType, RigidBody2D, v2, Collider2D, Contact2DType, IPhysics2DContact, AudioSource, tween, Vec3, PhysicsSystem2D, Director } from 'cc';
 import { TimeTravelManager } from './TimeTravelManager';
 import { GameManager } from '../Core/GameManager';
 import { Hazard } from '../Objects/Hazard';
@@ -12,7 +12,7 @@ export class PlayerController extends Component {
     moveSpeed: number = 10;
 
     @property({ group: "Movement", tooltip: "加速度：从0加速到最大速度的快慢" })
-    acceleration: number = 40;
+    acceleration: number = 40; 
 
     @property({ group: "Movement", tooltip: "减速度：不按键时的自然摩擦力" })
     deceleration: number = 30;
@@ -23,8 +23,8 @@ export class PlayerController extends Component {
     // --- 原有参数 ---
     @property({ group: "Movement", tooltip: "跳跃力度" })
     jumpForce: number = 18;
-
-    @property({ group: "Movement", tooltip: "下降加速度乘数" })
+    
+    @property({ group: "Movement", tooltip: "下降加速度乘数"})
     fallMutiplier: number = 1.5;
 
     @property({ group: "Dash", tooltip: "冲刺速度" })
@@ -39,10 +39,10 @@ export class PlayerController extends Component {
     @property({ group: "Feel", tooltip: "射线检测的长度（超出脚底的距离）" })
     raycastLength: number = 10;
 
-    @property({ group: "GamePlay" })
+    @property({ group: "GamePlay"})
     minYThreshold: number = -50;
 
-    @property({ group: "GamePlay" })
+    @property({ group: "GamePlay"})
     groundLayerMask: number = 0xffffffff;
 
     @property(TimeTravelManager)
@@ -63,10 +63,11 @@ export class PlayerController extends Component {
     private isDashing: boolean = false;
     private canDash: boolean = true;
     private isDead: boolean = false;
+    private isFrozen: boolean = false;  // 是否被冻结（望远镜模式等）
     private _isGrounded: boolean = false;
     private _collider: Collider2D | null = null;
     private _uiTransform: UITransform | null = null;
-
+    
     // 地面检测与土狼时间
     private groundContactSet: Set<string> = new Set();
     private coyoteTimer: number = 0;
@@ -79,6 +80,9 @@ export class PlayerController extends Component {
         input.on(Input.EventType.KEY_DOWN, this.onKeyDown, this);
         input.on(Input.EventType.KEY_UP, this.onKeyUp, this);
 
+        // 监听玩家冻结事件（望远镜模式等）
+        Director.instance.on('PLAYER_FREEZE', this.onPlayerFreeze, this);
+
         const collider = this.getComponent(Collider2D);
         if (collider) {
             collider.on(Contact2DType.BEGIN_CONTACT, this.onBeginContact, this);
@@ -90,18 +94,26 @@ export class PlayerController extends Component {
     onDestroy() {
         input.off(Input.EventType.KEY_DOWN, this.onKeyDown, this);
         input.off(Input.EventType.KEY_UP, this.onKeyUp, this);
+        Director.instance.off('PLAYER_FREEZE', this.onPlayerFreeze, this);
         const collider = this.getComponent(Collider2D);
         if (collider) {
             collider.off(Contact2DType.BEGIN_CONTACT, this.onBeginContact, this);
         }
     }
 
-    update(dt: number) {
+   update(dt: number) {
         if (this.isDead) return;
 
+        // 检查是否被冻结（望远镜模式等）
+        if (this.isFrozen) {
+            // 清空速度和输入
+            this.rb.linearVelocity = Vec2.ZERO.clone();
+            this.inputDir.set(0, 0);
+            return; // 跳过所有更新逻辑
+        }
+
         // 掉落死亡检测
-        if (this.node.getWorldPosition().y < this.minYThreshold) {
-            console.log(`玩家掉落死亡${this.node.getWorldPosition().y}`);
+        if (this.node.getWorldPosition().y < this.minYThreshold){
             this.die();
             return;
         }
@@ -110,7 +122,7 @@ export class PlayerController extends Component {
 
         // 1. 先检测地面
         this.checkGroundedWithRaycast();
-
+        
         // 2. 处理土狼时间倒计时 (如果在空中)
         if (!this._isGrounded && this.coyoteTimer > 0) {
             this.coyoteTimer -= dt;
@@ -120,21 +132,21 @@ export class PlayerController extends Component {
         this.handleMovement(dt);
     }
 
-    public die() {
+    public die(){
         if (this.isDead) return;
         this.isDead = true;
 
         console.log("玩家死亡");
 
         const rb = this.getComponent(RigidBody2D);
-        if (rb) {
+        if (rb){
             rb.linearVelocity = Vec2.ZERO.clone();
             rb.angularVelocity = 0;
             rb.enabled = false;
         }
 
         const collider = this.getComponent(Collider2D);
-        if (collider) {
+        if (collider){
             collider.enabled = false;
         }
 
@@ -150,47 +162,47 @@ export class PlayerController extends Component {
         // B. 播放动画 (如果有美术做的 Frame Animation)
         if (this.deathAnim) {
             this.deathAnim.play(); // 假设动画名叫 die_anim
-        }
+        } 
         // C. 如果没有动画，用代码写一个简单的 Tween (比如变红 + 缩小 + 旋转)
         else {
             const sprite = this.getComponent(Sprite);
             if (sprite) {
                 sprite.color = Color.RED; // 变红
             }
-
+            
             tween(this.node)
-                .delay(0.1) // 稍微停顿一下，让玩家意识到“我死了”
-                // 第一阶段：向上跳 (用 cubicOut 模拟减速上升)
-                .by(0.4, { position: new Vec3(0, 20, 0) }, { easing: 'cubicOut' })
-                // 第二阶段：掉出屏幕 (用 cubicIn 模拟重力加速下落)
-                // 下落 2000 像素确保肯定出屏幕
-                .by(0.8, { position: new Vec3(0, -2000, 0) }, { easing: 'cubicIn' })
-                // 动画结束的回调
-                .call(() => {
-                    this.respawn();
-                })
-                .start();
+            .delay(0.1) // 稍微停顿一下，让玩家意识到“我死了”
+            // 第一阶段：向上跳 (用 cubicOut 模拟减速上升)
+            .by(0.4, { position: new Vec3(0, 20, 0) }, { easing: 'cubicOut' })
+            // 第二阶段：掉出屏幕 (用 cubicIn 模拟重力加速下落)
+            // 下落 2000 像素确保肯定出屏幕
+            .by(0.8, { position: new Vec3(0, -2000, 0) }, { easing: 'cubicIn' })
+            // 动画结束的回调
+            .call(() => {
+                this.respawn();
+            })
+            .start();
         }
     }
 
-    private respawn() {
+    private respawn(){
         const gm = GameManager.instance;
         const targetPos = gm.currentCheckpointPos ? gm.currentCheckpointPos : gm.defaultSpawnPos;
 
         this.node.setWorldPosition(targetPos);
         this.isDead = false;
-
+        
         console.log(`玩家复活,位置${targetPos}`);
-
+        
         const rb = this.getComponent(RigidBody2D);
-        if (rb) {
+        if (rb){
             rb.enabled = true;
             rb.linearVelocity = Vec2.ZERO.clone();
             rb.wakeUp();
         }
 
         const collider = this.getComponent(Collider2D);
-        if (collider) {
+        if (collider){
             collider.enabled = true;
             collider.apply();
         }
@@ -203,22 +215,37 @@ export class PlayerController extends Component {
 
     private applyGravityControl() {
         const vel = this.rb.linearVelocity;
-        if (vel.y < 0) {
+        if (vel.y < 0) { 
             this.rb.gravityScale = this.fallMutiplier;
         } else {
             this.rb.gravityScale = 1;
         }
     }
 
+    /**
+     * 处理玩家冻结事件（望远镜模式等）
+     * @param frozen true=冻结玩家, false=解冻玩家
+     */
+    private onPlayerFreeze(frozen: boolean) {
+        this.isFrozen = frozen;
+        console.log(`[Dash_and_Contact] 玩家${frozen ? '已冻结' : '已解冻'}`);
+
+        // 如果被冻结，立即清空速度
+        if (frozen && this.rb) {
+            this.rb.linearVelocity = Vec2.ZERO.clone();
+            this.inputDir.set(0, 0);
+        }
+    }
+
     private onKeyDown(event: EventKeyboard) {
-        switch (event.keyCode) {
+        switch(event.keyCode) {
             case KeyCode.KEY_A: this.inputDir.x = -1; break;
             case KeyCode.KEY_D: this.inputDir.x = 1; break;
             case KeyCode.KEY_W: this.inputDir.y = 1; break;
             case KeyCode.KEY_S: this.inputDir.y = -1; break;
-
+            
             case KeyCode.SPACE:
-            case KeyCode.KEY_J:
+            case KeyCode.KEY_J: 
                 this.tryJump();
                 break;
 
@@ -233,7 +260,7 @@ export class PlayerController extends Component {
     }
 
     private onKeyUp(event: EventKeyboard) {
-        switch (event.keyCode) {
+        switch(event.keyCode) {
             case KeyCode.KEY_A: if (this.inputDir.x < 0) this.inputDir.x = 0; break;
             case KeyCode.KEY_D: if (this.inputDir.x > 0) this.inputDir.x = 0; break;
             case KeyCode.KEY_W: if (this.inputDir.y > 0) this.inputDir.y = 0; break;
@@ -259,7 +286,7 @@ export class PlayerController extends Component {
         // 情况 A: 没有输入 -> 使用减速度 (摩擦力)
         if (this.inputDir.x === 0) {
             currentAccel = this.deceleration;
-        }
+        } 
         // 情况 B: 有输入，且输入方向与当前速度方向相反 -> 使用反向制动力 (转身)
         // (currentVel.x * inputDir.x < 0) 说明符号相反
         else if (currentVel.x !== 0 && (Math.sign(currentVel.x) !== this.inputDir.x)) {
@@ -308,7 +335,7 @@ export class PlayerController extends Component {
 
     private startDash() {
         this.isDashing = true;
-        this.canDash = false;
+        this.canDash = false; 
 
         let dashDir = this.inputDir.clone();
         if (dashDir.x === 0 && dashDir.y === 0) dashDir.x = this.facingDir;
@@ -332,12 +359,12 @@ export class PlayerController extends Component {
 
         const aabb = this._collider.worldAABB;
         // 建议稍微调大一点，避免因为浮点数精度问题导致判定失效
-        const startY = aabb.center.y;
+        const startY = aabb.center.y; 
         const halfHeight = aabb.height / 2;
         const totalRayLength = halfHeight + this.raycastLength;
 
         // 收缩一点 X 范围，防止贴墙时卡在墙缝里被判定为着地
-        const xMin = aabb.xMin + 5;
+        const xMin = aabb.xMin + 5; 
         const xMax = aabb.xMax - 5;
         const xCenter = aabb.center.x;
 
@@ -350,8 +377,8 @@ export class PlayerController extends Component {
         let isHitGround = false;
 
         for (const startPoint of startPoints) {
-            const p2 = v2(startPoint.x, startPoint.y - totalRayLength);
-
+            const p2 = v2(startPoint.x, startPoint.y - totalRayLength); 
+            
             // 绘制调试射线 (Cocos Creator 3.x 调试用，不用时注释掉)
             // PhysicsSystem2D.instance.debugDrawFlags = 1; 
 
@@ -361,14 +388,14 @@ export class PlayerController extends Component {
                 if (result.collider.node === this.node) continue;
                 if (result.collider.sensor) continue;
                 isHitGround = true;
-
+                
                 const crumbleComp = result.collider.getComponent(CrumblingPlatform);
                 if (crumbleComp) {
                     crumbleComp.onPlayerStay();
                 }
 
-                break;
-
+                break; 
+                
             }
             if (isHitGround) break;
         }

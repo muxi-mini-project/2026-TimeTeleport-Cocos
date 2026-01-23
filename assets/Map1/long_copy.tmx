@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<map version="1.4" tiledversion="1.4.3" orientation="orthogonal" renderorder="left-down" width="120" height="68" tilewidth="16" tileheight="16" infinite="0" nextlayerid="6" nextobjectid="35">
+ <tileset firstgid="1" source="floor.tsx"/>
+ <layer id="1" name="Future_Art" width="120" height="68">
+  <data encoding="base64" compression="zlib">
+   eJzt1FEKwjAMAND9qYdQD6HeTi+hF7Z+DMqgsoGrafcehORDaTqSDgMAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQ2b2Rs2r2WbJmDxHuF5VvwzdrzUfEufvXGzrnv7/6TU+2dt/c5+4PeVGO0MPc/EzxkhflCD3MzRFmrLUcoQf7a397299din2Kw6S2v33kY4pTivOktr995EuKa4rbpN7y/pbetNbrfIYj9DPWtc8svWmt1/kMR+hnrGufWXrTWq/z/Y3Qz1jXPvMNhEHlGw==
+  </data>
+ </layer>
+ <objectgroup id="2" name="Future_Col">
+  <object id="1" x="0" y="1040" width="672" height="48"/>
+  <object id="2" x="672" y="1040" width="192" height="48"/>
+  <object id="3" x="816" y="992" width="96" height="48"/>
+  <object id="6" x="912" y="1040" width="1008" height="48"/>
+ </objectgroup>
+ <layer id="3" name="Past_Art" width="120" height="68">
+  <data encoding="base64" compression="zlib">
+   eJzt0zEOQEAUBFAdDoGGE6Dh/vcyB9BINrHhvWQyU26xv2kAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAJ6Zk0V/to/k1J/tt/+Xdr/a/Wr3+8d++39p96vdr77vNumS3q7mHSX3kIzJZFfzjpJ7TbZkt6t5R8l9AWEM7Wc=
+  </data>
+ </layer>
+ <objectgroup id="4" name="Past_Col">
+  <object id="8" x="0" y="1040" width="1696" height="48"/>
+  <object id="9" x="1696" y="1040" width="224" height="48"/>
+ </objectgroup>
+ <objectgroup id="5" name="Objects">
+  <object id="13" name="spike" x="1056" y="960" width="64" height="64"/>
+  <object id="15" name="checkpoint" x="544" y="1008" width="32" height="32"/>
+  <object id="23" name="spike" x="736" y="976" width="64" height="64"/>
+  <object id="24" name="crumbling_platform" x="1392" y="992" width="64" height="16"/>
+  <object id="25" name="crumbling_platform" x="1520" y="944" width="64" height="16"/>
+  <object id="26" name="crumbling_platform" x="1632" y="880" width="64" height="16"/>
+  <object id="34" name="ViewZone" x="176" y="20" width="1680" height="976">
+   <properties>
+    <property name="boundID" value="101"/>
+   </properties>
+  </object>
+ </objectgroup>
+</map>

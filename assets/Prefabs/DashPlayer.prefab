@@ -230,7 +230,9 @@
     "dashSpeed": 25,
     "dashDuration": 0.15,
     "coyoteTime": 0.1,
+    "raycastLength": 10,
     "minYThreshold": -50,
+    "groundLayerMask": 4294967295,
     "timeTravelManager": null,
     "deathAnim": null,
     "deathSound": null,
@@ -238,7 +240,7 @@
   },
   {
     "__type__": "cc.CompPrefabInfo",
-    "fileId": "95+h0JQ55I5IuUbkjgFww0"
+    "fileId": "42an5WDFtKE7XZop3la6Ih"
   },
   {
     "__type__": "cc.PrefabInfo",
