@@ -19,7 +19,7 @@ export class LaserTrap extends Component {
 
     @property
     inactiveTime: number = 1.5;   // 关闭时间
-    
+
 
     private isActive: boolean = false;
 
@@ -106,6 +106,7 @@ export class LaserTrap extends Component {
             this.hitCollider.enabled = true;
         }
         this.visualNode.active = true;
+        this.checkPlayerOverlapOnce(); // 检查玩家是否与激光发生一次性碰撞
         this.scheduleOnce(this.turnOff, this.activeTime);
     }
     private turnOff = () => {
@@ -116,6 +117,39 @@ export class LaserTrap extends Component {
             this.scheduleOnce(this.turnOn, this.inactiveTime);
         }
     }
+    /**
+     * 检查玩家是否与激光发生一次性碰撞
+     * 当玩家在激光生成时处于激光范围内时触发玩家死亡
+     */
+    private checkPlayerOverlapOnce() {
+        // 获取玩家节点
+        const playerNode = this.mapManager?.playerNode;
+        // 如果玩家节点不存在，则直接返回
+        if (!playerNode) return;
+
+        // 获取玩家控制器组件
+        const player = playerNode.getComponent(PlayerController);
+        // 如果玩家控制器不存在或玩家已死亡，则直接返回
+        if (!player || (player as any).isDead) return;
+
+        // 获取玩家的碰撞器组件
+        const playerCollider = playerNode.getComponent(Collider2D);
+        // 如果玩家碰撞器或激光碰撞器不存在，则直接返回
+        if (!playerCollider || !this.hitCollider) return;
+
+        // 获取激光和玩家的世界坐标系包围盒
+        const laserAABB = this.hitCollider.worldAABB;
+        const playerAABB = playerCollider.worldAABB;
+
+        // 检查两个包围盒是否相交
+        if (laserAABB.intersects(playerAABB)) {
+            // 如果相交，说明玩家在激光生成时已被覆盖
+            console.log('玩家在激光生成时已被覆盖');
+            // 触发玩家死亡
+            player.die();
+        }
+    }
+
 
 }
 
