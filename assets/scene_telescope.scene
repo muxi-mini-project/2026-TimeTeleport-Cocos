@@ -23,7 +23,7 @@
     "_active": true,
     "_components": [],
     "_prefab": {
-      "__id__": 72
+      "__id__": 73
     },
     "_lpos": {
       "__type__": "cc.Vec3",
@@ -54,7 +54,7 @@
     },
     "autoReleaseAssets": false,
     "_globals": {
-      "__id__": 76
+      "__id__": 77
     },
     "_id": "d31f85c1-7041-4d25-a79b-243768cff87a"
   },
@@ -89,13 +89,13 @@
     "_active": true,
     "_components": [
       {
-        "__id__": 69
-      },
-      {
         "__id__": 70
       },
       {
         "__id__": 71
+      },
+      {
+        "__id__": 72
       }
     ],
     "_prefab": null,
@@ -355,8 +355,8 @@
     "recordInterval": 0.05,
     "maxPathPoints": 600,
     "isEnabled": true,
-    "clearOnDeath": false,
-    "_id": "b1SQNlYUFPv7xfcr2RW1DF"
+    "clearOnDeath": true,
+    "_id": "fdsINWve9F9rhR6gDh0ZZe"
   },
   {
     "__type__": "CCPropertyOverrideInfo",
@@ -1376,13 +1376,12 @@
       },
       {
         "__id__": 67
-      }
-    ],
-    "removedComponents": [
+      },
       {
         "__id__": 68
       }
-    ]
+    ],
+    "removedComponents": []
   },
   {
     "__type__": "CCPropertyOverrideInfo",
@@ -1447,9 +1446,21 @@
     }
   },
   {
+    "__type__": "CCPropertyOverrideInfo",
+    "targetInfo": {
+      "__id__": 69
+    },
+    "propertyPath": [
+      "playerNode"
+    ],
+    "value": {
+      "__id__": 6
+    }
+  },
+  {
     "__type__": "cc.TargetInfo",
     "localID": [
-      "52POMB2yxI9qFSWJtN/2Co"
+      "220bwReDJMQIAVWU/Fk1aD"
     ]
   },
   {
@@ -1528,7 +1539,7 @@
     "instance": null,
     "targetOverrides": [
       {
-        "__id__": 73
+        "__id__": 74
       }
     ],
     "nestedPrefabInstanceRoots": [
@@ -1549,7 +1560,7 @@
       "__id__": 60
     },
     "sourceInfo": {
-      "__id__": 74
+      "__id__": 75
     },
     "propertyPath": [
       "playerController"
@@ -1558,7 +1569,7 @@
       "__id__": 6
     },
     "targetInfo": {
-      "__id__": 75
+      "__id__": 76
     }
   },
   {
@@ -1576,28 +1587,28 @@
   {
     "__type__": "cc.SceneGlobals",
     "ambient": {
-      "__id__": 77
-    },
-    "shadows": {
       "__id__": 78
     },
-    "_skybox": {
+    "shadows": {
       "__id__": 79
     },
-    "fog": {
+    "_skybox": {
       "__id__": 80
     },
-    "octree": {
+    "fog": {
       "__id__": 81
     },
-    "skin": {
+    "octree": {
       "__id__": 82
     },
-    "lightProbeInfo": {
+    "skin": {
       "__id__": 83
     },
-    "postSettings": {
+    "lightProbeInfo": {
       "__id__": 84
+    },
+    "postSettings": {
+      "__id__": 85
     },
     "bakedWithStationaryMainLight": false,
     "bakedWithHighpLightmap": false

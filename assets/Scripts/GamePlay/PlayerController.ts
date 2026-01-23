@@ -139,6 +139,9 @@ export class PlayerController extends Component {
 
         console.log("玩家死亡");
 
+        // 发送玩家死亡事件（通知敌人重置位置）
+        this.node.emit('player-died');
+
         const rb = this.getComponent(RigidBody2D);
         if (rb){
             rb.linearVelocity = Vec2.ZERO.clone();
@@ -192,9 +195,12 @@ export class PlayerController extends Component {
 
         this.node.setWorldPosition(targetPos);
         this.isDead = false;
-        
+
         console.log(`玩家复活,位置${targetPos}`);
-        
+
+        // 发送玩家复活事件（通知敌人恢复追踪）
+        this.node.emit('player-respawned');
+
         const rb = this.getComponent(RigidBody2D);
         if (rb){
             rb.enabled = true;

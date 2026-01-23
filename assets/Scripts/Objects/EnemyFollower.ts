@@ -169,7 +169,18 @@ export class EnemyFollower extends Component {
     @property({ tooltip: '是否只在激活时造成伤害' })
     public damageOnlyWhenActive: boolean = true;
 
+    /**
+     * 玩家节点引用（可选）
+     * 如果留空，会自动在场景中查找名为 "Player" 的节点
+     * 推荐手动绑定以确保准确性
+     */
+    @property({ type: Node, tooltip: '玩家节点（可选，留空则自动查找）' })
+    public playerNode: Node | null = null;
+
     // ========== 内部变量 ==========
+    // 初始位置（玩家死亡时重置）
+    private initialPosition: Vec3 = new Vec3();
+
     // 当前轨迹点索引（用于 STEP_BY_STEP 模式）
     private currentPathIndex: number = 0;
 
@@ -182,6 +193,9 @@ export class EnemyFollower extends Component {
     // 当前是否应该激活（根据时间线状态）
     private shouldBeActive: boolean = true;
 
+    // 玩家是否死亡
+    private isPlayerDead: boolean = false;
+
     // 伤害冷却计时器
     private damageCooldownTimer: number = 0;
 
@@ -191,7 +205,13 @@ export class EnemyFollower extends Component {
     // LevelMapManager 引用
     private mapManager: LevelMapManager | null = null;
 
+    // PlayerController 引用（用于监听死亡）
+    private playerController: PlayerController | null = null;
+
     onLoad() {
+        // 保存初始位置
+        Vec3.copy(this.initialPosition, this.node.worldPosition);
+
         // 初始化位置为当前位置
         Vec3.copy(this.targetPosition, this.node.worldPosition);
         this.currentPathIndex = 0;
@@ -233,26 +253,88 @@ export class EnemyFollower extends Component {
         if (collider) {
             collider.off(Contact2DType.BEGIN_CONTACT, this.onBeginContact, this);
         }
+
+        // 移除玩家死亡/复活监听
+        if (this.playerController && this.playerController.node) {
+            this.playerController.node.off('player-died', this.onPlayerDied, this);
+            this.playerController.node.off('player-respawned', this.onPlayerRespawned, this);
+        }
     }
 
     start() {
+        console.log(`[EnemyFollower] ${this.node.name} 初始化开始...`);
+        console.log(`[EnemyFollower] ${this.node.name}: 初始位置: ${this.initialPosition.x}, ${this.initialPosition.y}`);
+
+        // 检查是否有 Collider2D
+        const collider = this.getComponent(Collider2D);
+        if (!collider) {
+            console.error(`[EnemyFollower] ${this.node.name}: ❌ 缺少 BoxCollider2D 组件！将无法造成伤害。`);
+        } else {
+            console.log(`[EnemyFollower] ${this.node.name}: ✅ BoxCollider2D 已存在，Sensor=${collider.sensor}`);
+        }
+
+        // 获取 PlayerController 引用（用于监听玩家死亡）
+        if (this.playerNode) {
+            this.playerController = this.playerNode.getComponent(PlayerController);
+        }
+
+        // 如果没有手动绑定，尝试查找
+        if (!this.playerController) {
+            const scene = this.node.scene;
+            let playerNode = scene.getChildByName('Player');
+
+            if (!playerNode) {
+                // 递归查找
+                const findPlayer = (node: Node): Node | null => {
+                    if (node.name === 'Player') return node;
+                    for (let i = 0; i < node.children.length; i++) {
+                        const result = findPlayer(node.children[i]);
+                        if (result) return result;
+                    }
+                    return null;
+                };
+                playerNode = findPlayer(scene);
+            }
+
+            if (playerNode) {
+                this.playerController = playerNode.getComponent(PlayerController);
+                this.playerNode = playerNode;
+            }
+        }
+
+        // 注册玩家死亡监听
+        if (this.playerController) {
+            this.playerController.node.on('player-died', this.onPlayerDied, this);
+            this.playerController.node.on('player-respawned', this.onPlayerRespawned, this);
+            console.log(`[EnemyFollower] ${this.node.name}: ✅ 已注册玩家死亡/复活监听`);
+        } else {
+            console.warn(`[EnemyFollower] ${this.node.name}: ⚠️ 找不到 PlayerController，无法监听玩家死亡`);
+        }
+
         // 检查是否有 PlayerTracker
         const tracker = this.getPlayerTracker();
         if (!tracker) {
-            console.warn(`[EnemyFollower] ${this.node.name}: No PlayerTracker found in scene!`);
+            console.error(`[EnemyFollower] ${this.node.name}: ❌ 找不到 PlayerTracker！请确保 Player 节点上有 PlayerTracker 组件。`);
             this.isTracking = false;
         } else {
+            console.log(`[EnemyFollower] ${this.node.name}: ✅ PlayerTracker 已找到，开始追踪`);
             this.isTracking = true;
         }
 
         // 初始化激活状态
         this.updateActiveState();
+        console.log(`[EnemyFollower] ${this.node.name}: 当前激活状态: ${this.shouldBeActive}`);
     }
 
     update(dt: number) {
         // 更新伤害冷却
         if (this.damageCooldownTimer > 0) {
             this.damageCooldownTimer -= dt;
+        }
+
+        // 玩家死亡时不追踪
+        if (this.isPlayerDead) {
+            return;
         }
 
         // 检查是否应该激活
@@ -305,29 +387,35 @@ export class EnemyFollower extends Component {
      * 碰撞开始回调
      */
     private onBeginContact(selfCollider: Collider2D, otherCollider: Collider2D, contact: IPhysics2DContact | null): void {
+        console.log(`[EnemyFollower] ${this.node.name}: 检测到碰撞，对方节点: ${otherCollider.node.name}`);
+
         // 检查是否只在激活时造成伤害
         if (this.damageOnlyWhenActive && !this.shouldBeActive) {
+            console.log(`[EnemyFollower] ${this.node.name}: 未激活，跳过伤害`);
             return;
         }
 
         // 检查碰撞的是否是玩家（兼容 ES5）
         const nodeName = otherCollider.node.name;
         if (nodeName.indexOf('Player') !== 0) {
+            console.log(`[EnemyFollower] ${this.node.name}: 不是玩家节点，跳过`);
             return;
         }
 
         // 检查冷却
         if (this.damageCooldownTimer > 0) {
+            console.log(`[EnemyFollower] ${this.node.name}: 伤害冷却中，跳过`);
             return;
         }
 
         // 获取玩家的 PlayerController
         const playerController = otherCollider.node.getComponent(PlayerController) as PlayerController;
         if (!playerController) {
-            console.warn(`[EnemyFollower] ${this.node.name}: 找到 Player 节点但没有 PlayerController 组件`);
+            console.error(`[EnemyFollower] ${this.node.name}: ❌ 找到 Player 节点但没有 PlayerController 组件！`);
             return;
         }
 
+        console.log(`[EnemyFollower] ${this.node.name}: ✅ 调用玩家 die() 方法`);
         // 调用玩家的 die() 方法
         playerController.die();
 
@@ -336,7 +424,6 @@ export class EnemyFollower extends Component {
 
         // 触发伤害事件（可用于播放音效、特效等）
         this.node.emit('enemy-damage-player');
-        console.log(`[EnemyFollower] ${this.node.name} 造成伤害！`);
     }
 
     /**
@@ -344,6 +431,50 @@ export class EnemyFollower extends Component {
      */
     private onTimeStateChanged(state: TimeState): void {
         this.updateActiveState();
+    }
+
+    /**
+     * 玩家死亡回调
+     */
+    private onPlayerDied(): void {
+        console.log(`[EnemyFollower] ${this.node.name}: 玩家死亡，重置敌人位置`);
+        this.isPlayerDead = true;
+
+        // 重置到初始位置
+        this.resetToInitialPosition();
+
+        // 重置追踪索引
+        this.currentPathIndex = 0;
+    }
+
+    /**
+     * 玩家复活回调
+     */
+    private onPlayerRespawned(): void {
+        console.log(`[EnemyFollower] ${this.node.name}: 玩家复活，恢复追踪`);
+        this.isPlayerDead = false;
+
+        // 确保在初始位置
+        this.resetToInitialPosition();
+    }
+
+    /**
+     * 重置到初始位置
+     */
+    private resetToInitialPosition(): void {
+        console.log(`[EnemyFollower] ${this.node.name}: 重置位置到 (${this.initialPosition.x}, ${this.initialPosition.y})`);
+
+        // 直接设置世界位置
+        this.node.setWorldPosition(this.initialPosition);
+
+        // 如果有 RigidBody2D，清空速度
+        if (this.rb) {
+            this.rb.linearVelocity = Vec2.ZERO.clone();
+            this.rb.angularVelocity = 0;
+        }
+
+        // 更新目标位置为初始位置
+        Vec3.copy(this.targetPosition, this.initialPosition);
     }
 
     /**
@@ -375,12 +506,49 @@ export class EnemyFollower extends Component {
      * 获取 PlayerTracker 实例
      */
     private getPlayerTracker(): PlayerTracker | null {
-        // 尝试获取单例
+        // 优先使用手动绑定的玩家节点
+        if (this.playerNode) {
+            const tracker = this.playerNode.getComponent(PlayerTracker);
+            if (tracker) {
+                return tracker;
+            }
+            console.warn(`[EnemyFollower] ${this.node.name}: playerNode 已绑定，但找不到 PlayerTracker 组件！`);
+        }
+
+        // 如果没有手动绑定，尝试自动查找
+        console.log(`[EnemyFollower] ${this.node.name}: playerNode 未绑定，尝试自动查找 Player 节点...`);
+
         const scene = this.node.scene;
-        const trackerNode = scene.getChildByName('Player');
+
+        // 方法1: 查找根节点的直接子节点
+        let trackerNode = scene.getChildByName('Player');
+
+        // 方法2: 如果找不到，递归查找所有子节点
+        if (!trackerNode) {
+            const findPlayer = (node: Node): Node | null => {
+                if (node.name === 'Player') {
+                    return node;
+                }
+                for (let i = 0; i < node.children.length; i++) {
+                    const result = findPlayer(node.children[i]);
+                    if (result) return result;
+                }
+                return null;
+            };
+            trackerNode = findPlayer(scene);
+        }
 
         if (trackerNode) {
-            return trackerNode.getComponent(PlayerTracker);
+            console.log(`[EnemyFollower] ${this.node.name}: ✅ 自动找到 Player 节点: ${trackerNode.name}`);
+            const tracker = trackerNode.getComponent(PlayerTracker);
+            if (tracker) {
+                console.log(`[EnemyFollower] ${this.node.name}: ✅ 找到 PlayerTracker 组件`);
+                return tracker;
+            } else {
+                console.error(`[EnemyFollower] ${this.node.name}: ❌ Player 节点存在，但没有 PlayerTracker 组件！`);
+            }
+        } else {
+            console.error(`[EnemyFollower] ${this.node.name}: ❌ 在场景中找不到 Player 节点！请手动绑定 playerNode 属性。`);
         }
 
         return null;

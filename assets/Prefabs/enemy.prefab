@@ -31,13 +31,10 @@
       },
       {
         "__id__": 8
-      },
-      {
-        "__id__": 10
       }
     ],
     "_prefab": {
-      "__id__": 12
+      "__id__": 10
     },
     "_lpos": {
       "__type__": "cc.Vec3",
@@ -176,40 +173,6 @@
     "fileId": "baPWsIEkFPUpqu5HzvLiLr"
   },
   {
-    "__type__": "cc.RigidBody2D",
-    "_name": "",
-    "_objFlags": 0,
-    "__editorExtras__": {},
-    "node": {
-      "__id__": 1
-    },
-    "_enabled": true,
-    "__prefab": {
-      "__id__": 9
-    },
-    "enabledContactListener": true,
-    "bullet": false,
-    "awakeOnLoad": true,
-    "_group": 1,
-    "_type": 2,
-    "_allowSleep": true,
-    "_gravityScale": 1,
-    "_linearDamping": 0,
-    "_angularDamping": 0,
-    "_linearVelocity": {
-      "__type__": "cc.Vec2",
-      "x": 0,
-      "y": 0
-    },
-    "_angularVelocity": 0,
-    "_fixedRotation": false,
-    "_id": ""
-  },
-  {
-    "__type__": "cc.CompPrefabInfo",
-    "fileId": "52POMB2yxI9qFSWJtN/2Co"
-  },
-  {
     "__type__": "7bbf5r/85pJz77L9UOVbHuY",
     "_name": "",
     "_objFlags": 0,
@@ -219,7 +182,7 @@
     },
     "_enabled": true,
     "__prefab": {
-      "__id__": 11
+      "__id__": 9
     },
     "activeTimeState": 0,
     "followMode": 0,
@@ -239,7 +202,6 @@
     "maxMoveSpeed": 10,
     "damageCooldown": 0.5,
     "damageOnlyWhenActive": true,
-    "playerController": null,
     "_id": ""
   },
   {
