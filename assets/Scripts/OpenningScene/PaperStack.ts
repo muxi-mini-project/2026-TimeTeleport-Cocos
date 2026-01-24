@@ -16,6 +16,16 @@ export class PaperStack extends Component {
     private _papers: Node[] = [];
 
     start() {
+        if (!this.node || !this.node.isValid) {
+            console.error('[PaperStack] 节点无效，无法初始化');
+            return;
+        }
+
+        if (!this.paperPrefab) {
+            console.error('[PaperStack] paperPrefab 未绑定');
+            return;
+        }
+
         // 初始化填满栈
         for (let i = 0; i < this.visibleCount; i++) {
             this.addPaperToBottom();
@@ -33,9 +43,24 @@ export class PaperStack extends Component {
      * 向栈底塞入一张新纸
      */
     private addPaperToBottom() {
+        if (!this.paperPrefab) {
+            console.warn('[PaperStack] paperPrefab 未绑定');
+            return;
+        }
+
         const paper = instantiate(this.paperPrefab);
+        if (!paper) {
+            console.error('[PaperStack] 纸张实例化失败');
+            return;
+        }
+
+        if (!this.node || !this.node.isValid) {
+            console.warn('[PaperStack] 父节点已失效');
+            return;
+        }
+
         this.node.addChild(paper);
-        
+
         // 关键点1：物理位置插到数组最前面（栈底）
         this._papers.unshift(paper);
 
@@ -43,7 +68,7 @@ export class PaperStack extends Component {
         paper.setSiblingIndex(0);
 
         // 初始化状态
-        paper.setPosition(0, 0, 0); 
+        paper.setPosition(0, 0, 0);
     }
 
     /**
@@ -71,7 +96,20 @@ export class PaperStack extends Component {
     public processCurrentPaper(markNode: Node) {
         // 1. 弹出最上面的一张
         const currentPaper = this._papers.pop();
-        if (!currentPaper) return;
+        if (!currentPaper) {
+            console.warn('[PaperStack] 纸张堆栈为空');
+            return;
+        }
+
+        if (!currentPaper.isValid) {
+            console.warn('[PaperStack] 当前纸张节点已失效');
+            return;
+        }
+
+        if (!markNode || !markNode.isValid) {
+            console.warn('[PaperStack] 印记节点无效');
+            return;
+        }
 
         // 2. 绑定印章
         markNode.setParent(currentPaper);
@@ -85,15 +123,17 @@ export class PaperStack extends Component {
         const visibleSize = view.getVisibleSize();
         const targetPos = new Vec3(-visibleSize.width, currentPaper.position.y, 0);
 
-        tween(currentPaper)
-            .to(0.5, { 
-                position: targetPos, 
-                angle: currentPaper.angle - 60, 
-                scale: new Vec3(0.8, 0.8, 1) 
+        const paperTween = tween(currentPaper)
+            .to(0.5, {
+                position: targetPos,
+                angle: currentPaper.angle - 60,
+                scale: new Vec3(0.8, 0.8, 1)
             }, { easing: 'backIn' })
             .call(() => {
-                // 5. 飞出屏幕后销毁
-                currentPaper.destroy();
+                // 再次检查节点有效性后再销毁
+                if (currentPaper && currentPaper.isValid) {
+                    currentPaper.destroy();
+                }
                 // 此时不需要检查输赢了，因为是无限模式
             })
             .start();

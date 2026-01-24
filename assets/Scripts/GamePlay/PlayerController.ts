@@ -80,7 +80,10 @@ export class PlayerController extends Component {
     private _isGrounded: boolean = false;
     private _collider: Collider2D | null = null;
     private _uiTransform: UITransform | null = null;
-    
+
+    // 输入控制标志
+    private _inputEnabled: boolean = true;
+
     // 地面检测与土狼时间
     private groundContactSet: Set<string> = new Set();
     private coyoteTimer: number = 0;
@@ -112,6 +115,31 @@ export class PlayerController extends Component {
         if (collider) {
             collider.off(Contact2DType.BEGIN_CONTACT, this.onBeginContact, this);
         }
+    }
+
+    /**
+     * 设置输入是否激活
+     * @param enabled true=启用输入，false=禁用输入
+     */
+    public setInputActive(enabled: boolean): void {
+        this._inputEnabled = enabled;
+        console.log(`[PlayerController] 输入${enabled ? '启用' : '禁用'}`);
+
+        // 如果禁用输入，清空当前输入方向和速度
+        if (!enabled) {
+            this.inputDir.set(0, 0);
+            if (this.rb) {
+                this.rb.linearVelocity = Vec2.ZERO.clone();
+            }
+        }
+    }
+
+    /**
+     * 获取输入是否激活
+     * @returns 输入是否激活
+     */
+    public isInputActive(): boolean {
+        return this._inputEnabled;
     }
 
    update(dt: number) {
@@ -268,6 +296,11 @@ export class PlayerController extends Component {
     }
 
     private onKeyDown(event: EventKeyboard) {
+        // 如果输入被禁用，不处理按键
+        if (!this._inputEnabled) {
+            return;
+        }
+
         switch(event.keyCode) {
             case KeyCode.KEY_A: this.inputDir.x = -1; break;
             case KeyCode.KEY_D: this.inputDir.x = 1; break;
@@ -294,6 +327,11 @@ export class PlayerController extends Component {
     }
 
     private onKeyUp(event: EventKeyboard) {
+        // 如果输入被禁用，不处理按键
+        if (!this._inputEnabled) {
+            return;
+        }
+
         switch(event.keyCode) {
             case KeyCode.KEY_A: if (this.inputDir.x < 0) this.inputDir.x = 0; break;
             case KeyCode.KEY_D: if (this.inputDir.x > 0) this.inputDir.x = 0; break;
