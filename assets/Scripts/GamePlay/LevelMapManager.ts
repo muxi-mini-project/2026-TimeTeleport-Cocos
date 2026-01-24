@@ -625,25 +625,9 @@ export class LevelMapManager extends Component {
         const normalizedType = typeStr.toLowerCase();
 
         switch (normalizedType) {
-            case 'coin':
-                return CollectibleType.COIN;
-            case 'gem':
-                return CollectibleType.GEM;
-            case 'star':
-                return CollectibleType.STAR;
-            case 'heart':
-                return CollectibleType.HEART;
-            case 'key':
-                return CollectibleType.KEY;
-            case 'fragment':
-                return CollectibleType.FRAGMENT;
-            case 'relic':
-                return CollectibleType.RELIC;
-            case 'custom':
-                return CollectibleType.CUSTOM;
             default:
                 console.warn(`[LevelMapManager] 未知的收集物类型: ${typeStr}, 使用默认类型 COIN`);
-                return CollectibleType.COIN;
+                return CollectibleType.FRAGMENT;
         }
     }
 }

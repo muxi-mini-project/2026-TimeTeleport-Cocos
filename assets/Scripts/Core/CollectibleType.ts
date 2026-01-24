@@ -2,14 +2,10 @@ import { _decorator, SpriteFrame } from 'cc';
 const { ccclass, property } = _decorator;
 
 export enum CollectibleType {
-    COIN = 'coin',
-    GEM = 'gem',
-    STAR = 'star',
-    HEART = 'heart',
-    KEY = 'key',
-    FRAGMENT = 'fragment',
-    RELIC = 'relic',
-    CUSTOM = 'custom'
+    FRAGMENT = 'time_fragment',
+    CHIP = 'future_chip',
+    FOSSIL = 'ancient_fossil',
+    LETTER = 'ccnu_letter'
 }
 
 export interface CollectibleConfig {
@@ -18,8 +14,6 @@ export interface CollectibleConfig {
     name: string;
     description: string;
     icon?: SpriteFrame;
-    rarity?: 'common' | 'uncommon' | 'rare' | 'legendary';
-    value?: number;
 }
 
 export interface CollectibleSaveData {
@@ -30,3 +24,10 @@ export interface CollectibleSaveData {
     isCollected: boolean;
     timestamp?: number;
 }
+
+export const COLLECTIBLE_ICON_PATHS: Record<CollectibleType, string> = {
+    [CollectibleType.FRAGMENT]: 'textures/collectibles/time_fragment',
+    [CollectibleType.CHIP]: 'textures/collectibles/future_chip',
+    [CollectibleType.FOSSIL]: 'textures/collectibles/ancient_fossil',
+    [CollectibleType.LETTER]: 'textures/collectibles/ccnu_letter'
+};

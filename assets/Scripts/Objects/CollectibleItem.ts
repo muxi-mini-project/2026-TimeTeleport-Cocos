@@ -1,4 +1,4 @@
-import { _decorator, Component, Collider2D, Contact2DType, IPhysics2DContact, Sprite, SpriteFrame, Vec3 } from 'cc';
+import { _decorator, Component, Collider2D, Contact2DType, IPhysics2DContact, Sprite, SpriteFrame, Vec3, Enum } from 'cc';
 import { CollectibleManager } from '../Core/CollectibleManager';
 import { CollectibleType, CollectibleConfig } from '../Core/CollectibleType';
 const { ccclass, property } = _decorator;
@@ -9,8 +9,8 @@ export class CollectibleItem extends Component {
     @property({ tooltip: "收集物唯一ID" })
     collectibleId: string = '';
 
-    @property({ type: CollectibleType, tooltip: "收集物类型" })
-    collectibleType: CollectibleType = CollectibleType.COIN;
+    @property({ type: Enum(CollectibleType), tooltip: "收集物类型" })
+    collectibleType: CollectibleType = CollectibleType.FRAGMENT;
 
     @property({ type: SpriteFrame, tooltip: "图标（可选）" })
     icon: SpriteFrame = null;
@@ -20,9 +20,6 @@ export class CollectibleItem extends Component {
 
     @property({ tooltip: "是否已被收集" })
     isCollected: boolean = false;
-
-    @property({ tooltip: "收集物价值（可选）" })
-    value: number = 1;
 
     private collider: Collider2D | null = null;
     private sprite: Sprite | null = null;
@@ -92,7 +89,6 @@ export class CollectibleItem extends Component {
         this.node.emit('collectible-collected', {
             collectibleId: this.collectibleId,
             type: this.collectibleType,
-            value: this.value
         });
 
         this.onCollected();
@@ -131,7 +127,6 @@ export class CollectibleItem extends Component {
             name: `${this.collectibleType}_${this.collectibleId}`,
             description: `收集物类型: ${this.collectibleType}`,
             icon: this.icon,
-            value: this.value
         };
     }
 }
