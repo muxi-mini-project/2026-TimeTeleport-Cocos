@@ -1,5 +1,8 @@
 import { _decorator, Component, Node, TiledMap, math, RigidBody2D, Collider2D, BoxCollider2D, ERigidBody2DType, Size, v3, PhysicsSystem2D, EPhysics2DDrawFlags, UIOpacity, UITransform, Prefab, instantiate, Rect, Vec3 } from 'cc';
 import { CameraFollow } from '../CameraFollow';
+import { CollectibleItem } from '../Objects/CollectibleItem';
+import { CollectibleManager } from '../Core/CollectibleManager';
+import { CollectibleType } from '../Core/CollectibleType';
 const { ccclass, property } = _decorator;
 
 const GROUP_LEVEL = 1 << 2;
@@ -58,6 +61,9 @@ export class LevelMapManager extends Component {
 
     @property({ type: Prefab, tooltip: "碎裂地面预制体"})
     crumblingPlatformPrefab: Prefab = null!;
+
+    @property({ type: Prefab, tooltip: "可收集元素预制体"})
+    collectiblePrefab: Prefab = null;
 
     @property
     debugDraw: boolean = true;
@@ -142,6 +148,8 @@ export class LevelMapManager extends Component {
         }
 
         this.spawnPrefbs("Objects");
+
+        CollectibleManager.getInstance().initialize(this.node.name || "Level");
 
         this.toggleTime();
 
@@ -305,6 +313,13 @@ export class LevelMapManager extends Component {
                     }
                     targetPrefab = this.crumblingPlatformPrefab;
                     break;
+                case "collectible":
+                    if (!this.collectiblePrefab) {
+                        console.warn(`未绑定${name}预制体`)
+                        return;
+                    }
+                    targetPrefab = this.collectiblePrefab;
+                    break;
                 default:
                     console.log(`[Switch跳过] 对象 ${rawName} (小写: ${name}) 不匹配任何预制体类型`);
                     break;
@@ -327,7 +342,7 @@ export class LevelMapManager extends Component {
             console.log(`生成对象 [${rawName}] 位置 x:${finalX} y:${finalY}`);
 
                 const uiTransform = newNode.getComponent(UITransform);
-                let originalWidth = 100; 
+                let originalWidth = 100;
                 let originalHeight = 100;
                 if (uiTransform && uiTransform.contentSize.width > 0) {
                     originalWidth = uiTransform.contentSize.width;
@@ -336,13 +351,35 @@ export class LevelMapManager extends Component {
                 const scaleX = w / originalWidth;
                 const scaleY = h / originalHeight;
                 newNode.setScale(v3(scaleX, scaleY, 1));
-            
+
+            if (name === "collectible") {
+                const collectibleItem = newNode.getComponent(CollectibleItem);
+                if (collectibleItem) {
+                    const props = object.properties || {};
+                    const rawCollectibleId = props["collectibleId"] || `${this.node.name}_C_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
+                    const rawTypeStr = props["type"] || "coin";
+
+                    const collectibleId = String(rawCollectibleId);
+                    const typeStr = String(rawTypeStr);
+
+                    collectibleItem.collectibleId = collectibleId;
+
+                    const collectibleType = this.parseCollectibleType(typeStr);
+                    collectibleItem.collectibleType = collectibleType;
+
+                    const manager = CollectibleManager.getInstance();
+                    manager.registerCollectible(this.node.name || "Level", collectibleId, collectibleType);
+
+                    console.log(`[Collectible] 生成收集物: ${collectibleId}, 类型: ${collectibleType}, 位置: (${finalX.toFixed(1)}, ${finalY.toFixed(1)})`);
+                }
+            }
+
             // 处理拉伸Checkpoint的碰撞箱尺寸(报错就改)
             const collider = newNode.getComponent(Collider2D);
             if (collider) {
                 // 设置分组 (假设 GROUP_LEVEL 是你的常量)
-                collider.group = GROUP_LEVEL; 
-                collider.apply(); 
+                collider.group = GROUP_LEVEL;
+                collider.apply();
             }
         }
     }
@@ -582,5 +619,31 @@ export class LevelMapManager extends Component {
 
     public getScopeData(scopeID: number): ScopeData | undefined {
         return this._boundsMap.get(scopeID);
+    }
+
+    private parseCollectibleType(typeStr: string): CollectibleType {
+        const normalizedType = typeStr.toLowerCase();
+
+        switch (normalizedType) {
+            case 'coin':
+                return CollectibleType.COIN;
+            case 'gem':
+                return CollectibleType.GEM;
+            case 'star':
+                return CollectibleType.STAR;
+            case 'heart':
+                return CollectibleType.HEART;
+            case 'key':
+                return CollectibleType.KEY;
+            case 'fragment':
+                return CollectibleType.FRAGMENT;
+            case 'relic':
+                return CollectibleType.RELIC;
+            case 'custom':
+                return CollectibleType.CUSTOM;
+            default:
+                console.warn(`[LevelMapManager] 未知的收集物类型: ${typeStr}, 使用默认类型 COIN`);
+                return CollectibleType.COIN;
+        }
     }
 }
