@@ -6,13 +6,15 @@
 
 ### 核心功能
 
-- ✅ 多种收集物类型支持（金币、宝石、星星、碎片等）
+- ✅ 多种收集物类型支持（时间碎片、未来芯片、古代化石、CCNU信件）
 - ✅ 唯一编号系统，便于识别和管理
-- ✅ 自动生成和注册收集物
-- ✅ 本地存储收集进度
+- ✅ **强制在 Tiled 中指定 collectibleId**，避免随机生成
+- ✅ 本地存储收集进度（数据结构已优化，减少 70-95% 存储）
 - ✅ 收集率统计和查询
-- ✅ 云端同步数据接口
+- ✅ 云端同步数据接口（数据量大幅减小）
 - ✅ 与 Tiled 地图编辑器无缝集成
+
+> **重要提示**：本系统已进行数据结构简化，详细信息请查看 [CollectibleDataSimplification.md](CollectibleDataSimplification.md)
 
 ## 文件结构
 
@@ -51,25 +53,22 @@ Scripts/
 1. 打开你的 Tiled 地图文件
 2. 在 **Objects** 图层中添加对象
 3. 设置对象属性：
-   - **Name**: `collectible`（必须）
-   - **Type**: （可选，不填也行）
-   - **Custom Properties**:
-     - `collectibleId`: 唯一编号（如 `L1_C001`）
-     - `type`: 收集物类型（如 `coin`, `gem`, `star` 等）
-     - `iconPath`: 图标资源路径（可选，如 `textures/collectibles/special_coin`）
+    - **Name**: `collectible`（必须）
+    - **Type**: （可选，不填也行）
+    - **Custom Properties**:
+      - `collectibleId`: **唯一编号（必须！）**，格式如 `L1_F001`
+      - `type`: 收集物类型（默认：`time_fragment`）
 
 #### 收集物类型列表
 
-| 类型值        | 说明    | 枚举常量                       |
-| ---------- | ----- | -------------------------- |
-| `coin`     | 金币    | `CollectibleType.COIN`     |
-| `gem`      | 宝石    | `CollectibleType.GEM`      |
-| `star`     | 星星    | `CollectibleType.STAR`     |
-| `heart`    | 爱心/生命 | `CollectibleType.HEART`    |
-| `key`      | 钥匙    | `CollectibleType.KEY`      |
-| `fragment` | 碎片    | `CollectibleType.FRAGMENT` |
-| `relic`    | 遗物    | `CollectibleType.RELIC`    |
-| `custom`   | 自定义   | `CollectibleType.CUSTOM`   |
+| 类型值 | 说明 | 枚举常量 | 简写 | 示例 ID |
+| ------ | ------ | --------- | ----- | ------- |
+| `time_fragment` | 时间碎片 | `CollectibleType.FRAGMENT` | F | L1_F001 |
+| `future_chip` | 未来芯片 | `CollectibleType.CHIP` | C | L1_C001 |
+| `ancient_fossil` | 古代化石 | `CollectibleType.FOSSIL` | A | L2_A005 |
+| `ccnu_letter` | CCNU 信件 | `CollectibleType.LETTER` | L | L1_L010 |
+
+> **重要**：`collectibleId` 属性是**必须**的，如果不指定，系统会报错并跳过该收集物！
 
 #### Tiled 对象配置示例
 
@@ -78,8 +77,8 @@ Scripts/
 对象位置: (x: 100, y: 200)
 尺寸: (宽: 32, 高: 32)
 Custom Properties:
-  - collectibleId: L1_C001
-  - type: coin
+  - collectibleId: L1_F001  # 必须指定！
+  - type: time_fragment       # 可选，默认值
 ```
 
 #### 自定义图标配置示例
@@ -198,29 +197,32 @@ resources/
 
 ## 收集物编号规范
 
-建议使用以下命名格式：`{关卡ID}_{类型简写}_{序号}`
+### 命名格式
+**必须**使用以下格式：`{关卡ID}_{类型简写}_{序号}`
+
+**格式说明：**
+- `{关卡ID}`: 关卡编号，如 `L1`、`L2`、`L3`
+- `{类型简写}`: 见下表
+- `{序号}`: 三位数字序号，如 `001`、`002`、`010`
 
 ### 编号示例
 
 | 编号        | 关卡      | 类型       | 说明       |
 | --------- | ------- | -------- | -------- |
-| `L1_C001` | Level 1 | Coin     | 第1关第1个金币 |
-| `L1_G001` | Level 1 | Gem      | 第1关第1个宝石 |
-| `L1_G002` | Level 1 | Gem      | 第1关第2个宝石 |
-| `L2_F001` | Level 2 | Fragment | 第2关第1个碎片 |
-| `L3_K001` | Level 3 | Key      | 第3关第1把钥匙 |
+| `L1_F001` | Level 1 | Fragment | 第1关第1个碎片 |
+| `L1_F002` | Level 1 | Fragment | 第1关第2个碎片 |
+| `L1_C001` | Level 1 | Chip     | 第1关第1个芯片 |
+| `L2_A005` | Level 2 | Fossil   | 第2关第5个化石 |
+| `L3_L010` | Level 3 | Letter   | 第3关第10封信件 |
 
 ### 编号类型简写对照表
 
-| 类型       | 简写  | 完整英文     |
-| -------- | --- | -------- |
-| Coin     | `C` | Coin     |
-| Gem      | `G` | Gem      |
-| Star     | `S` | Star     |
-| Heart    | `H` | Heart    |
-| Key      | `K` | Key      |
-| Fragment | `F` | Fragment |
-| Relic    | `R` | Relic    |
+| 类型           | 简写  | 完整类型           |
+| ------------ | --- | -------------- |
+| Fragment     | `F` | time_fragment |
+| Chip         | `C` | future_chip   |
+| Fossil       | `A` | ancient_fossil |
+| Letter       | `L` | ccnu_letter   |
 
 ## API 使用指南
 
@@ -503,38 +505,24 @@ private onTimeStateChanged(state) {
 {
   "version": "1.0.0",
   "lastUpdated": 1706102400000,
-  "totals": {
-    "totalLevels": 2,
-    "totalCollectibles": 50,
-    "totalCollected": 30
+  "levels": {
+    "Level1": {
+      "levelId": "Level1",
+      "levelName": "Level1",
+      "totalCollectibles": 25,
+      "collectedCount": 15,
+      "collectedIds": ["L1_F001", "L1_F005", "L1_C002"]
+    }
   },
-  "levels": [
-    [
-      "Level1",
-      {
-        "levelId": "Level1",
-        "levelName": "Level1",
-        "totalCollectibles": 25,
-        "collectedCount": 15,
-        "collectibles": [
-          [
-            "L1_C001",
-            {
-              "collectibleId": "L1_C001",
-              "type": "coin",
-              "levelId": "Level1",
-              "instanceId": "xxx",
-              "position": {"x": 100, "y": 200, "z": 0},
-              "isCollected": true,
-              "timestamp": 1706102400000
-            }
-          ]
-        ]
-      }
-    ]
-  ]
+  "totals": {
+    "totalLevels": 1,
+    "totalCollectibles": 25,
+    "totalCollected": 15
+  }
 }
 ```
+
+> **注意**：数据结构已简化，详细信息请查看 [CollectibleDataSimplification.md](CollectibleDataSimplification.md)
 
 ### 清除存储
 
@@ -596,7 +584,7 @@ if (success) {
 
 ### Q: 收集物编号重复怎么办？
 
-**A:** 如果 Tiled 中的 `collectibleId` 为空，系统会自动生成唯一编号。如果需要手动指定，请确保编号在全局范围内唯一。
+**A:** 现在 `collectibleId` 是**必须**在 Tiled 中指定的，系统不会自动生成。请确保每个收集物的 ID 在全局范围内唯一。如果 ID 为空或重复，系统会在控制台报错并跳过该收集物。
 
 ### Q: 如何重置某个关卡的收集进度？
 
@@ -640,7 +628,10 @@ manager.registerCollectible('Level1', 'L1_C001', CollectibleType.COIN);
 
 ```typescript
 export enum CollectibleType {
-    // ... 现有类型
+    FRAGMENT = 'time_fragment',
+    CHIP = 'future_chip',
+    FOSSIL = 'ancient_fossil',
+    LETTER = 'ccnu_letter',
     NEW_ITEM = 'new_item'  // 新增类型
 }
 ```
@@ -652,7 +643,19 @@ case 'new_item':
     return CollectibleType.NEW_ITEM;
 ```
 
-3. 在 Tiled 中使用新类型：设置 `type` 属性为 `new_item`
+3. 在 `CollectibleItem.ts` 中添加图标路径映射：
+
+```typescript
+export const COLLECTIBLE_ICON_PATHS: Record<CollectibleType, string> = {
+    [CollectibleType.FRAGMENT]: 'textures/collectibles/time_fragment',
+    [CollectibleType.CHIP]: 'textures/collectibles/future_chip',
+    [CollectibleType.FOSSIL]: 'textures/collectibles/ancient_fossil',
+    [CollectibleType.LETTER]: 'textures/collectibles/ccnu_letter',
+    [CollectibleType.NEW_ITEM]: 'textures/collectibles/new_item'
+};
+```
+
+4. 在 Tiled 中使用新类型：设置 `type` 属性为 `new_item`
 
 ### 自定义收集物行为
 
@@ -678,6 +681,22 @@ export class CustomCollectibleItem extends CollectibleItem {
 
 ## 总结
 
-本收集物系统提供了完整的解决方案，从 Tiled 编辑器配置到云端同步，涵盖游戏开发的所有阶段。按照本指南操作，你可以快速搭建出功能完善的收集物系统。
+本收集物系统提供了完整的解决方案，从 Tiled 编辑器配置到云端同步，涵盖游戏开发的所有阶段。
+
+### 主要特性
+
+- ✅ **数据结构优化**：减少 70-95% 存储空间
+- ✅ **强制 ID 规范**：所有收集物必须在 Tiled 中指定 collectibleId
+- ✅ **云端同步友好**：轻量级 JSON 格式
+- ✅ **完整的类型系统**：支持多种收集物类型
+- ✅ **易于扩展**：添加新类型简单快捷
+
+按照本指南操作，你可以快速搭建出功能完善的收集物系统。
+
+### 相关文档
+
+- [CollectibleDataSimplification.md](CollectibleDataSimplification.md) - 数据结构简化详细说明
+- [CollectibleIconSystemGuide.md](CollectibleIconSystemGuide.md) - 图标系统说明
+- [hierarchy-structure.md](hierarchy-structure.md) - 层级结构组织指南
 
 如有任何问题或建议，欢迎反馈！

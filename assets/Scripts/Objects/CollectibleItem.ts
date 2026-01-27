@@ -1,6 +1,7 @@
 import { _decorator, Component, Collider2D, Contact2DType, IPhysics2DContact, Sprite, SpriteFrame, Vec3, Enum } from 'cc';
 import { CollectibleManager } from '../Core/CollectibleManager';
 import { CollectibleType, CollectibleConfig } from '../Core/CollectibleType';
+import { CollectibleInfo } from '../Core/CollectibleData';
 const { ccclass, property } = _decorator;
 
 @ccclass('CollectibleItem')
@@ -77,12 +78,7 @@ export class CollectibleItem extends Component {
         if (manager) {
             manager.collectItem({
                 collectibleId: this.collectibleId,
-                type: this.collectibleType,
-                levelId: manager.getCurrentLevelId(),
-                instanceId: this.node.uuid,
-                position: this.node.getWorldPosition(),
-                isCollected: true,
-                timestamp: Date.now()
+                type: this.collectibleType
             });
         }
 

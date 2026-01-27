@@ -1,6 +1,7 @@
 import { _decorator, Component, Collider2D, Contact2DType, IPhysics2DContact, Sprite, SpriteFrame, Vec3, Enum, tween, UIOpacity, UITransform, resources } from 'cc';
 import { CollectibleManager } from '../Core/CollectibleManager';
 import { CollectibleType, CollectibleConfig, COLLECTIBLE_ICON_PATHS } from '../Core/CollectibleType';
+import { CollectibleInfo } from '../Core/CollectibleData';
 const { ccclass, property } = _decorator;
 
 @ccclass('TempCollectibleItem')
@@ -187,12 +188,7 @@ export class TempCollectibleItem extends Component {
         if (manager) {
             manager.collectItem({
                 collectibleId: this.collectibleId,
-                type: this.collectibleType,
-                levelId: manager.getCurrentLevelId(),
-                instanceId: this.node.uuid,
-                position: this.node.getWorldPosition(),
-                isCollected: true,
-                timestamp: Date.now()
+                type: this.collectibleType
             });
         }
 
@@ -204,7 +200,6 @@ export class TempCollectibleItem extends Component {
 
         console.log(`[TempCollectibleItem] ${this.collectibleId}: 已收集`);
 
-        // 播放收集动画（缩小消失）
         this.playCollectAnimation();
     }
 

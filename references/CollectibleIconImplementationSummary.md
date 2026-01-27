@@ -19,21 +19,21 @@
 
 **Tiled 配置示例**：
 
-普通金币（使用默认图标）：
+普通碎片（使用默认图标）：
 ```
 Name: collectible
 Custom Properties:
-  - collectibleId: L1_C001
-  - type: coin
+  - collectibleId: L1_F001
+  - type: time_fragment
 ```
 
-特殊金币（使用自定义图标）：
+特殊碎片（使用自定义图标）：
 ```
 Name: collectible
 Custom Properties:
-  - collectibleId: L1_C002
-  - type: coin
-  - iconPath: textures/collectibles/special_gold_coin
+  - collectibleId: L1_F002
+  - type: time_fragment
+  - iconPath: textures/collectibles/special_fragment
 ```
 
 ### 3. CollectibleItem 改进

@@ -16,15 +16,6 @@ export interface CollectibleConfig {
     icon?: SpriteFrame;
 }
 
-export interface CollectibleSaveData {
-    collectibleId: string;
-    type: CollectibleType;
-    levelId: string;
-    instanceId: string;
-    isCollected: boolean;
-    timestamp?: number;
-}
-
 export const COLLECTIBLE_ICON_PATHS: Record<CollectibleType, string> = {
     [CollectibleType.FRAGMENT]: 'textures/collectibles/time_fragment',
     [CollectibleType.CHIP]: 'textures/collectibles/future_chip',

@@ -356,8 +356,13 @@ export class LevelMapManager extends Component {
                 const collectibleItem = newNode.getComponent(CollectibleItem);
                 if (collectibleItem) {
                     const props = object.properties || {};
-                    const rawCollectibleId = props["collectibleId"] || `${this.node.name}_C_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
-                    const rawTypeStr = props["type"] || "coin";
+                    const rawCollectibleId = props["collectibleId"];
+                    const rawTypeStr = props["type"] || "time_fragment";
+
+                    if (!rawCollectibleId) {
+                        console.error(`[Collectible] collectibleId 必须在 Tiled 中指定！对象位置: (${finalX.toFixed(1)}, ${finalY.toFixed(1)})`);
+                        continue;
+                    }
 
                     const collectibleId = String(rawCollectibleId);
                     const typeStr = String(rawTypeStr);
@@ -625,8 +630,20 @@ export class LevelMapManager extends Component {
         const normalizedType = typeStr.toLowerCase();
 
         switch (normalizedType) {
+            case 'time_fragment':
+            case 'fragment':
+                return CollectibleType.FRAGMENT;
+            case 'future_chip':
+            case 'chip':
+                return CollectibleType.CHIP;
+            case 'ancient_fossil':
+            case 'fossil':
+                return CollectibleType.FOSSIL;
+            case 'ccnu_letter':
+            case 'letter':
+                return CollectibleType.LETTER;
             default:
-                console.warn(`[LevelMapManager] 未知的收集物类型: ${typeStr}, 使用默认类型 COIN`);
+                console.warn(`[LevelMapManager] 未知的收集物类型: ${typeStr}, 使用默认类型 FRAGMENT`);
                 return CollectibleType.FRAGMENT;
         }
     }
