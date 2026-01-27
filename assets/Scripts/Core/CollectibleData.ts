@@ -1,15 +1,8 @@
-import { _decorator, Vec3 } from 'cc';
-import { CollectibleType, CollectibleConfig } from './CollectibleType';
-const { ccclass, property } = _decorator;
+import { CollectibleType } from './CollectibleType';
 
-export interface CollectibleInstanceData {
-    collectibleId: string;
+export interface CollectibleInfo {
+    collectibleId: string; // L1_C001
     type: CollectibleType;
-    levelId: string;
-    instanceId: string;
-    position: Vec3;
-    isCollected: boolean;
-    timestamp?: number;
 }
 
 export interface LevelCollectibleData {
@@ -17,13 +10,14 @@ export interface LevelCollectibleData {
     levelName: string;
     totalCollectibles: number;
     collectedCount: number;
-    collectibles: Map<string, CollectibleInstanceData>;
+    collectedIds: string[];
+    collectibleTypes: { [collectibleId: string]: CollectibleType };
 }
 
 export interface GlobalCollectibleData {
     version: string;
     lastUpdated: number;
-    levels: Map<string, LevelCollectibleData>;
+    levels: { [levelId: string]: LevelCollectibleData };
     totals: {
         totalLevels: number;
         totalCollectibles: number;

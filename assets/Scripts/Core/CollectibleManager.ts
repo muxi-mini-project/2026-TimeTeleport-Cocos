@@ -1,5 +1,5 @@
 import { _decorator } from 'cc';
-import { CollectibleInstanceData, LevelCollectibleData, GlobalCollectibleData, CloudSyncData } from './CollectibleData';
+import { CollectibleInfo, LevelCollectibleData, GlobalCollectibleData, CloudSyncData } from './CollectibleData';
 import { CollectibleType } from './CollectibleType';
 const { ccclass } = _decorator;
 
@@ -29,7 +29,7 @@ export class CollectibleManager {
         this.globalData = {
             version: CollectibleManager.DATA_VERSION,
             lastUpdated: 0,
-            levels: new Map<string, LevelCollectibleData>(),
+            levels: {},
             totals: {
                 totalLevels: 0,
                 totalCollectibles: 0,
@@ -42,7 +42,7 @@ export class CollectibleManager {
         this.currentLevelId = levelId;
         this.loadFromStorage();
 
-        if (!this.globalData.levels.has(levelId)) {
+        if (!this.globalData.levels[levelId]) {
             this.createLevelData(levelId, levelId);
         }
 
@@ -63,43 +63,41 @@ export class CollectibleManager {
             levelName: levelName,
             totalCollectibles: 0,
             collectedCount: 0,
-            collectibles: new Map<string, CollectibleInstanceData>()
+            collectedIds: [],
+            collectibleTypes: {}
         };
-        this.globalData.levels.set(levelId, levelData);
-        this.globalData.totals.totalLevels = this.globalData.levels.size;
+        this.globalData.levels[levelId] = levelData;
+        this.globalData.totals.totalLevels = Object.keys(this.globalData.levels).length;
         this.saveToStorage();
     }
 
     private ensureLevelExists(levelId: string): void {
-        if (!this.globalData.levels.has(levelId)) {
+        if (!this.globalData.levels[levelId]) {
             this.createLevelData(levelId, levelId);
         }
     }
 
-    public collectItem(itemData: CollectibleInstanceData): void {
+    public collectItem(itemData: CollectibleInfo): void {
         if (!this.globalData) {
             console.error('[CollectibleManager] 全局数据未初始化');
             return;
         }
 
-        const levelId = itemData.levelId || this.currentLevelId;
+        const levelId = this.currentLevelId;
         this.ensureLevelExists(levelId);
 
-        const levelData = this.globalData.levels.get(levelId);
+        const levelData = this.globalData.levels[levelId];
         if (!levelData) {
             console.error(`[CollectibleManager] 关卡 ${levelId} 数据不存在`);
             return;
         }
 
-        if (levelData.collectibles.has(itemData.collectibleId)) {
-            const existing = levelData.collectibles.get(itemData.collectibleId);
-            if (existing && existing.isCollected) {
-                console.warn(`[CollectibleManager] 收集物 ${itemData.collectibleId} 已被收集`);
-                return;
-            }
+        if (levelData.collectedIds.indexOf(itemData.collectibleId) !== -1) {
+            console.warn(`[CollectibleManager] 收集物 ${itemData.collectibleId} 已被收集`);
+            return;
         }
 
-        levelData.collectibles.set(itemData.collectibleId, itemData);
+        levelData.collectedIds.push(itemData.collectibleId);
         levelData.collectedCount++;
 
         this.updateTotals();
@@ -114,13 +112,12 @@ export class CollectibleManager {
             return false;
         }
 
-        const levelData = this.globalData.levels.get(this.currentLevelId);
+        const levelData = this.globalData.levels[this.currentLevelId];
         if (!levelData) {
             return false;
         }
 
-        const item = levelData.collectibles.get(collectibleId);
-        return item ? item.isCollected : false;
+        return levelData.collectedIds.indexOf(collectibleId) !== -1;
     }
 
     public isCollectedInLevel(levelId: string, collectibleId: string): boolean {
@@ -128,35 +125,25 @@ export class CollectibleManager {
             return false;
         }
 
-        const levelData = this.globalData.levels.get(levelId);
+        const levelData = this.globalData.levels[levelId];
         if (!levelData) {
             return false;
         }
 
-        const item = levelData.collectibles.get(collectibleId);
-        return item ? item.isCollected : false;
+        return levelData.collectedIds.indexOf(collectibleId) !== -1;
     }
 
     public registerCollectible(levelId: string, collectibleId: string, type: CollectibleType): void {
         this.ensureLevelExists(levelId);
 
-        const levelData = this.globalData.levels.get(levelId);
+        const levelData = this.globalData.levels[levelId];
         if (!levelData) {
             return;
         }
 
-        if (!levelData.collectibles.has(collectibleId)) {
-            const itemData: CollectibleInstanceData = {
-                collectibleId: collectibleId,
-                type: type,
-                levelId: levelId,
-                instanceId: '',
-                position: null,
-                isCollected: false
-            };
-
-            levelData.collectibles.set(collectibleId, itemData);
+        if (levelData.collectedIds.indexOf(collectibleId) === -1 && levelData.totalCollectibles < levelData.totalCollectibles + 1) {
             levelData.totalCollectibles++;
+            levelData.collectibleTypes[collectibleId] = type;
 
             this.globalData.totals.totalCollectibles++;
             this.saveToStorage();
@@ -166,17 +153,17 @@ export class CollectibleManager {
     }
 
     public getLevelCollectibleCount(levelId: string): number {
-        const levelData = this.globalData?.levels.get(levelId);
+        const levelData = this.globalData?.levels[levelId];
         return levelData ? levelData.totalCollectibles : 0;
     }
 
     public getLevelCollectedCount(levelId: string): number {
-        const levelData = this.globalData?.levels.get(levelId);
+        const levelData = this.globalData?.levels[levelId];
         return levelData ? levelData.collectedCount : 0;
     }
 
     public getLevelCollectionRate(levelId: string): number {
-        const levelData = this.globalData?.levels.get(levelId);
+        const levelData = this.globalData?.levels[levelId];
         if (!levelData || levelData.totalCollectibles === 0) {
             return 0;
         }
@@ -199,17 +186,17 @@ export class CollectibleManager {
     }
 
     public getCollectedByType(levelId: string, type: CollectibleType): number {
-        const levelData = this.globalData?.levels.get(levelId);
+        const levelData = this.globalData?.levels[levelId];
         if (!levelData) {
             return 0;
         }
 
         let count = 0;
-        levelData.collectibles.forEach(item => {
-            if (item.type === type && item.isCollected) {
+        for (const collectibleId of levelData.collectedIds) {
+            if (levelData.collectibleTypes[collectibleId] === type) {
                 count++;
             }
-        });
+        }
         return count;
     }
 
@@ -219,25 +206,20 @@ export class CollectibleManager {
         let totalCollectibles = 0;
         let totalCollected = 0;
 
-        this.globalData.levels.forEach(levelData => {
+        for (const levelId in this.globalData.levels) {
+            const levelData = this.globalData.levels[levelId];
             totalCollectibles += levelData.totalCollectibles;
             totalCollected += levelData.collectedCount;
-        });
+        }
 
         this.globalData.totals.totalCollectibles = totalCollectibles;
         this.globalData.totals.totalCollected = totalCollected;
-        this.globalData.totals.totalLevels = this.globalData.levels.size;
+        this.globalData.totals.totalLevels = Object.keys(this.globalData.levels).length;
     }
 
     private saveToStorage(): void {
         try {
-            const saveData = {
-                version: this.globalData.version,
-                lastUpdated: this.globalData.lastUpdated,
-                levels: Array.from(this.globalData.levels.entries()),
-                totals: this.globalData.totals
-            };
-            const json = JSON.stringify(saveData);
+            const json = JSON.stringify(this.globalData);
             localStorage.setItem(CollectibleManager.STORAGE_KEY, json);
         } catch (error) {
             console.error('[CollectibleManager] 保存到本地存储失败:', error);
@@ -252,36 +234,9 @@ export class CollectibleManager {
         try {
             const json = localStorage.getItem(CollectibleManager.STORAGE_KEY);
             if (json) {
-                const saveData = JSON.parse(json);
+                const saveData: GlobalCollectibleData = JSON.parse(json);
                 if (saveData.version === CollectibleManager.DATA_VERSION) {
-                    this.globalData.version = saveData.version;
-                    this.globalData.lastUpdated = saveData.lastUpdated;
-                    this.globalData.totals = saveData.totals;
-
-                    this.globalData.levels = new Map<string, LevelCollectibleData>();
-                    saveData.levels.forEach(([levelId, levelData]: [string, any]) => {
-                        const collectibles = new Map<string, CollectibleInstanceData>();
-                        if (levelData.collectibles) {
-                            if (Array.isArray(levelData.collectibles)) {
-                                levelData.collectibles.forEach(([id, item]: [string, CollectibleInstanceData]) => {
-                                    collectibles.set(id, item);
-                                });
-                            } else if (levelData.collectibles instanceof Map) {
-                                levelData.collectibles.forEach((item: CollectibleInstanceData, id: string) => {
-                                    collectibles.set(id, item);
-                                });
-                            }
-                        }
-
-                        this.globalData.levels.set(levelId, {
-                            levelId: levelData.levelId,
-                            levelName: levelData.levelName,
-                            totalCollectibles: levelData.totalCollectibles,
-                            collectedCount: levelData.collectedCount,
-                            collectibles: collectibles
-                        });
-                    });
-
+                    this.globalData = saveData;
                     this.dataLoaded = true;
                     console.log('[CollectibleManager] 从本地存储加载成功');
                 } else {
@@ -305,16 +260,14 @@ export class CollectibleManager {
     }
 
     public resetLevelData(levelId: string): void {
-        if (!this.globalData || !this.globalData.levels.has(levelId)) {
+        if (!this.globalData || !this.globalData.levels[levelId]) {
             return;
         }
 
-        const levelData = this.globalData.levels.get(levelId);
+        const levelData = this.globalData.levels[levelId];
         if (levelData) {
             levelData.collectedCount = 0;
-            levelData.collectibles.forEach(item => {
-                item.isCollected = false;
-            });
+            levelData.collectedIds = [];
             this.updateTotals();
             this.globalData.lastUpdated = Date.now();
             this.saveToStorage();
@@ -375,7 +328,7 @@ export class CollectibleManager {
     }
 
     public getLevelData(levelId: string): LevelCollectibleData | null {
-        return this.globalData?.levels.get(levelId) || null;
+        return this.globalData?.levels[levelId] || null;
     }
 
     public debugPrintAllData(): void {
@@ -392,16 +345,17 @@ export class CollectibleManager {
         console.log(`已收集: ${this.globalData.totals.totalCollected}`);
         console.log(`收集率: ${this.getTotalCollectionRate().toFixed(2)}%`);
 
-        this.globalData.levels.forEach((levelData, levelId) => {
+        for (const levelId in this.globalData.levels) {
+            const levelData = this.globalData.levels[levelId];
             console.log(`\n--- 关卡 ${levelId} (${levelData.levelName}) ---`);
             console.log(`收集物总数: ${levelData.totalCollectibles}`);
             console.log(`已收集: ${levelData.collectedCount}`);
             console.log(`收集率: ${this.getLevelCollectionRate(levelId).toFixed(2)}%`);
 
-            levelData.collectibles.forEach((item, itemId) => {
-                console.log(`  [${item.isCollected ? '✓' : ' '}] ${itemId} (${item.type})`);
+            levelData.collectedIds.forEach((itemId) => {
+                console.log(`  [✓] ${itemId}`);
             });
-        });
+        }
 
         console.log('[CollectibleManager] =====================');
     }
