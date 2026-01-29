@@ -65,6 +65,9 @@ export class LevelMapManager extends Component {
     @property({ type: Prefab, tooltip: "可收集元素预制体"})
     collectiblePrefab: Prefab = null;
 
+    @property({ type: Prefab, tooltip: "钩爪锚点预制体"})
+    anchorPrefab: Prefab = null;
+
     @property
     debugDraw: boolean = true;
 
@@ -165,6 +168,9 @@ export class LevelMapManager extends Component {
 
         const objectsRoot = new Node(layerName + "_Root");
         this.tiledMap.node.addChild(objectsRoot);
+
+        const anchorsRoot = new Node("Anchors_Root");
+        this.tiledMap.node.addChild(anchorsRoot);
 
         const objects = objectGroup.getObjects();
         const mapSize = this.tiledMap.getMapSize();
@@ -320,6 +326,13 @@ export class LevelMapManager extends Component {
                     }
                     targetPrefab = this.collectiblePrefab;
                     break;
+                case "anchor":
+                    if (!this.anchorPrefab) {
+                        console.warn(`未绑定${name}预制体`)
+                        return;
+                    }
+                    targetPrefab = this.anchorPrefab;
+                    break;
                 default:
                     console.log(`[Switch跳过] 对象 ${rawName} (小写: ${name}) 不匹配任何预制体类型`);
                     break;
@@ -335,7 +348,8 @@ export class LevelMapManager extends Component {
             }
 
             const newNode = instantiate(targetPrefab);
-            objectsRoot.addChild(newNode);
+            const targetRoot = name === "anchor" ? anchorsRoot : objectsRoot;
+            targetRoot.addChild(newNode);
 
             newNode.name = rawName;
             newNode.setPosition(v3(finalX, finalY, 0));

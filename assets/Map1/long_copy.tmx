@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.4" tiledversion="1.4.3" orientation="orthogonal" renderorder="left-down" width="120" height="68" tilewidth="16" tileheight="16" infinite="0" nextlayerid="6" nextobjectid="36">
+<map version="1.4" tiledversion="1.4.3" orientation="orthogonal" renderorder="left-down" width="160" height="68" tilewidth="16" tileheight="16" infinite="0" nextlayerid="6" nextobjectid="43">
  <tileset firstgid="1" source="floor.tsx"/>
- <layer id="1" name="Future_Art" width="120" height="68">
+ <layer id="1" name="Future_Art" width="160" height="68">
   <data encoding="base64" compression="zlib">
-   eJzt1FEKwjAMAND9qYdQD6HeTi+hF7Z+DMqgsoGrafcehORDaTqSDgMAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQ2b2Rs2r2WbJmDxHuF5VvwzdrzUfEufvXGzrnv7/6TU+2dt/c5+4PeVGO0MPc/EzxkhflCD3MzRFmrLUcoQf7a397299din2Kw6S2v33kY4pTivOktr995EuKa4rbpN7y/pbetNbrfIYj9DPWtc8svWmt1/kMR+hnrGufWXrTWq/z/Y3Qz1jXPvMNhEHlGw==
+   eJzt1VGKwjAQBmDfdA+hHsLd262X0AsbHwqlUFqhTf7g98Ew86BkkpLJ4QAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAANDOfydr1eyzV3uekfOf52xgP3vdr8R72+qNXPPfrX5DPb5Hrve3ucsf5YQe1uZ0jxJP+aOc0MPanC7hjvaWE3ow/743J/Rg/uXlY4lTiZ9Jbf7lSrijW+VziUuJ66Q2/3Il3NGt8q3Eb4m/SW3+5Zp7s3qvxzMgoZ+hrr1m6/0u9TT3ZvVej2dAQj9DXXvN1vtd6mnuzeq9Hs+/hH6Guvaarfe71NMLE4LzKA==
   </data>
  </layer>
  <objectgroup id="2" name="Future_Col">
@@ -11,15 +11,17 @@
   <object id="2" x="672" y="1040" width="192" height="48"/>
   <object id="3" x="816" y="992" width="96" height="48"/>
   <object id="6" x="912" y="1040" width="1008" height="48"/>
+  <object id="41" x="1920" y="1040" width="640" height="48"/>
  </objectgroup>
- <layer id="3" name="Past_Art" width="120" height="68">
+ <layer id="3" name="Past_Art" width="160" height="68">
   <data encoding="base64" compression="zlib">
-   eJzt0zEOQEAUBFAdDoGGE6Dh/vcyB9BINrHhvWQyU26xv2kAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAJ6Zk0V/to/k1J/tt/+Xdr/a/Wr3+8d++39p96vdr77vNumS3q7mHSX3kIzJZFfzjpJ7TbZkt6t5R8l9AWEM7Wc=
+   eJzt1LENhDAMBVC6gyGAhpvgoDn23wtvkCaSrfCeZH3LTdLY0wQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA73FEfeWwWd0/6pbDZnXZ+yndvwp7Kt0/OV5Wl72f0v2rsKfS/ZPjZXXZ+ynfff8+UXPUoi/zj5599vtLY7ZGbVG7vsw/evbZ7++N2S/qjLr0Zf7Rs89+/2rMHkxB+30=
   </data>
  </layer>
  <objectgroup id="4" name="Past_Col">
   <object id="8" x="0" y="1040" width="1696" height="48"/>
   <object id="9" x="1696" y="1040" width="224" height="48"/>
+  <object id="42" x="1920" y="1040" width="640" height="48"/>
  </objectgroup>
  <objectgroup id="5" name="Objects">
   <object id="13" name="spike" x="1056" y="960" width="64" height="64"/>
@@ -39,5 +41,10 @@
     <property name="type" value="time_fra"/>
    </properties>
   </object>
+  <object id="36" name="anchor" x="384" y="800" width="32" height="32"/>
+  <object id="37" name="anchor" x="832" y="736" width="32" height="32"/>
+  <object id="38" name="anchor" x="544" y="496" width="32" height="32"/>
+  <object id="39" name="anchor" x="1024" y="432" width="32" height="32"/>
+  <object id="40" name="anchor" x="1264" y="304" width="32" height="32"/>
  </objectgroup>
 </map>
