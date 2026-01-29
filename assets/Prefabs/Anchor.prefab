@@ -1,7 +1,7 @@
 [
   {
     "__type__": "cc.Prefab",
-    "_name": "DashPlayer",
+    "_name": "Anchor",
     "_objFlags": 0,
     "__editorExtras__": {},
     "_native": "",
@@ -13,7 +13,7 @@
   },
   {
     "__type__": "cc.Node",
-    "_name": "DashPlayer",
+    "_name": "Anchor",
     "_objFlags": 0,
     "__editorExtras__": {},
     "_parent": null,
@@ -28,21 +28,15 @@
       },
       {
         "__id__": 6
-      },
-      {
-        "__id__": 8
-      },
-      {
-        "__id__": 10
       }
     ],
     "_prefab": {
-      "__id__": 12
+      "__id__": 8
     },
     "_lpos": {
       "__type__": "cc.Vec3",
-      "x": -584.969,
-      "y": -269.258,
+      "x": 0,
+      "y": 0,
       "z": 0
     },
     "_lrot": {
@@ -82,8 +76,8 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 40,
-      "height": 36
+      "width": 64,
+      "height": 64
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -94,7 +88,7 @@
   },
   {
     "__type__": "cc.CompPrefabInfo",
-    "fileId": "c5rURwKnZHE527OC7hgzHa"
+    "fileId": "acwN0dGPhINao0rz4lG0Zr"
   },
   {
     "__type__": "cc.Sprite",
@@ -119,12 +113,12 @@
       "a": 255
     },
     "_spriteFrame": {
-      "__uuid__": "57520716-48c8-4a19-8acf-41c9f8777fb0@f9941",
+      "__uuid__": "5c379c01-7ff7-4457-9237-13c28ddffc96@f9941",
       "__expectedType__": "cc.SpriteFrame"
     },
     "_type": 0,
     "_fillType": 0,
-    "_sizeMode": 1,
+    "_sizeMode": 2,
     "_fillCenter": {
       "__type__": "cc.Vec2",
       "x": 0,
@@ -132,17 +126,17 @@
     },
     "_fillStart": 0,
     "_fillRange": 0,
-    "_isTrimmedMode": true,
+    "_isTrimmedMode": false,
     "_useGrayscale": false,
     "_atlas": null,
     "_id": ""
   },
   {
     "__type__": "cc.CompPrefabInfo",
-    "fileId": "96ykPnODVFUpNCiAafQf96"
+    "fileId": "29CwIahy5EN4GUlUqXV/nb"
   },
   {
-    "__type__": "cc.BoxCollider2D",
+    "__type__": "a0108jrYwNDXZeAz0Ccgk/V",
     "_name": "",
     "_objFlags": 0,
     "__editorExtras__": {},
@@ -153,94 +147,17 @@
     "__prefab": {
       "__id__": 7
     },
-    "tag": 0,
-    "_group": 1,
-    "_density": 1,
-    "_sensor": false,
-    "_friction": 0.2,
-    "_restitution": 0,
-    "_offset": {
-      "__type__": "cc.Vec2",
-      "x": 0,
-      "y": 0
-    },
-    "_size": {
-      "__type__": "cc.Size",
-      "width": 40,
-      "height": 36
-    },
+    "detectionRadius": 300,
+    "debugDraw": true,
+    "indicatorAnimDuration": 0.3,
+    "debugGraphics": null,
+    "indicatorGraphics": null,
+    "playerNodeRef": null,
     "_id": ""
   },
   {
     "__type__": "cc.CompPrefabInfo",
-    "fileId": "01icicIUFE+aAMH3q8JhIX"
-  },
-  {
-    "__type__": "cc.RigidBody2D",
-    "_name": "",
-    "_objFlags": 0,
-    "__editorExtras__": {},
-    "node": {
-      "__id__": 1
-    },
-    "_enabled": true,
-    "__prefab": {
-      "__id__": 9
-    },
-    "enabledContactListener": true,
-    "bullet": false,
-    "awakeOnLoad": true,
-    "_group": 1,
-    "_type": 2,
-    "_allowSleep": true,
-    "_gravityScale": 1,
-    "_linearDamping": 0,
-    "_angularDamping": 0,
-    "_linearVelocity": {
-      "__type__": "cc.Vec2",
-      "x": 0,
-      "y": 0
-    },
-    "_angularVelocity": 0,
-    "_fixedRotation": true,
-    "_id": ""
-  },
-  {
-    "__type__": "cc.CompPrefabInfo",
-    "fileId": "93JHyjknFJ2LXYFQfrnT8D"
-  },
-  {
-    "__type__": "f85e6eb6thG3bqr0U7peTGl",
-    "_name": "",
-    "_objFlags": 0,
-    "__editorExtras__": {},
-    "node": {
-      "__id__": 1
-    },
-    "_enabled": true,
-    "__prefab": {
-      "__id__": 11
-    },
-    "moveSpeed": 10,
-    "acceleration": 40,
-    "deceleration": 30,
-    "turnAcceleration": 80,
-    "jumpForce": 18,
-    "fallMutiplier": 1.5,
-    "dashSpeed": 25,
-    "dashDuration": 0.15,
-    "coyoteTime": 0.1,
-    "raycastLength": 10,
-    "minYThreshold": -50,
-    "groundLayerMask": 4294967295,
-    "timeTravelManager": null,
-    "deathAnim": null,
-    "deathSound": null,
-    "_id": ""
-  },
-  {
-    "__type__": "cc.CompPrefabInfo",
-    "fileId": "42an5WDFtKE7XZop3la6Ih"
+    "fileId": "b0Pyd1cVFK7YFVBffx5fro"
   },
   {
     "__type__": "cc.PrefabInfo",
@@ -250,7 +167,7 @@
     "asset": {
       "__id__": 0
     },
-    "fileId": "ac0Thli2hAnIm9UYUGdH/s",
+    "fileId": "54mKzsRGBETajZ8QLknGLt",
     "instance": null,
     "targetOverrides": null
   }

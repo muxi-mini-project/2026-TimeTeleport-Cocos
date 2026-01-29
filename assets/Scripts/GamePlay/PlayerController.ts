@@ -3,6 +3,7 @@ import { TimeTravelManager } from './TimeTravelManager';
 import { GameManager } from '../Core/GameManager';
 import { Hazard } from '../Objects/Hazard';
 import { CrumblingPlatform } from '../Objects/CrumblingPlatform';
+import { GrappleController } from '../Objects/GrappleController';
 const { ccclass, property } = _decorator;
 
 @ccclass('PlayerController')
@@ -47,6 +48,9 @@ export class PlayerController extends Component {
 
     @property(TimeTravelManager)
     timeTravelManager: TimeTravelManager = null;
+
+    @property(GrappleController)
+    grappleController: GrappleController = null;
 
     @property(Animation)
     deathAnim: Animation = null; // 拖入动画组件
@@ -95,6 +99,12 @@ export class PlayerController extends Component {
 
         input.on(Input.EventType.KEY_DOWN, this.onKeyDown, this);
         input.on(Input.EventType.KEY_UP, this.onKeyUp, this);
+
+        if (this.grappleController) {
+            console.log('[PlayerController] GrappleController 已正确绑定');
+        } else {
+            console.warn('[PlayerController] GrappleController 未绑定，请在 Inspector 中拖入 GrappleController 组件');
+        }
 
         // 监听玩家冻结事件（望远镜模式等）
         Director.instance.on('PLAYER_FREEZE', this.onPlayerFreeze, this);
@@ -161,6 +171,10 @@ export class PlayerController extends Component {
         }
 
         if (this.isDashing) return;
+
+        if (this.grappleController && this.grappleController.isGrapplingActive()) {
+            return;
+        }
 
         // 1. 先检测地面
         this.checkGroundedWithRaycast();
@@ -615,5 +629,13 @@ export class PlayerController extends Component {
         const vel = this.rb.linearVelocity;
         this.rb.linearVelocity = v2(vel.x, force);
         console.log(`[弹跳] 向上跳跃，力度: ${force}`);
+    }
+
+    /**
+     * 重置冲刺次数（用于钩爪、复活等场景）
+     */
+    public resetDash(): void {
+        this.canDash = true;
+        console.log('[PlayerController] 冲刺次数已重置');
     }
 }

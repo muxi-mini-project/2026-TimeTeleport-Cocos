@@ -34,18 +34,15 @@
       },
       {
         "__id__": 10
-      },
-      {
-        "__id__": 12
       }
     ],
     "_prefab": {
-      "__id__": 14
+      "__id__": 12
     },
     "_lpos": {
       "__type__": "cc.Vec3",
-      "x": -854.939,
-      "y": -417.581,
+      "x": -584.969,
+      "y": -269.258,
       "z": 0
     },
     "_lrot": {
@@ -157,7 +154,7 @@
       "__id__": 7
     },
     "tag": 0,
-    "_group": 2,
+    "_group": 1,
     "_density": 1,
     "_sensor": false,
     "_friction": 0.2,
@@ -234,7 +231,7 @@
     "dashDuration": 0.15,
     "coyoteTime": 0.1,
     "raycastLength": 10,
-    "minYThreshold": -200,
+    "minYThreshold": -50,
     "groundLayerMask": 4294967295,
     "timeTravelManager": null,
     "deathAnim": null,
@@ -246,28 +243,6 @@
     "fileId": "42an5WDFtKE7XZop3la6Ih"
   },
   {
-    "__type__": "05c0fgoN2ZKhaXohUjG6bJ4",
-    "_name": "",
-    "_objFlags": 0,
-    "__editorExtras__": {},
-    "node": {
-      "__id__": 1
-    },
-    "_enabled": true,
-    "__prefab": {
-      "__id__": 13
-    },
-    "recordInterval": 0.05,
-    "maxPathPoints": 600,
-    "isEnabled": true,
-    "clearOnPlayerDeath": true,
-    "_id": ""
-  },
-  {
-    "__type__": "cc.CompPrefabInfo",
-    "fileId": "0aL9bWI2RCsLynf2FAxYqu"
-  },
-  {
     "__type__": "cc.PrefabInfo",
     "root": {
       "__id__": 1
@@ -276,6 +251,7 @@
       "__id__": 0
     },
     "fileId": "ac0Thli2hAnIm9UYUGdH/s",
+    "instance": null,
     "targetOverrides": null
   }
 ]
