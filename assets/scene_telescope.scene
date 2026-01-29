@@ -104,7 +104,7 @@
     "_prefab": null,
     "_lpos": {
       "__type__": "cc.Vec3",
-      "x": 960,
+      "x": 959.9999999999999,
       "y": 540,
       "z": 0
     },
@@ -193,7 +193,7 @@
     "_priority": 1,
     "_fov": 45,
     "_fovAxis": 0,
-    "_orthoHeight": 540,
+    "_orthoHeight": 802.3880597014925,
     "_near": 0,
     "_far": 2000,
     "_color": {
@@ -352,8 +352,10 @@
     "debugLog": true,
     "drawRope": false,
     "ropeGraphics": null,
-    "grappleSpeed": 15,
+    "grappleSpeed": 30,
     "reachDistance": 10,
+    "grappleForce": 60,
+    "resetDashOnGrapple": true,
     "_id": "236biJCexHOZxqEgNeTHyk"
   },
   {
@@ -1543,7 +1545,7 @@
     "__prefab": null,
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 1920,
+      "width": 1919.9999999999998,
       "height": 1080
     },
     "_anchorPoint": {
