@@ -1,14 +1,10 @@
-import { _decorator, Component, Node } from 'cc';
-const { ccclass, property } = _decorator;
+import { _decorator, Component, director } from 'cc';
+const { ccclass } = _decorator;
 
 @ccclass('StartMenu')
 export class StartMenu extends Component {
-    start() {
 
-    }
-
-    update(deltaTime: number) {
-        
+    onClickStart () {
+        director.loadScene('LevelSelect');
     }
 }
-
