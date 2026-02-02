@@ -2,12 +2,12 @@
   "ver": "1.1.50",
   "importer": "prefab",
   "imported": true,
-  "uuid": "8ecaa340-b32e-4464-a500-ed14f13b26d4",
+  "uuid": "535d0e09-3f9f-4bfb-888d-ebfb3ac4bd3d",
   "files": [
     ".json"
   ],
   "subMetas": {},
   "userData": {
-    "syncNodeName": "StartBtn"
+    "syncNodeName": "LevelButton"
   }
 }
