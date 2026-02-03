@@ -119,16 +119,23 @@ export class PaperStack extends Component {
         this.addPaperToBottom();
         this.refreshVisualLayout(); // 重新计算每张纸应该在的高度
 
-        // 4. 处理飞出逻辑 (这部分保持不变)
+        // 4. 处理飞出逻辑：向上蓄力 -> 向下飘出
+        const chargeDistance = 80;  // 蓄力向上距离
         const visibleSize = view.getVisibleSize();
-        const targetPos = new Vec3(-visibleSize.width, currentPaper.position.y, 0);
+        const startY = currentPaper.position.y;
+        const targetPos = new Vec3(currentPaper.position.x, -visibleSize.height - 100, 0);
 
         const paperTween = tween(currentPaper)
-            .to(0.5, {
+            .to(0.2, {
+                position: new Vec3(currentPaper.position.x, startY + chargeDistance, 0),
+                angle: currentPaper.angle + 10,
+                scale: new Vec3(0.95, 0.95, 1)
+            }, { easing: 'sineOut' })  // 缓动上升
+            .to(0.6, {
                 position: targetPos,
-                angle: currentPaper.angle - 60,
-                scale: new Vec3(0.8, 0.8, 1)
-            }, { easing: 'backIn' })
+                angle: currentPaper.angle - 30,
+                scale: new Vec3(0.7, 0.7, 1)
+            }, { easing: 'backOut' })  // 向下飘出，带反弹效果
             .call(() => {
                 // 再次检查节点有效性后再销毁
                 if (currentPaper && currentPaper.isValid) {

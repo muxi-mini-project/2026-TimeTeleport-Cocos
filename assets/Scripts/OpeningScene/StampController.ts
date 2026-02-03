@@ -11,6 +11,18 @@ export class StampController extends Component {
     @property({ type: Prefab, tooltip: "盖下去留下的印记" })
     markPrefab: Prefab = null;
 
+    @property({ tooltip: "印章悬停高度（Z轴），默认175" })
+    hoverHeight: number = 175;
+
+    @property({ tooltip: "印章下落到纸面的高度，默认0" })
+    dropHeight: number = 0;
+
+    @property({ 
+        tooltip: "最小重叠比例（0-1），低于此值取消盖章", 
+        range: [0, 1, 0.05] 
+    })
+    minOverlapRatio: number = 0.1;
+
     // 状态锁：防止在盖章动画过程中重复触发
     private _isStamping: boolean = false;
 
@@ -29,6 +41,76 @@ export class StampController extends Component {
         // Input.EventType.MOUSE_UP   -> 执行盖章
         input.on(Input.EventType.MOUSE_MOVE, this.onMouseMove, this);
         input.on(Input.EventType.MOUSE_UP, this.onMouseUp, this);
+
+        // 3. 设置印章初始悬停高度
+        if (this.node && this.node.isValid) {
+            const currentPos = this.node.position.clone();
+            currentPos.z = this.hoverHeight;
+            this.node.setPosition(currentPos);
+        }
+    }
+
+    /**
+     * 检查 Mark 是否与 Paper 有足够的重叠
+     * 使用 AABB 近似算法，适合小角度旋转（±7.5°）
+     */
+    private checkMarkOverlap(mark: Node, paper: Node): boolean {
+        const markTransform = mark.getComponent(UITransform);
+        const paperTransform = paper.getComponent(UITransform);
+        
+        if (!markTransform || !paperTransform) {
+            console.warn('[StampController] Mark 或 Paper 缺少 UITransform 组件');
+            return false;
+        }
+        
+        const markHalfW = markTransform.width / 2;
+        const markHalfH = markTransform.height / 2;
+        const paperHalfW = paperTransform.width / 2;
+        const paperHalfH = paperTransform.height / 2;
+        
+        // Mark 的 AABB（考虑旋转后的扩展）
+        // 对于 ±7.5 度的旋转，扩展约 1.7%（cos(7.5°) ≈ 0.991）
+        const expansion = 1.017;
+        
+        const markMinX = mark.position.x - markHalfW * expansion;
+        const markMaxX = mark.position.x + markHalfW * expansion;
+        const markMinY = mark.position.y - markHalfH * expansion;
+        const markMaxY = mark.position.y + markHalfH * expansion;
+        
+        // Paper 的 AABB（中心在原点）
+        const paperMinX = -paperHalfW;
+        const paperMaxX = paperHalfW;
+        const paperMinY = -paperHalfH;
+        const paperMaxY = paperHalfH;
+        
+        // AABB 相交检测：计算重叠区域
+        const overlapMinX = Math.max(markMinX, paperMinX);
+        const overlapMaxX = Math.min(markMaxX, paperMaxX);
+        const overlapMinY = Math.max(markMinY, paperMinY);
+        const overlapMaxY = Math.min(markMaxY, paperMaxY);
+        
+        // 如果没有重叠
+        if (overlapMaxX <= overlapMinX || overlapMaxY <= overlapMinY) {
+            return false;
+        }
+        
+        // 计算重叠面积
+        const overlapWidth = overlapMaxX - overlapMinX;
+        const overlapHeight = overlapMaxY - overlapMinY;
+        const overlapArea = overlapWidth * overlapHeight;
+        
+        // 计算 Mark 的面积
+        const markArea = (markMaxX - markMinX) * (markMaxY - markMinY);
+        
+        // 防止除零
+        if (markArea <= 0) {
+            return false;
+        }
+        
+        // 计算重叠比例
+        const overlapRatio = overlapArea / markArea;
+        
+        return overlapRatio >= this.minOverlapRatio;
     }
 
     onDestroy() {
@@ -74,7 +156,8 @@ export class StampController extends Component {
         // convertToNodeSpaceAR: 基于锚点(Anchor Relative)转换
         parentTransform.convertToNodeSpaceAR(new Vec3(uiLocation.x, uiLocation.y, 0), this._tempVec3);
 
-        // 3. 应用位置
+        // 3. 应用位置（X, Y轴），Z轴保持悬停高度
+        this._tempVec3.z = this._isStamping ? this._tempVec3.z : this.hoverHeight;
         this.node.setPosition(this._tempVec3);
     }
 
@@ -113,10 +196,14 @@ export class StampController extends Component {
         // 上锁
         this._isStamping = true;
 
-        // 2. 播放按压动画 (Juice)
-        // 视觉上：印章变小(模拟按远了/按扁了) -> 接触纸面 -> 弹回 -> 解锁
+        // 2. 播放垂直下落动画 (Juice)
+        // 视觉上：印章从 hoverHeight 下落到 dropHeight -> 缩小 -> 接触纸面 -> 回弹到 hoverHeight
+        const currentPos = this.node.position.clone();
         this._currentTween = tween(this.node)
-            .to(0.1, { scale: new Vec3(0.8, 0.8, 1) }) // 下压
+            .to(0.15, {
+                position: new Vec3(currentPos.x, currentPos.y, this.dropHeight),
+                scale: new Vec3(0.9, 0.9, 1)
+            }) // 下落到纸面
             .call(() => {
                 // 再次检查节点有效性
                 if (!this.node || !this.node.isValid || !topPaper.isValid) {
@@ -126,7 +213,10 @@ export class StampController extends Component {
                 // 接触纸面的一瞬间，生成印记
                 this.onStampContact(topPaper);
             })
-            .to(0.1, { scale: new Vec3(1, 1, 1) })     // 回弹
+            .to(0.2, {
+                position: new Vec3(currentPos.x, currentPos.y, this.hoverHeight),
+                scale: new Vec3(1, 1, 1)
+            }) // 回弹到悬停高度
             .call(() => {
                 // [Mutex Unlock] 解锁，允许下一次点击
                 this._isStamping = false;
@@ -182,7 +272,15 @@ export class StampController extends Component {
         // 增加一点随机旋转，模拟自然盖章
         mark.angle = (Math.random() - 0.5) * 15;
 
-        // 4. 将控制权移交给 PaperStack
+        // 4. 检查 Mark 是否与 Paper 有足够的重叠
+        if (!this.checkMarkOverlap(mark, targetPaper)) {
+            console.log('[StampController] Mark 与 Paper 重叠不足或完全脱离，取消盖章');
+            mark.destroy();
+            this._isStamping = false;
+            return;
+        }
+
+        // 5. 将控制权移交给 PaperStack
         // PaperStack 会负责：绑定父子关系 -> 补充新纸 -> 飞出动画
         if (this.paperStack) {
             this.paperStack.processCurrentPaper(mark);
