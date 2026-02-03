@@ -11,6 +11,12 @@ export class StampController extends Component {
     @property({ type: Prefab, tooltip: "盖下去留下的印记" })
     markPrefab: Prefab = null;
 
+    @property({ tooltip: "印章悬停高度（Z轴），默认175" })
+    hoverHeight: number = 175;
+
+    @property({ tooltip: "印章下落到纸面的高度，默认0" })
+    dropHeight: number = 0;
+
     // 状态锁：防止在盖章动画过程中重复触发
     private _isStamping: boolean = false;
 
@@ -29,6 +35,13 @@ export class StampController extends Component {
         // Input.EventType.MOUSE_UP   -> 执行盖章
         input.on(Input.EventType.MOUSE_MOVE, this.onMouseMove, this);
         input.on(Input.EventType.MOUSE_UP, this.onMouseUp, this);
+
+        // 3. 设置印章初始悬停高度
+        if (this.node && this.node.isValid) {
+            const currentPos = this.node.position.clone();
+            currentPos.z = this.hoverHeight;
+            this.node.setPosition(currentPos);
+        }
     }
 
     onDestroy() {
@@ -74,7 +87,8 @@ export class StampController extends Component {
         // convertToNodeSpaceAR: 基于锚点(Anchor Relative)转换
         parentTransform.convertToNodeSpaceAR(new Vec3(uiLocation.x, uiLocation.y, 0), this._tempVec3);
 
-        // 3. 应用位置
+        // 3. 应用位置（X, Y轴），Z轴保持悬停高度
+        this._tempVec3.z = this._isStamping ? this._tempVec3.z : this.hoverHeight;
         this.node.setPosition(this._tempVec3);
     }
 
@@ -113,10 +127,14 @@ export class StampController extends Component {
         // 上锁
         this._isStamping = true;
 
-        // 2. 播放按压动画 (Juice)
-        // 视觉上：印章变小(模拟按远了/按扁了) -> 接触纸面 -> 弹回 -> 解锁
+        // 2. 播放垂直下落动画 (Juice)
+        // 视觉上：印章从 hoverHeight 下落到 dropHeight -> 缩小 -> 接触纸面 -> 回弹到 hoverHeight
+        const currentPos = this.node.position.clone();
         this._currentTween = tween(this.node)
-            .to(0.1, { scale: new Vec3(0.8, 0.8, 1) }) // 下压
+            .to(0.15, {
+                position: new Vec3(currentPos.x, currentPos.y, this.dropHeight),
+                scale: new Vec3(0.9, 0.9, 1)
+            }) // 下落到纸面
             .call(() => {
                 // 再次检查节点有效性
                 if (!this.node || !this.node.isValid || !topPaper.isValid) {
@@ -126,7 +144,10 @@ export class StampController extends Component {
                 // 接触纸面的一瞬间，生成印记
                 this.onStampContact(topPaper);
             })
-            .to(0.1, { scale: new Vec3(1, 1, 1) })     // 回弹
+            .to(0.2, {
+                position: new Vec3(currentPos.x, currentPos.y, this.hoverHeight),
+                scale: new Vec3(1, 1, 1)
+            }) // 回弹到悬停高度
             .call(() => {
                 // [Mutex Unlock] 解锁，允许下一次点击
                 this._isStamping = false;
