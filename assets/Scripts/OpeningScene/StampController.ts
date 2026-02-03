@@ -17,6 +17,12 @@ export class StampController extends Component {
     @property({ tooltip: "印章下落到纸面的高度，默认0" })
     dropHeight: number = 0;
 
+    @property({ 
+        tooltip: "最小重叠比例（0-1），低于此值取消盖章", 
+        range: [0, 1, 0.05] 
+    })
+    minOverlapRatio: number = 0.1;
+
     // 状态锁：防止在盖章动画过程中重复触发
     private _isStamping: boolean = false;
 
@@ -42,6 +48,69 @@ export class StampController extends Component {
             currentPos.z = this.hoverHeight;
             this.node.setPosition(currentPos);
         }
+    }
+
+    /**
+     * 检查 Mark 是否与 Paper 有足够的重叠
+     * 使用 AABB 近似算法，适合小角度旋转（±7.5°）
+     */
+    private checkMarkOverlap(mark: Node, paper: Node): boolean {
+        const markTransform = mark.getComponent(UITransform);
+        const paperTransform = paper.getComponent(UITransform);
+        
+        if (!markTransform || !paperTransform) {
+            console.warn('[StampController] Mark 或 Paper 缺少 UITransform 组件');
+            return false;
+        }
+        
+        const markHalfW = markTransform.width / 2;
+        const markHalfH = markTransform.height / 2;
+        const paperHalfW = paperTransform.width / 2;
+        const paperHalfH = paperTransform.height / 2;
+        
+        // Mark 的 AABB（考虑旋转后的扩展）
+        // 对于 ±7.5 度的旋转，扩展约 1.7%（cos(7.5°) ≈ 0.991）
+        const expansion = 1.017;
+        
+        const markMinX = mark.position.x - markHalfW * expansion;
+        const markMaxX = mark.position.x + markHalfW * expansion;
+        const markMinY = mark.position.y - markHalfH * expansion;
+        const markMaxY = mark.position.y + markHalfH * expansion;
+        
+        // Paper 的 AABB（中心在原点）
+        const paperMinX = -paperHalfW;
+        const paperMaxX = paperHalfW;
+        const paperMinY = -paperHalfH;
+        const paperMaxY = paperHalfH;
+        
+        // AABB 相交检测：计算重叠区域
+        const overlapMinX = Math.max(markMinX, paperMinX);
+        const overlapMaxX = Math.min(markMaxX, paperMaxX);
+        const overlapMinY = Math.max(markMinY, paperMinY);
+        const overlapMaxY = Math.min(markMaxY, paperMaxY);
+        
+        // 如果没有重叠
+        if (overlapMaxX <= overlapMinX || overlapMaxY <= overlapMinY) {
+            return false;
+        }
+        
+        // 计算重叠面积
+        const overlapWidth = overlapMaxX - overlapMinX;
+        const overlapHeight = overlapMaxY - overlapMinY;
+        const overlapArea = overlapWidth * overlapHeight;
+        
+        // 计算 Mark 的面积
+        const markArea = (markMaxX - markMinX) * (markMaxY - markMinY);
+        
+        // 防止除零
+        if (markArea <= 0) {
+            return false;
+        }
+        
+        // 计算重叠比例
+        const overlapRatio = overlapArea / markArea;
+        
+        return overlapRatio >= this.minOverlapRatio;
     }
 
     onDestroy() {
@@ -203,7 +272,15 @@ export class StampController extends Component {
         // 增加一点随机旋转，模拟自然盖章
         mark.angle = (Math.random() - 0.5) * 15;
 
-        // 4. 将控制权移交给 PaperStack
+        // 4. 检查 Mark 是否与 Paper 有足够的重叠
+        if (!this.checkMarkOverlap(mark, targetPaper)) {
+            console.log('[StampController] Mark 与 Paper 重叠不足或完全脱离，取消盖章');
+            mark.destroy();
+            this._isStamping = false;
+            return;
+        }
+
+        // 5. 将控制权移交给 PaperStack
         // PaperStack 会负责：绑定父子关系 -> 补充新纸 -> 飞出动画
         if (this.paperStack) {
             this.paperStack.processCurrentPaper(mark);
