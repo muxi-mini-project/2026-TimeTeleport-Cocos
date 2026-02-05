@@ -3,6 +3,7 @@ import { CameraFollow } from '../CameraFollow';
 import { CollectibleItem } from '../Objects/CollectibleItem';
 import { CollectibleManager } from '../Core/CollectibleManager';
 import { CollectibleType } from '../Core/CollectibleType';
+import { BallLauncher } from '..//BallLauncher';
 const { ccclass, property } = _decorator;
 
 const GROUP_LEVEL = 1 << 2;
@@ -67,6 +68,13 @@ export class LevelMapManager extends Component {
 
     @property({ type: Prefab, tooltip: "钩爪锚点预制体"})
     anchorPrefab: Prefab = null;
+
+
+    // 在 LevelMapManager 类中添加
+    @property({ type: Prefab, tooltip: "球障碍预制体" })
+    ballObstaclePrefab: Prefab = null;
+    @property({ type: Prefab, tooltip: "球发射器预制体（包含BallLauncher脚本）" })
+    ballLauncherPrefab: Prefab = null;
 
     @property
     debugDraw: boolean = true;
@@ -180,6 +188,8 @@ export class LevelMapManager extends Component {
             console.error("无法获取 MapSize 或 TileSize，请检查 TMX 资源");
             return;
         }
+
+     
 
         const totalW = mapSize.width * tileSize.width;
         const totalH = mapSize.height * tileSize.height;
@@ -333,6 +343,13 @@ export class LevelMapManager extends Component {
                     }
                     targetPrefab = this.anchorPrefab;
                     break;
+                case "ball_launcher":
+                    if (!this.ballLauncherPrefab) {
+                        console.warn("未绑定ball_launcher预制体");
+                        return;
+                    }
+                    targetPrefab = this.ballLauncherPrefab;
+                    break;
                 default:
                     console.log(`[Switch跳过] 对象 ${rawName} (小写: ${name}) 不匹配任何预制体类型`);
                     break;
@@ -354,6 +371,13 @@ export class LevelMapManager extends Component {
             newNode.name = rawName;
             newNode.setPosition(v3(finalX, finalY, 0));
             console.log(`生成对象 [${rawName}] 位置 x:${finalX} y:${finalY}`);
+            if (name === "ball_launcher") {
+                const ballLauncher = newNode.getComponent(BallLauncher);
+                if (ballLauncher && this.ballObstaclePrefab) {
+                    ballLauncher.ballPrefab = this.ballObstaclePrefab;
+                    console.log(`设置球发射器的球障碍预制体引用`);
+                }
+            }
 
                 const uiTransform = newNode.getComponent(UITransform);
                 let originalWidth = 100;
