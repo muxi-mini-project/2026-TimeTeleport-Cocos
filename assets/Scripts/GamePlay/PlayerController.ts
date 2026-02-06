@@ -1,4 +1,4 @@
-import { _decorator, Component, Sprite, UITransform, Color, Input, input, EventKeyboard, KeyCode, Vec2, ERaycast2DType, RigidBody2D, v2, Collider2D, Contact2DType, IPhysics2DContact, AudioSource, tween, Vec3, PhysicsSystem2D, Director } from 'cc';
+import { _decorator, Component, Sprite, UITransform, Color, Input, input, EventKeyboard, KeyCode, Vec2, ERaycast2DType, RigidBody2D, v2, Collider2D, Contact2DType, IPhysics2DContact, AudioSource, tween, Vec3, PhysicsSystem2D, Director, Animation } from 'cc';
 import { TimeTravelManager } from './TimeTravelManager';
 import { GameManager } from '../Core/GameManager';
 import { Hazard } from '../Objects/Hazard';

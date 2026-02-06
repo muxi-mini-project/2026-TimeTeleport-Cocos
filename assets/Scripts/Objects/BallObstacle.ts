@@ -1,6 +1,6 @@
 import { _decorator, Component, Node, RigidBody2D, Vec2, Collider2D, Contact2DType, IPhysics2DContact, view, Vec3, ERigidBody2DType, director, math } from 'cc';
 const { ccclass, property } = _decorator;
-import { PlayerController } from './Dash_and_Contact';
+import { PlayerController } from '../GamePlay/PlayerController';
 
 
 @ccclass('BallObstacle')

@@ -3,7 +3,7 @@ import { CameraFollow } from '../CameraFollow';
 import { CollectibleItem } from '../Objects/CollectibleItem';
 import { CollectibleManager } from '../Core/CollectibleManager';
 import { CollectibleType } from '../Core/CollectibleType';
-import { BallLauncher } from '..//BallLauncher';
+import { BallLauncher } from '../Objects/BallLauncher';
 const { ccclass, property } = _decorator;
 
 const GROUP_LEVEL = 1 << 2;

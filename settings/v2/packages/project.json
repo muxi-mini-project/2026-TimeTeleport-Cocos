@@ -31,5 +31,26 @@
     "gravity": {
       "y": -30
     }
+  },
+  "layer": [
+    {
+      "name": "HUD",
+      "value": 1
+    }
+  ],
+  "sorting-layer": {
+    "layers": [
+      {
+        "id": 0,
+        "name": "default",
+        "value": 0
+      },
+      {
+        "id": 1,
+        "name": "HUD",
+        "value": 1
+      }
+    ],
+    "increaseId": 1
   }
 }
