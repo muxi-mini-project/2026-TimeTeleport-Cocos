@@ -1,9 +1,10 @@
-import { _decorator, Component, Sprite, UITransform, Color, Input, input, EventKeyboard, KeyCode, Vec2, ERaycast2DType, RigidBody2D, v2, Collider2D, Contact2DType, IPhysics2DContact, AudioSource, tween, Vec3, PhysicsSystem2D, Director } from 'cc';
+import { _decorator, Component, Sprite, UITransform, Color, Input, input, EventKeyboard, KeyCode, Vec2, ERaycast2DType, RigidBody2D, v2, Collider2D, Contact2DType, IPhysics2DContact, AudioSource, tween, Vec3, PhysicsSystem2D, Director, Animation } from 'cc';
 import { TimeTravelManager } from './TimeTravelManager';
 import { GameManager } from '../Core/GameManager';
 import { Hazard } from '../Objects/Hazard';
 import { CrumblingPlatform } from '../Objects/CrumblingPlatform';
 import { GrappleController } from '../Objects/GrappleController';
+import { BallObstacle } from '../Objects/BallObstacle';
 const { ccclass, property } = _decorator;
 
 @ccclass('PlayerController')
@@ -495,11 +496,22 @@ export class PlayerController extends Component {
         }
     }
 
-    private onBeginContact(self: Collider2D, other: Collider2D, contact: IPhysics2DContact | null) {
-        if (!contact) return;
-        // 撞到刺
+    private onBeginContact(
+        self: Collider2D,
+        other: Collider2D,
+        contact: IPhysics2DContact | null
+    ) {
+        if (this.isDead) return;
+
+        // 撞到球障碍 → 死亡
+        if (other.getComponent(BallObstacle)) {
+            console.log("玩家撞到球障碍！");
+            this.die();
+            return;
+        }
+
+        // 撞到其他危险物
         if (other.getComponent(Hazard)) {
-            if (this.isDead) return;
             console.log("撞到了危险物！");
             this.die();
         }

@@ -2,7 +2,7 @@
   "ver": "1.0.27",
   "importer": "image",
   "imported": true,
-  "uuid": "fca1fa7f-c4d3-475b-ba75-1ec487bbc90b",
+  "uuid": "ed682ac7-5d76-4bc4-a624-c2d8c08990b1",
   "files": [
     ".json",
     ".png"
@@ -10,14 +10,14 @@
   "subMetas": {
     "6c48a": {
       "importer": "texture",
-      "uuid": "fca1fa7f-c4d3-475b-ba75-1ec487bbc90b@6c48a",
+      "uuid": "ed682ac7-5d76-4bc4-a624-c2d8c08990b1@6c48a",
       "displayName": "Terrain (16x16)",
       "id": "6c48a",
       "name": "texture",
       "userData": {
         "wrapModeS": "clamp-to-edge",
         "wrapModeT": "clamp-to-edge",
-        "imageUuidOrDatabaseUri": "fca1fa7f-c4d3-475b-ba75-1ec487bbc90b",
+        "imageUuidOrDatabaseUri": "ed682ac7-5d76-4bc4-a624-c2d8c08990b1",
         "isUuid": true,
         "visible": false,
         "minfilter": "linear",
@@ -34,7 +34,7 @@
     },
     "f9941": {
       "importer": "sprite-frame",
-      "uuid": "fca1fa7f-c4d3-475b-ba75-1ec487bbc90b@f9941",
+      "uuid": "ed682ac7-5d76-4bc4-a624-c2d8c08990b1@f9941",
       "displayName": "Terrain (16x16)",
       "id": "f9941",
       "name": "spriteFrame",
@@ -113,7 +113,7 @@
           ]
         },
         "isUuid": true,
-        "imageUuidOrDatabaseUri": "fca1fa7f-c4d3-475b-ba75-1ec487bbc90b@6c48a",
+        "imageUuidOrDatabaseUri": "ed682ac7-5d76-4bc4-a624-c2d8c08990b1@6c48a",
         "atlasUuid": "",
         "trimType": "auto"
       },
@@ -129,6 +129,6 @@
     "type": "sprite-frame",
     "fixAlphaTransparencyArtifacts": false,
     "hasAlpha": true,
-    "redirect": "fca1fa7f-c4d3-475b-ba75-1ec487bbc90b@6c48a"
+    "redirect": "ed682ac7-5d76-4bc4-a624-c2d8c08990b1@6c48a"
   }
 }
