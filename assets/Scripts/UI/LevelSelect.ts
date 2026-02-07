@@ -51,7 +51,7 @@ export class LevelSelect extends Component {
             {
                 id: 'Level_2',
                 name: '第二章 - 遥远的过去',
-                sceneName: 'scene_obstacles',  // 使用现有的测试场景
+                sceneName: 'scene-obstacles',  // 使用现有的测试场景
                 description: '探索远古时期的危险',
                 index: 1
             },
