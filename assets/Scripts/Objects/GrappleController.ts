@@ -1,10 +1,15 @@
-import { _decorator, Component, Node, Graphics, Vec3, find, Input, input, EventKeyboard, KeyCode, Vec2, RigidBody2D, tween, Color, Sprite, UITransform, director } from 'cc';
+import { _decorator, Component, Node, Graphics, Vec3, find, Vec2, RigidBody2D, tween, Color, Sprite, UITransform, director } from 'cc';
 import { Anchor } from './Anchor';
 import { PlayerController } from '../GamePlay/PlayerController';
+import { ItemType } from '../Core/ItemType';
+import { IUsableItem } from '../Core/IUsableItem';
 const { ccclass, property } = _decorator;
 
 @ccclass('GrappleController')
-export class GrappleController extends Component {
+export class GrappleController extends Component implements IUsableItem {
+    @property({ tooltip: "道具类型" })
+    itemType: ItemType = ItemType.GRAPPLE;
+
     @property({ tooltip: "是否启用钩爪功能" })
     grappleEnabled: boolean = false;
 
@@ -54,31 +59,6 @@ export class GrappleController extends Component {
 
         if (!this.ropeGraphics) {
             this.ropeGraphics = this.node.addComponent(Graphics);
-        }
-
-        input.on(Input.EventType.KEY_DOWN, this.onKeyDown, this);
-    }
-
-    onDestroy() {
-        input.off(Input.EventType.KEY_DOWN, this.onKeyDown, this);
-    }
-
-    private onKeyDown(event: EventKeyboard) {
-        if (this.debugLog) {
-            console.log(`[Grapple] 检测到按键: ${event.keyCode}`);
-        }
-
-        if (event.keyCode === KeyCode.KEY_L) {
-            if (this.debugLog) {
-                console.log('[Grapple] 按下 L 键');
-            }
-            if (!this.grappleEnabled) {
-                if (this.debugLog) {
-                    console.log('[Grapple] 钩爪功能已禁用，忽略按键');
-                }
-                return;
-            }
-            this.tryGrapple();
         }
     }
 
@@ -286,5 +266,32 @@ export class GrappleController extends Component {
 
     public isGrapplingActive(): boolean {
         return this.isGrappling;
+    }
+
+    getItemType(): string {
+        return this.itemType;
+    }
+
+    tryUse(): boolean {
+        if (!this.grappleEnabled) {
+            console.log('[Grapple] 钩爪未启用');
+            return false;
+        }
+
+        if (this.isGrappling) {
+            console.log('[Grapple] 正在钩爪中');
+            return false;
+        }
+
+        this.tryGrapple();
+        return true;
+    }
+
+    canUse(): boolean {
+        return this.grappleEnabled && !this.isGrappling;
+    }
+
+    getRemainingCount(): number {
+        return Infinity;
     }
 }

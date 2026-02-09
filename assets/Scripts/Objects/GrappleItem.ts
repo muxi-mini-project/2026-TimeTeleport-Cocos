@@ -4,18 +4,10 @@ import { ItemType } from '../Core/ItemType';
 import { IUsableItem } from '../Core/IUsableItem';
 const { ccclass, property } = _decorator;
 
-/**
- * 护盾道具（手持物版本）
- * 玩家触碰后收集到道具槽，按 I 键激活
- * 护盾期间玩家无敌，且踩踏敌人时获得额外跳跃力
- */
-@ccclass('ShieldItem')
-export class ShieldItem extends Component implements IUsableItem {
+@ccclass('GrappleItem')
+export class GrappleItem extends Component implements IUsableItem {
     @property({ tooltip: '道具类型' })
-    itemType: ItemType = ItemType.SHIELD;
-
-    @property({ tooltip: '单个护盾的持续时间（秒）' })
-    shieldDuration: number = 3.0;
+    itemType: ItemType = ItemType.GRAPPLE;
 
     @property({ tooltip: '拾取后是否销毁道具' })
     destroyOnPickup: boolean = true;
@@ -27,11 +19,10 @@ export class ShieldItem extends Component implements IUsableItem {
         this.collider = this.getComponent(Collider2D);
 
         if (!this.collider) {
-            console.error(`[ShieldItem] ${this.node.name}: 缺少 Collider2D 组件！`);
+            console.error(`[GrappleItem] ${this.node.name}: 缺少 Collider2D 组件！`);
         } else {
-            // 确保是传感器模式（触发器）
             if (!this.collider.sensor) {
-                console.warn(`[ShieldItem] ${this.node.name}: Collider2D 的 Sensor 未勾选，已自动设置`);
+                console.warn(`[GrappleItem] ${this.node.name}: Collider2D 的 Sensor 未勾选，已自动设置`);
                 this.collider.sensor = true;
             }
 
@@ -54,16 +45,15 @@ export class ShieldItem extends Component implements IUsableItem {
         const playerController = otherCollider.node.getComponent(PlayerController);
         if (!playerController) return;
 
-        playerController.setCurrentItem(this.itemType, this.shieldDuration);
+        playerController.setCurrentItem(this.itemType);
 
         this.isPickedUp = true;
 
-        this.node.emit('shield-picked-up', {
-            itemType: this.itemType,
-            duration: this.shieldDuration
+        this.node.emit('grapple-picked-up', {
+            itemType: this.itemType
         });
 
-        console.log(`[ShieldItem] 护盾已收集`);
+        console.log('[GrappleItem] 钩爪已收集');
 
         if (this.destroyOnPickup) {
             this.node.destroy();
@@ -87,6 +77,6 @@ export class ShieldItem extends Component implements IUsableItem {
     }
 
     getRemainingCount(): number {
-        return 1;
+        return Infinity;
     }
 }

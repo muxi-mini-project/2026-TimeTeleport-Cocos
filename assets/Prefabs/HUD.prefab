@@ -125,7 +125,7 @@
   },
   {
     "__type__": "cc.Node",
-    "_name": "Shiedslot",
+    "_name": "ItemSlot",
     "_objFlags": 0,
     "__editorExtras__": {},
     "_parent": {
@@ -463,14 +463,16 @@
     "__prefab": {
       "__id__": 17
     },
-    "itemId": "shield",
+    "itemId": "",
     "iconSprite": {
       "__id__": 14
     },
     "countLabel": {
       "__id__": 7
     },
-    "hideWhenZero": false,
+    "hideWhenZero": true,
+    "itemType": "",
+    "hideWhenEmpty": true,
     "_id": ""
   },
   {
@@ -866,11 +868,9 @@
       "__id__": 39
     },
     "playerNode": null,
-    "itemSlots": [
-      {
-        "__id__": 16
-      }
-    ],
+    "itemSlot": {
+      "__id__": 16
+    },
     "shieldProgressBar": {
       "__id__": 33
     },
@@ -916,6 +916,7 @@
       "__id__": 0
     },
     "fileId": "76WMkEVGJFZ75rtE0Y8hVq",
+    "instance": null,
     "targetOverrides": null
   }
 ]

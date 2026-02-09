@@ -1,4 +1,6 @@
 import { _decorator, Component, Node, Sprite, UITransform, Color, Graphics, Vec3, find, Tween, tween, director } from 'cc';
+import { PlayerController } from '../GamePlay/PlayerController';
+import { ItemType } from '../Core/ItemType';
 const { ccclass, property } = _decorator;
 
 @ccclass('Anchor')
@@ -22,6 +24,7 @@ export class Anchor extends Component {
     playerNodeRef: Node | null = null;
 
     private playerNode: Node | null = null;
+    private playerController: PlayerController | null = null;
     private isPlayerInRange: boolean = false;
     private indicatorActive: boolean = false;
 
@@ -63,22 +66,25 @@ export class Anchor extends Component {
         if (this.playerNodeRef) {
             this.playerNode = this.playerNodeRef;
             console.log('[Anchor] 使用手动指定的玩家节点');
-            return;
-        }
+        } else {
+            const scene = director.getScene();
+            if (!scene) {
+                console.error('[Anchor] 无法获取场景');
+                return;
+            }
 
-        const scene = director.getScene();
-        if (!scene) {
-            console.error('[Anchor] 无法获取场景');
-            return;
-        }
+            this.playerNode = this.findNodeRecursive(scene, 'Player');
 
-        this.playerNode = this.findNodeRecursive(scene, 'Player');
+            if (this.playerNode) {
+                console.log('[Anchor] 成功找到 Player 节点');
+            } else {
+                console.warn('[Anchor] 未找到 Player 节点，已搜索整个场景树');
+                this.logSceneStructure(scene, 0);
+            }
+        }
 
         if (this.playerNode) {
-            console.log('[Anchor] 成功找到 Player 节点');
-        } else {
-            console.warn('[Anchor] 未找到 Player 节点，已搜索整个场景树');
-            this.logSceneStructure(scene, 0);
+            this.playerController = this.playerNode.getComponent(PlayerController);
         }
     }
 
@@ -159,8 +165,22 @@ export class Anchor extends Component {
     }
 
     private onPlayerEnterRange() {
+        if (!this.playerHasGrapple()) {
+            console.log('[Anchor] 玩家未拾取钩爪，不显示指示器');
+            return;
+        }
+
         this.indicatorActive = true;
         console.log('[Anchor] 玩家进入范围，开始显示指示器');
+    }
+
+    private playerHasGrapple(): boolean {
+        if (!this.playerController) {
+            return false;
+        }
+
+        const currentItemType = (this.playerController as any)._currentItemType;
+        return currentItemType === ItemType.GRAPPLE;
     }
 
     private updateIndicator(dt: number) {
