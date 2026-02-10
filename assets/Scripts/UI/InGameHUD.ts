@@ -1,6 +1,7 @@
-import { _decorator, Component, Node, ProgressBar, Label, find, director } from 'cc';
+import { _decorator, Component, Node, ProgressBar, Label, find, director, SpriteFrame } from 'cc';
 import { PlayerController } from '../GamePlay/PlayerController';
 import { ItemSlot } from './ItemSlot';
+import { ItemType } from '../Core/ItemType';
 const { ccclass, property } = _decorator;
 
 @ccclass('InGameHUD')
@@ -10,8 +11,8 @@ export class InGameHUD extends Component {
     @property({ type: Node, tooltip: 'Player node (with PlayerController)' })
     playerNode: Node = null;
 
-    @property({ type: [ItemSlot], tooltip: 'Item slots inside the item bar' })
-    itemSlots: ItemSlot[] = [];
+    @property({ type: ItemSlot, tooltip: 'Single item slot' })
+    itemSlot: ItemSlot = null;
 
     @property({ type: ProgressBar, tooltip: 'Shield use progress bar' })
     shieldProgressBar: ProgressBar = null;
@@ -29,13 +30,11 @@ export class InGameHUD extends Component {
     hideProgressWhenInactive: boolean = false;
 
     private _player: PlayerController | null = null;
-    private _slotMap: Map<string, ItemSlot> = new Map();
     private _shieldDuration: number = 0;
     private _shieldRemaining: number = 0;
     private _shieldActive: boolean = false;
 
     onLoad() {
-        this.buildSlotMap();
         this.bindPlayer();
         this.resetProgressUI();
         director.on(InGameHUD.EVENT_ITEM_COUNT_CHANGED, this.onExternalItemCountChanged, this);
@@ -67,29 +66,39 @@ export class InGameHUD extends Component {
     }
 
     public setItemCount(itemId: string, count: number): void {
-        const slot = this._slotMap.get(itemId);
-        if (!slot) {
-            console.warn(`[InGameHUD] Item slot not found: ${itemId}`);
+        if (!this.itemSlot) {
+            console.warn('[InGameHUD] Item slot not found');
             return;
         }
-        slot.setCount(count);
+        this.itemSlot.itemId = itemId;
+        this.itemSlot.setCount(count);
+    }
+
+    public setItemIcon(iconSprite: SpriteFrame): void {
+        if (!this.itemSlot) {
+            console.warn('[InGameHUD] Item slot not found');
+            return;
+        }
+        this.itemSlot.setIcon(iconSprite);
+    }
+
+    public setItemType(itemType: string): void {
+        if (!this.itemSlot) {
+            console.warn('[InGameHUD] Item slot not found');
+            return;
+        }
+        this.itemSlot.itemType = itemType;
+    }
+
+    public clearItemSlot(): void {
+        if (!this.itemSlot) return;
+        this.itemSlot.itemId = '';
+        this.itemSlot.setCount(0);
+        this.itemSlot.setIcon(null);
     }
 
     public static emitItemCount(itemId: string, count: number): void {
         director.emit(InGameHUD.EVENT_ITEM_COUNT_CHANGED, { itemId, count });
-    }
-
-    private buildSlotMap(): void {
-        this._slotMap.clear();
-        for (const slot of this.itemSlots) {
-            if (!slot) continue;
-            const key = (slot.itemId || '').trim();
-            if (!key) continue;
-            if (this._slotMap.has(key)) {
-                console.warn(`[InGameHUD] Duplicate itemId: ${key}`);
-            }
-            this._slotMap.set(key, slot);
-        }
     }
 
     private bindPlayer(): void {
@@ -108,33 +117,51 @@ export class InGameHUD extends Component {
             return;
         }
 
-        this.playerNode.on('shield-collected', this.onShieldCollected, this);
-        this.playerNode.on('shield-used', this.onShieldUsed, this);
+        this.playerNode.on('item-picked-up', this.onItemPickedUp, this);
+        this.playerNode.on('item-used', this.onItemUsed, this);
+        this.playerNode.on('item-removed', this.onItemRemoved, this);
+        this.playerNode.on('item-use-failed', this.onItemUseFailed, this);
         this.playerNode.on('shield-activated', this.onShieldActivated, this);
         this.playerNode.on('shield-deactivated', this.onShieldDeactivated, this);
-        this.playerNode.on('shield-use-failed', this.onShieldUseFailed, this);
-
-        // Initialize inventory count
-        this.setItemCount(this.shieldItemId, this._player.getShieldInventoryCount());
     }
 
     private unbindPlayer(): void {
         if (!this.playerNode) return;
-        this.playerNode.off('shield-collected', this.onShieldCollected, this);
-        this.playerNode.off('shield-used', this.onShieldUsed, this);
+        this.playerNode.off('item-picked-up', this.onItemPickedUp, this);
+        this.playerNode.off('item-used', this.onItemUsed, this);
+        this.playerNode.off('item-removed', this.onItemRemoved, this);
+        this.playerNode.off('item-use-failed', this.onItemUseFailed, this);
         this.playerNode.off('shield-activated', this.onShieldActivated, this);
         this.playerNode.off('shield-deactivated', this.onShieldDeactivated, this);
-        this.playerNode.off('shield-use-failed', this.onShieldUseFailed, this);
     }
 
-    private onShieldCollected(event?: { inventoryCount?: number }): void {
-        const count = event?.inventoryCount ?? 0;
-        this.setItemCount(this.shieldItemId, count);
+    private onItemPickedUp(event?: { itemType: ItemType, itemData?: any }): void {
+        if (!event) return;
+
+        const count = event.itemType === ItemType.SHIELD ? 1 : Infinity;
+        this.setItemCount(event.itemType, count);
+        this.setItemType(event.itemType);
+
+        console.log(`[InGameHUD] Item picked up: ${event.itemType}`);
     }
 
-    private onShieldUsed(event?: { inventoryCount?: number }): void {
-        const count = event?.inventoryCount ?? 0;
-        this.setItemCount(this.shieldItemId, count);
+    private onItemUsed(event?: { itemType: ItemType }): void {
+        if (!event) return;
+
+        if (event.itemType === ItemType.SHIELD) {
+            this.setItemCount(event.itemType, 0);
+        }
+
+        console.log(`[InGameHUD] Item used: ${event.itemType}`);
+    }
+
+    private onItemRemoved(): void {
+        this.clearItemSlot();
+        console.log('[InGameHUD] Item removed');
+    }
+
+    private onItemUseFailed(): void {
+        console.log('[InGameHUD] Item use failed');
     }
 
     private onShieldActivated(event?: { duration?: number }): void {
@@ -144,10 +171,6 @@ export class InGameHUD extends Component {
 
     private onShieldDeactivated(): void {
         this.stopShieldProgress();
-    }
-
-    private onShieldUseFailed(): void {
-        // Optional: add UI feedback here (e.g., flash item slot)
     }
 
     private onExternalItemCountChanged(event?: { itemId?: string; count?: number }): void {

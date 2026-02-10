@@ -5,6 +5,7 @@
 ## 组件概述
 
 ### 1. StampController (印章控制器)
+
 - **功能**：跟随鼠标移动，点击盖章，检测印记与纸张重叠
 - **必需属性**：
   - `paperStack`: 纸堆管理器引用
@@ -15,6 +16,7 @@
   - `minOverlapRatio`: 最小重叠比例（0-1），低于此值取消盖章，默认 0.1（10%）
 
 ### 2. PaperStack (纸堆管理器)
+
 - **功能**：管理纸张堆栈，自动补充新纸，处理盖章后的飞出动画
 - **必需属性**：
   - `paperPrefab`: 纸张预制体
@@ -70,11 +72,13 @@
 在 **Inspector** 中配置：
 
 - **Sprite** 组件：
+  
   - Type: `Single`
   - Size Mode: `Custom`
   - Sprite Frame: 拖入纸张纹理（如 `assets/Arts/paper.png`）
-  
+
 - **UITransform** 组件：
+  
   - Content Size → Width: `858`
   - Content Size → Height: `462`
   - Anchor → X: `0.5`, Y: `0.5`
@@ -84,6 +88,7 @@
 #### 4.3 添加 Mask 组件
 
 在 **Inspector** 中：
+
 1. 选中 Paper 节点
 2. **Add Component** → **2D** → **Mask**
 3. 配置 Mask 组件：
@@ -98,6 +103,7 @@
 4. 删除场景中的 `Paper` 节点（保留预制体）
 
 **预制体结构**：
+
 ```
 Paper (父节点)
 ├── UITransform (858x462)
@@ -108,6 +114,7 @@ Paper (父节点)
 ```
 
 **重要说明**：
+
 - Mask 组件添加在 Paper 父节点上
 - Sprite 组件移到 PaperSprite 子节点（避免与 Graphics 冲突，因为 Mask 需要 Graphics）
 - Mark 会添加为 Paper 的子节点，自动被 Mask 裁剪
@@ -130,11 +137,13 @@ Cocos Creator 3.x 中，Sprite 和 Graphics 不能同时存在于同一节点。
 在 **Inspector** 中配置：
 
 - **Sprite** 组件：
+  
   - Type: `Single`
   - Size Mode: `Custom`
   - Sprite Frame: 拖入 `assets/Arts/mark.png`
-  
+
 - **UITransform** 组件：
+  
   - Content Size → Width: `400`
   - Content Size → Height: `200`
   - Anchor → X: `0.5`, Y: `0.5`
@@ -162,16 +171,19 @@ Cocos Creator 3.x 中，Sprite 和 Graphics 不能同时存在于同一节点。
 在 **Inspector** 中配置：
 
 - **Sprite** 组件：
+  
   - Type: `Sliced` 或 `Filled`（使用圆形纹理）
   - Size Mode: `Custom`
   - Sprite Frame: 拖入圆形纹理（如果没有，可以使用纯色圆形图片）
-  
+
 - **UITransform** 组件：
+  
   - Content Size → Width: `40`
   - Content Size → Height: `40`
   - Anchor → X: `0.5`, Y: `0.5`
 
 - **UIOpacity** 组件：
+  
   - Opacity: `180` (半透明效果)
 
 - **Position**: `(0, 0, 0)`
@@ -197,11 +209,13 @@ Cocos Creator 3.x 中，Sprite 和 Graphics 不能同时存在于同一节点。
 在 **Inspector** 中配置：
 
 - **Sprite** 组件：
+  
   - Type: `Single`
   - Size Mode: `Custom`
   - Sprite Frame: 拖入 `assets/Arts/stamp.png`
-  
+
 - **UITransform** 组件：
+  
   - Content Size → Width: `150`
   - Content Size → Height: `150`
   - Anchor → X: `0.5`, Y: `0.5`
@@ -235,6 +249,7 @@ Cocos Creator 3.x 中，Sprite 和 Graphics 不能同时存在于同一节点。
 在 **Inspector** 中配置：
 
 - **UITransform** 组件：
+  
   - Content Size → Width: `900`
   - Content Size → Height: `500`
   - Anchor → X: `0.5`, Y: `0.5`
@@ -348,20 +363,24 @@ Canvas
 ### 问题 1：印章不跟随鼠标
 
 **原因**：
+
 - 父节点没有 `UITransform` 组件
 - 父节点坐标系统设置错误
 
 **解决方法**：
+
 - 确保 Stamp 的父节点（Canvas）有 `UITransform` 组件
 - 检查 Stamp 的 `Position.z` 值是否合理
 
 ### 问题 2：点击无反应
 
 **原因**：
+
 - `StampController` 的 `paperStack` 引用未绑定
 - 纸堆为空（`PaperStack` 未正确初始化）
 
 **解决方法**：
+
 - 检查 StampController 的 Paper Stack 属性是否已绑定 PaperStackContainer
 - 查看控制台是否有错误日志
 - 确保 PaperStack 的 Paper Prefab 已正确绑定
@@ -369,20 +388,24 @@ Canvas
 ### 问题 3：印记位置错误
 
 **原因**：
+
 - 坐标空间转换失败
 - 纸张或印记缺少 `UITransform` 组件
 
 **解决方法**：
+
 - 确保 Paper 和 Mark 预制体都有 `UITransform` 组件
 - 检查锚点设置是否正确
 
 ### 问题 4：纸张不飞出
 
 **原因**：
+
 - `PaperStack.processCurrentPaper()` 未被调用
 - Tween 动画系统未正确初始化
 
 **解决方法**：
+
 - 检查控制台日志，确认是否调用成功
 - 确认目标位置计算是否正确（`view.getVisibleSize()`）
 
@@ -412,12 +435,12 @@ scale: new Vec3(0.9, 0.9, 1) // 当前：缩小到 90%
 
 在 **Inspector** 中修改 `StampController` 组件的 `Min Overlap Ratio` 属性：
 
-| 范围 | 效果 | 建议场景 |
-|-----|------|---------|
-| 0.05 (5%) | 非常宽松 | 容易盖章，适合休闲玩法 |
-| 0.1 (10%) - 默认 | 宽松 | 平衡体验 |
-| 0.2 (20%) | 严格 | 需要更精确的对准 |
-| 0.5 (50%) | 非常严格 | 需要大部分 mark 在纸上 |
+| 范围             | 效果   | 建议场景           |
+| -------------- | ---- | -------------- |
+| 0.05 (5%)      | 非常宽松 | 容易盖章，适合休闲玩法    |
+| 0.1 (10%) - 默认 | 宽松   | 平衡体验           |
+| 0.2 (20%)      | 严格   | 需要更精确的对准       |
+| 0.5 (50%)      | 非常严格 | 需要大部分 mark 在纸上 |
 
 ### 4. 调整纸张错位距离
 
@@ -459,6 +482,7 @@ const chargeDistance = 80; // 当前：向上移动 80 像素
 ```
 
 建议值：
+
 - 蓄力时长：`0.15` - `0.3` 秒
 - 下落时长：`0.4` - `0.8` 秒
 
@@ -475,26 +499,26 @@ const chargeDistance = 80; // 当前：向上移动 80 像素
 
 ### 必需脚本文件
 
-| 文件路径 | 说明 |
-|---------|------|
+| 文件路径                                              | 说明    |
+| ------------------------------------------------- | ----- |
 | `assets/Scripts/OpenningScene/StampController.ts` | 印章控制器 |
-| `assets/Scripts/OpenningScene/PaperStack.ts` | 纸堆管理器 |
+| `assets/Scripts/OpenningScene/PaperStack.ts`      | 纸堆管理器 |
 
 ### 必需资源文件
 
-| 文件路径 | 说明 |
-|---------|------|
-| `assets/Arts/stamp.png` | 印章图片 |
-| `assets/Arts/mark.png` | 印章印记图片 |
-| `assets/Arts/desktop.png` | 背景图片（可选）|
+| 文件路径                      | 说明       |
+| ------------------------- | -------- |
+| `assets/Arts/stamp.png`   | 印章图片     |
+| `assets/Arts/mark.png`    | 印章印记图片   |
+| `assets/Arts/desktop.png` | 背景图片（可选） |
 
 ### 必需预制体
 
-| 文件路径 | 说明 |
-|---------|------|
-| `assets/Prefabs/PaperPrefab.prefab` | 纸张预制体（需创建）|
-| `assets/Prefabs/MarkPrefab.prefab` | 印记预制体（需创建）|
-| `assets/Prefabs/CrosshairPrefab.prefab` | 准心预制体（需创建）|
+| 文件路径                                    | 说明         |
+| --------------------------------------- | ---------- |
+| `assets/Prefabs/PaperPrefab.prefab`     | 纸张预制体（需创建） |
+| `assets/Prefabs/MarkPrefab.prefab`      | 印记预制体（需创建） |
+| `assets/Prefabs/CrosshairPrefab.prefab` | 准心预制体（需创建） |
 
 ---
 
@@ -515,17 +539,20 @@ const chargeDistance = 80; // 当前：向上移动 80 像素
 ### StampController 核心逻辑
 
 1. **初始化**（第 35-51 行）：
+   
    - 隐藏系统鼠标指针
    - 注册输入事件（MOUSE_MOVE、MOUSE_UP）
    - 设置印章初始悬停高度（hoverHeight）
 
 2. **鼠标跟随**（第 133-162 行）：
+   
    - 监听 `Input.EventType.MOUSE_MOVE`
    - 将屏幕坐标转换为 Canvas 局部坐标
    - 使用 `UITransform.convertToNodeSpaceAR()` 进行坐标转换
    - 保持 Z 轴在悬停高度（非盖章状态）
 
 3. **盖章处理**（第 167-226 行）：
+   
    - 监听 `Input.EventType.MOUSE_UP`
    - 使用互斥锁 `_isStamping` 防止重复触发
    - 播放垂直下落动画（Z 轴从 hoverHeight 到 dropHeight）
@@ -534,6 +561,7 @@ const chargeDistance = 80; // 当前：向上移动 80 像素
    - 回弹到悬停高度
 
 4. **印记生成**（第 228-288 行）：
+   
    - 实例化 `markPrefab`
    - 使用世界坐标重映射：`Stamp 世界坐标` → `Paper 局部坐标`
    - 添加随机旋转角度
@@ -542,6 +570,7 @@ const chargeDistance = 80; // 当前：向上移动 80 像素
    - 重叠充足：调用 `PaperStack.processCurrentPaper()` 交接控制权
 
 5. **重叠检测**（第 53-114 行）：
+   
    - 使用 AABB 近似算法
    - 计算 Mark 和 Paper 的包围盒
    - 考虑 ±7.5° 旋转的扩展（1.7%）
@@ -549,6 +578,7 @@ const chargeDistance = 80; // 当前：向上移动 80 像素
    - 判断是否 ≥ `minOverlapRatio`（默认 10%）
 
 6. **清理**（第 116-127 行）：
+   
    - 停止正在运行的 Tween
    - 恢复系统鼠标
    - 注销输入事件
@@ -556,16 +586,19 @@ const chargeDistance = 80; // 当前：向上移动 80 像素
 ### PaperStack 核心逻辑
 
 1. **初始化**（第 18-35 行）：
+   
    - 生成 `visibleCount` 张纸张
    - 使用 `unshift()` 插入到数组头部（栈底）
    - 设置 `setSiblingIndex(0)` 确保渲染层级正确
    - 刷新所有纸张的视觉布局
 
 2. **视觉布局**（第 78-94 行）：
+   
    - 每张纸的 Y 轴位置 = `index * 2`
    - 栈底纸张添加随机旋转
 
 3. **处理当前纸张**（第 96-148 行）：
+   
    - 从数组尾部弹出最上面的纸张
    - 将印记设为 Paper 父节点的子节点（被 Mask 裁剪）
    - **Mask 组件自动裁剪超出 Paper 边界的 Mark**

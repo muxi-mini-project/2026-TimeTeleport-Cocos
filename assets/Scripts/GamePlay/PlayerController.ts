@@ -5,6 +5,7 @@ import { Hazard } from '../Objects/Hazard';
 import { CrumblingPlatform } from '../Objects/CrumblingPlatform';
 import { GrappleController } from '../Objects/GrappleController';
 import { BallObstacle } from '../Objects/BallObstacle';
+import { ItemType } from '../Core/ItemType';
 const { ccclass, property } = _decorator;
 
 @ccclass('PlayerController')
@@ -66,11 +67,9 @@ export class PlayerController extends Component {
     @property({ group: "Shield", tooltip: "护盾剩余时间（仅供调试查看）" })
     private _shieldTimeRemaining: number = 0;
 
-    @property({ group: "Shield", tooltip: "护盾库存数量（仅供调试查看）" })
-    private _shieldInventoryCount: number = 0;
-
-    // 护盾库存系统：存储每个护盾的持续时间
-    private _shieldInventory: number[] = [];
+    // --- 道具系统 ---
+    private _currentItemType: ItemType | null = null;
+    private _currentItemData: any = null;
 
     // --- 内部变量 ---
     private rb: RigidBody2D = null!;
@@ -332,7 +331,7 @@ export class PlayerController extends Component {
                 break;
 
             case KeyCode.KEY_I:
-                this.tryUseShield();
+                this.tryUseCurrentItem();
                 break;
 
             case KeyCode.SHIFT_LEFT:
@@ -517,64 +516,90 @@ export class PlayerController extends Component {
         }
     }
 
-    // ========== 护盾系统 ==========
+    // ========== 道具系统 ==========
 
-    /**
-     * 添加护盾到库存
-     * @param duration 护盾持续时间（秒）
-     */
-    public addShieldToInventory(duration: number): void {
-        this._shieldInventory.push(duration);
-        this._shieldInventoryCount = this._shieldInventory.length;
-
-        console.log(`[护盾库存] 添加护盾（${duration}秒），当前库存: ${this._shieldInventoryCount}`);
-
-        // 发送护盾收集事件（可用于更新UI）
-        this.node.emit('shield-collected', {
-            duration: duration,
-            inventoryCount: this._shieldInventoryCount
-        });
-    }
-
-    /**
-     * 获取护盾库存数量
-     */
-    public getShieldInventoryCount(): number {
-        return this._shieldInventoryCount;
-    }
-
-    /**
-     * 尝试使用护盾（按 I 键调用）
-     */
-    private tryUseShield(): void {
-        // 检查是否有护盾库存
-        if (this._shieldInventory.length === 0) {
-            console.log("[护盾] 没有可用护盾！");
-            // 发送使用失败事件（可用于播放提示音）
-            this.node.emit('shield-use-failed');
+    public setCurrentItem(itemType: ItemType, itemData?: any): void {
+        if (this._currentItemType === ItemType.SHIELD && this._shieldActive) {
+            console.log('[PlayerController] 护盾激活中，无法切换道具');
             return;
         }
 
-        // 检查是否已有激活的护盾
+        this._currentItemType = itemType;
+        this._currentItemData = itemData;
+
+        console.log(`[PlayerController] 设置当前道具: ${itemType}`);
+
+        // 发送道具拾取事件（更新UI）
+        this.node.emit('item-picked-up', {
+            itemType: itemType,
+            itemData: itemData
+        });
+
+        // 如果是钩爪，启用 GrappleController
+        if (itemType === ItemType.GRAPPLE && this.grappleController) {
+            this.grappleController.grappleEnabled = true;
+        }
+    }
+
+    public getCurrentItemType(): ItemType | null {
+        return this._currentItemType;
+    }
+
+    private tryUseCurrentItem(): void {
+        if (!this._currentItemType) {
+            console.log('[PlayerController] 没有可用道具');
+            this.node.emit('item-use-failed');
+            return;
+        }
+
+        let success = false;
+
+        switch (this._currentItemType) {
+            case ItemType.SHIELD:
+                success = this.useShield();
+                break;
+            case ItemType.GRAPPLE:
+                if (this.grappleController) {
+                    success = this.grappleController.tryUse();
+                }
+                break;
+        }
+
+        if (success) {
+            console.log(`[PlayerController] 使用道具成功: ${this._currentItemType}`);
+            this.node.emit('item-used', {
+                itemType: this._currentItemType
+            });
+
+            // 护盾是一次性的，使用后清空
+            if (this._currentItemType === ItemType.SHIELD) {
+                this._currentItemType = null;
+                this._currentItemData = null;
+                this.node.emit('item-removed');
+            }
+        } else {
+            console.log(`[PlayerController] 使用道具失败: ${this._currentItemType}`);
+            this.node.emit('item-use-failed');
+        }
+    }
+
+    public useShield(): boolean {
         if (this._shieldActive) {
             console.log("[护盾] 护盾已激活中，无需重复使用！");
-            return;
+            return false;
         }
 
-        // 从库存中取出一个护盾（先进先出）
-        const shieldDuration = this._shieldInventory.shift();
-        this._shieldInventoryCount = this._shieldInventory.length;
+        const duration = this._currentItemData || 3.0;
+        this.activateShield(duration);
+        return true;
+    }
 
-        // 激活护盾
-        this.activateShield(shieldDuration);
+    public addShieldToInventory(duration: number): void {
+        this.setCurrentItem(ItemType.SHIELD, duration);
+    }
 
-        console.log(`[护盾] 使用护盾！剩余库存: ${this._shieldInventoryCount}`);
-
-        // 发送护盾使用事件（可用于更新UI）
-        this.node.emit('shield-used', {
-            duration: shieldDuration,
-            inventoryCount: this._shieldInventoryCount
-        });
+    public getShieldInventoryCount(): number {
+        return this._currentItemType === ItemType.SHIELD ? 1 : 0;
     }
 
     /**
