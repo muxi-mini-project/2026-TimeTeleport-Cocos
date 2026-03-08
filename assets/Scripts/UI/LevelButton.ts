@@ -1,4 +1,4 @@
-import { _decorator, Component, Label, Sprite, Color, director } from 'cc';
+import { _decorator, Component, Label, Sprite, Color, director, Button } from 'cc';
 const { ccclass, property } = _decorator;
 
 // 关卡信息配置（不使用@property，仅在代码中使用）
@@ -28,6 +28,17 @@ export class LevelButton extends Component {
     private levelIndex: number = -1;
     private isLocked: boolean = true;
     private sceneName: string = '';
+
+    onLoad() {
+        this.ensureClickBinding();
+    }
+
+    /** 确保点击事件已绑定（始终用代码绑定，保证跳转功能可靠，避免预制体 component 引用错误） */
+    private ensureClickBinding() {
+        const btn = this.node.getComponent(Button);
+        if (!btn) return;
+        btn.node.on(Button.EventType.CLICK, this.onClickLevel, this);
+    }
 
     // 初始化关卡按钮
     public init(levelInfo: LevelInfo, isLocked: boolean, collectedCount: number, totalCount: number) {
@@ -64,6 +75,12 @@ export class LevelButton extends Component {
             } else {
                 this.background.color = new Color(255, 255, 255, 255); // 白色 - 正常
             }
+        }
+
+        // 锁定状态下按钮不可点击，解锁后恢复可点击
+        const btn = this.node.getComponent(Button);
+        if (btn) {
+            btn.interactable = !isLocked;
         }
     }
 

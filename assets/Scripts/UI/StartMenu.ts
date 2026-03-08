@@ -1,49 +1,66 @@
 // ==================== 导入部分 ====================
-// 从 Cocos Creator 导入需要的类
-// _decorator: 装饰器工厂，用于创建 @ccclass 和 @property
-// Component: 组件基类，所有脚本都继承它
-// Node: 节点类，Cocos 场景中所有物体都是节点
-// director: 导演类，用于场景切换
-// Label: 文字标签组件
-import { _decorator, Component, Node, director, Label } from 'cc';
-
-// 导入 GameManager（暂时未用到，预留给后续开场动画功能）
+import { _decorator, Component, Node, director, Label, UITransform, Sprite } from 'cc';
 import { GameManager } from '../Core/GameStageManager';
-
-// 从 _decorator 解构出两个装饰器
-// @ccclass: 标记这是一个 Cocos 组件类
-// @property: 标记这个属性可以在编辑器 Inspector 中配置
 const { ccclass, property } = _decorator;
 
 // ==================== 类定义 ====================
-// 注册为 Cocos 组件，编辑器中显示名为 "StartMenu"
 @ccclass('StartMenu')
 export class StartMenu extends Component {
 
-    // ==================== 可配置属性 (@property) ====================
-    // 这些变量会在 Cocos 编辑器的 Inspector 面板中显示
-    // 你可以直接在编辑器中拖拽节点来赋值，无需修改代码
-
-    @property(Node)           // 声明这是一个节点类型的属性
-    startBtn: Node = null;   // 开始游戏按钮的引用
-    // = null 是默认值，表示未绑定，需要在编辑器中拖入
+    @property(Node)
+    startBtn: Node = null;
 
     @property(Node)
-    settingsBtn: Node = null; // 设置按钮的引用
+    settingsBtn: Node = null;
 
     @property(Node)
-    aboutBtn: Node = null;     // 关于按钮的引用
+    aboutBtn: Node = null;
 
     @property(Label)
-    versionLabel: Label = null; // 版本号文字的引用
+    versionLabel: Label = null;
 
-    // ==================== 生命周期函数 ====================
+    /** 背景节点（用于在 Inspector 中统一调整背景尺寸） */
+    @property(Node)
+    backgroundNode: Node = null;
 
-    // onLoad: 脚本组件加载时自动调用（只执行一次）
+    @property({ tooltip: '>0 时在 onLoad 时设置背景宽度' })
+    backgroundWidth: number = 0;
+
+    @property({ tooltip: '>0 时在 onLoad 时设置背景高度' })
+    backgroundHeight: number = 0;
+
+    @property({ tooltip: '>0 时在 onLoad 时设置开始/设置/关于按钮宽度（含图片）' })
+    buttonWidth: number = 0;
+
+    @property({ tooltip: '>0 时在 onLoad 时设置开始/设置/关于按钮高度（含图片）' })
+    buttonHeight: number = 0;
+
     onLoad() {
-        // 如果绑定了版本号 Label，显示版本号
-        if (this.versionLabel) {  // 检查是否为空，防止报错
-            this.versionLabel.string = 'v1.0.0';  // 设置文字内容
+        if (this.versionLabel) {
+            this.versionLabel.string = 'v1.0.0';
+        }
+        this.applySizes();
+    }
+
+    private applySizes() {
+        const ui = (n: Node) => n?.getComponent(UITransform);
+        if (this.backgroundNode && this.backgroundWidth > 0 && this.backgroundHeight > 0) {
+            const t = ui(this.backgroundNode);
+            if (t) t.setContentSize(this.backgroundWidth, this.backgroundHeight);
+        }
+        if (this.buttonWidth > 0 && this.buttonHeight > 0) {
+            for (const btn of [this.startBtn, this.settingsBtn, this.aboutBtn]) {
+                if (btn) {
+                    const t = ui(btn);
+                    if (t) t.setContentSize(this.buttonWidth, this.buttonHeight);
+                    // 若按钮上有 Sprite 且为 TRIMMED 模式，需同步设置 Sprite 所在节点的尺寸
+                    const sprite = btn.getComponent(Sprite);
+                    if (sprite && sprite.node !== btn) {
+                        const st = ui(sprite.node);
+                        if (st) st.setContentSize(this.buttonWidth, this.buttonHeight);
+                    }
+                }
+            }
         }
     }
 
