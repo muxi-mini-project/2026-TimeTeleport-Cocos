@@ -2,22 +2,22 @@
   "ver": "1.0.27",
   "importer": "image",
   "imported": true,
-  "uuid": "94844a41-ce23-40ad-954d-dff3b45676a2",
+  "uuid": "5f0a5c12-9c2c-46eb-96da-98bb4bd0deb5",
   "files": [
-    ".jpg",
-    ".json"
+    ".json",
+    ".png"
   ],
   "subMetas": {
     "6c48a": {
       "importer": "texture",
-      "uuid": "94844a41-ce23-40ad-954d-dff3b45676a2@6c48a",
-      "displayName": "开始背景",
+      "uuid": "5f0a5c12-9c2c-46eb-96da-98bb4bd0deb5@6c48a",
+      "displayName": "选关背景",
       "id": "6c48a",
       "name": "texture",
       "userData": {
         "wrapModeS": "clamp-to-edge",
         "wrapModeT": "clamp-to-edge",
-        "imageUuidOrDatabaseUri": "94844a41-ce23-40ad-954d-dff3b45676a2",
+        "imageUuidOrDatabaseUri": "5f0a5c12-9c2c-46eb-96da-98bb4bd0deb5",
         "isUuid": true,
         "visible": false,
         "minfilter": "linear",
@@ -34,8 +34,8 @@
     },
     "f9941": {
       "importer": "sprite-frame",
-      "uuid": "94844a41-ce23-40ad-954d-dff3b45676a2@f9941",
-      "displayName": "开始背景",
+      "uuid": "5f0a5c12-9c2c-46eb-96da-98bb4bd0deb5@f9941",
+      "displayName": "选关背景",
       "id": "f9941",
       "name": "spriteFrame",
       "userData": {
@@ -113,7 +113,7 @@
           ]
         },
         "isUuid": true,
-        "imageUuidOrDatabaseUri": "94844a41-ce23-40ad-954d-dff3b45676a2@6c48a",
+        "imageUuidOrDatabaseUri": "5f0a5c12-9c2c-46eb-96da-98bb4bd0deb5@6c48a",
         "atlasUuid": "",
         "trimType": "none"
       },
@@ -128,7 +128,7 @@
   "userData": {
     "type": "sprite-frame",
     "fixAlphaTransparencyArtifacts": false,
-    "hasAlpha": false,
-    "redirect": "94844a41-ce23-40ad-954d-dff3b45676a2@6c48a"
+    "hasAlpha": true,
+    "redirect": "5f0a5c12-9c2c-46eb-96da-98bb4bd0deb5@6c48a"
   }
 }
