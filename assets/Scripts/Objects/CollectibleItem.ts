@@ -1,4 +1,4 @@
-import { _decorator, Component, Collider2D, Contact2DType, IPhysics2DContact, Sprite, SpriteFrame, Vec3, Enum } from 'cc';
+import { _decorator, Component, Collider2D, Contact2DType, IPhysics2DContact, Sprite, SpriteFrame, Vec3, Enum, director } from 'cc';
 import { CollectibleManager } from '../Core/CollectibleManager';
 import { CollectibleType, CollectibleConfig } from '../Core/CollectibleType';
 import { CollectibleInfo } from '../Core/CollectibleData';
@@ -7,20 +7,23 @@ const { ccclass, property } = _decorator;
 @ccclass('CollectibleItem')
 export class CollectibleItem extends Component {
 
-    @property({ tooltip: "收集物唯一ID" })
+    @property({ tooltip: "Unique collectible id" })
     collectibleId: string = '';
 
-    @property({ type: Enum(CollectibleType), tooltip: "收集物类型" })
+    @property({ type: Enum(CollectibleType), tooltip: "Collectible type" })
     collectibleType: CollectibleType = CollectibleType.FRAGMENT;
 
-    @property({ type: SpriteFrame, tooltip: "图标（可选）" })
+    @property({ type: SpriteFrame, tooltip: "Icon (optional)" })
     icon: SpriteFrame = null;
 
-    @property({ tooltip: "拾取后是否销毁" })
+    @property({ tooltip: "Destroy on collect" })
     destroyOnCollect: boolean = true;
 
-    @property({ tooltip: "是否已被收集" })
+    @property({ tooltip: "Already collected" })
     isCollected: boolean = false;
+
+    @property({ tooltip: "Use CollectibleManager for persistence" })
+    useManager: boolean = true;
 
     private collider: Collider2D | null = null;
     private sprite: Sprite | null = null;
@@ -30,10 +33,10 @@ export class CollectibleItem extends Component {
         this.sprite = this.getComponent(Sprite);
 
         if (!this.collider) {
-            console.error(`[CollectibleItem] ${this.node.name}: 缺少 Collider2D 组件！`);
+            console.error(`[CollectibleItem] ${this.node.name}: missing Collider2D component`);
         } else {
             if (!this.collider.sensor) {
-                console.warn(`[CollectibleItem] ${this.node.name}: Collider2D 的 Sensor 未勾选，已自动设置`);
+                console.warn(`[CollectibleItem] ${this.node.name}: Collider2D sensor is not enabled, auto-fix`);
                 this.collider.sensor = true;
             }
 
@@ -41,7 +44,7 @@ export class CollectibleItem extends Component {
         }
 
         if (!this.collectibleId) {
-            console.error(`[CollectibleItem] ${this.node.name}: collectibleId 未设置！`);
+            console.error(`[CollectibleItem] ${this.node.name}: collectibleId not set`);
         }
 
         this.updateSprite();
@@ -54,9 +57,11 @@ export class CollectibleItem extends Component {
     }
 
     start() {
-        const manager = CollectibleManager.getInstance();
-        if (manager && manager.isCollected(this.collectibleId)) {
-            this.onAlreadyCollected();
+        if (this.useManager) {
+            const manager = CollectibleManager.getInstance();
+            if (manager && manager.isCollected(this.collectibleId)) {
+                this.onAlreadyCollected();
+            }
         }
     }
 
@@ -74,17 +79,27 @@ export class CollectibleItem extends Component {
 
         this.isCollected = true;
 
-        const manager = CollectibleManager.getInstance();
-        if (manager) {
-            manager.collectItem({
-                collectibleId: this.collectibleId,
-                type: this.collectibleType
-            });
+        if (this.useManager) {
+            const manager = CollectibleManager.getInstance();
+            if (manager) {
+                manager.collectItem({
+                    collectibleId: this.collectibleId,
+                    type: this.collectibleType
+                });
+            }
         }
+
+        const icon = this.icon || this.sprite?.spriteFrame || null;
 
         this.node.emit('collectible-collected', {
             collectibleId: this.collectibleId,
             type: this.collectibleType,
+            icon,
+        });
+        director.emit('collectible-collected', {
+            collectibleId: this.collectibleId,
+            type: this.collectibleType,
+            icon,
         });
 
         this.onCollected();
@@ -102,11 +117,11 @@ export class CollectibleItem extends Component {
     }
 
     protected onCollected(): void {
-        console.log(`[CollectibleItem] 收集物 ${this.collectibleId} 已收集，类型: ${this.collectibleType}`);
+        console.log(`[CollectibleItem] Collected ${this.collectibleId}, type: ${this.collectibleType}`);
     }
 
     protected onAlreadyCollected(): void {
-        console.log(`[CollectibleItem] 收集物 ${this.collectibleId} 已被收集，隐藏节点`);
+        console.log(`[CollectibleItem] Already collected ${this.collectibleId}, hide node`);
         this.node.active = false;
     }
 
@@ -121,7 +136,7 @@ export class CollectibleItem extends Component {
             id: this.collectibleId,
             type: this.collectibleType,
             name: `${this.collectibleType}_${this.collectibleId}`,
-            description: `收集物类型: ${this.collectibleType}`,
+            description: `Collectible type: ${this.collectibleType}`,
             icon: this.icon,
         };
     }
