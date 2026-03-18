@@ -87,6 +87,9 @@ export class GameManager extends Component {
         // 初始化关卡配置
         this.initializeLevelConfigs();
 
+        // 监听通关事件
+        director.on('level-completed', this.onLevelComplete, this);
+
         // 游戏启动，先进入菜单
         this.switchState(GameState.Menu);
     }
@@ -491,6 +494,9 @@ export class GameManager extends Component {
             this._zoomTween.stop();
             this._zoomTween = null;
         }
+
+        // 移除通关事件监听
+        director.off('level-completed', this.onLevelComplete, this);
 
         // 清理所有监听器
         this._levelLoadListeners = [];

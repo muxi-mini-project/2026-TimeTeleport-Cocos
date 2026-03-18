@@ -1,4 +1,4 @@
-import { _decorator, Component, Label, Sprite, Color, director, Button } from 'cc';
+import { _decorator, Component, Label, Sprite, Color, director, Button, sys } from 'cc';
 const { ccclass, property } = _decorator;
 
 // 关卡信息配置（不使用@property，仅在代码中使用）
@@ -93,6 +93,17 @@ export class LevelButton extends Component {
 
         if (this.sceneName) {
             console.log(`加载关卡场景: ${this.sceneName}`);
+
+            // 记录当前关卡索引，供 Checkpoint 终点逻辑在通关时解锁下一关使用
+            try {
+                const storage = sys?.localStorage;
+                if (storage) {
+                    storage.setItem('LevelSelect_CurrentLevelIndex', String(this.levelIndex));
+                }
+            } catch (e) {
+                console.warn('[LevelButton] 记录当前关卡索引失败', e);
+            }
+
             director.loadScene(this.sceneName);
         } else {
             console.error(`关卡 ${this.levelIndex + 1} 没有配置场景文件！`);

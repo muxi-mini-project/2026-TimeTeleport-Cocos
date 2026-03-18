@@ -4,6 +4,7 @@ import { CollectibleItem } from '../Objects/CollectibleItem';
 import { CollectibleManager } from '../Core/CollectibleManager';
 import { CollectibleType } from '../Core/CollectibleType';
 import { BallLauncher } from '../Objects/BallLauncher';
+import { CheckPoint } from '../Objects/CheckPoint';
 const { ccclass, property } = _decorator;
 
 const GROUP_LEVEL = 1 << 2;
@@ -47,6 +48,7 @@ export class LevelMapManager extends Component {
     }
     //公共方法，提供注销接口
     public unregisterTimeListener(cb: (state: TimeState) => void) {
+        if (!this.timeListeners || !cb) return;
         const idx = this.timeListeners.indexOf(cb);
         if (idx !== -1) {
             this.timeListeners.splice(idx, 1);
@@ -189,14 +191,36 @@ export class LevelMapManager extends Component {
             return;
         }
 
-     
+
 
         const totalW = mapSize.width * tileSize.width;
         const totalH = mapSize.height * tileSize.height;
         const halfW = totalW / 2;
         const halfH = totalH / 2;
 
+        // 预扫描：找到X坐标最大的存档点作为终点
+        let maxCheckpointX = -Infinity;
+        let endPointX = -Infinity;
+        let endPointY = -Infinity;
+        for (const obj of objects) {
+            if (!obj) continue; // 跳过空对象
+            const name = (obj.name || "").toLowerCase();
+            if (name === "checkpoint") {
+                const tiledX = obj.x || 0;
+                const tiledY = obj.y || 0;
+                const w = obj.width || 0;
+                const finalX = -halfW + tiledX + (w / 2);
+                if (finalX > maxCheckpointX) {
+                    maxCheckpointX = finalX;
+                    endPointX = tiledX;
+                    endPointY = tiledY;
+                }
+            }
+        }
+        console.log(`[LevelMapManager] 预扫描完成，找到终点存档点，X坐标: ${maxCheckpointX}`);
+
         for (const object of objects){
+            if (!object) continue; // 跳过空对象
             const rawName = object.name || "Unknown";
             const name = rawName.toLowerCase();
             // console.log(`[TiledDebug] 发现对象 Name: ${rawName}, 转小写: ${name}, Type: ${object.type}`);
@@ -371,6 +395,19 @@ export class LevelMapManager extends Component {
             newNode.name = rawName;
             newNode.setPosition(v3(finalX, finalY, 0));
             console.log(`生成对象 [${rawName}] 位置 x:${finalX} y:${finalY}`);
+
+            // 如果是存档点，且是预扫描到的终点，标记为终点
+            if (name === "checkpoint" && maxCheckpointX !== -Infinity) {
+                // 使用坐标判断，因为对象引用比较在两次 getObjects() 之间可能不成立
+                const thisFinalX = finalX;
+                if (Math.abs(thisFinalX - maxCheckpointX) < 0.1) {
+                    const checkpointComp = newNode.getComponent(CheckPoint);
+                    if (checkpointComp) {
+                        checkpointComp.isEndPoint = true;
+                        console.log(`[LevelMapManager] 标记此存档点为终点`);
+                    }
+                }
+            }
             if (name === "ball_launcher") {
                 const ballLauncher = newNode.getComponent(BallLauncher);
                 if (ballLauncher && this.ballObstaclePrefab) {
