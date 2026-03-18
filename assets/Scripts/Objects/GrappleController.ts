@@ -57,8 +57,14 @@ export class GrappleController extends Component implements IUsableItem {
             console.error('[Grapple] 未找到 PlayerController 组件，无法重置冲刺！');
         }
 
-        if (!this.ropeGraphics) {
-            this.ropeGraphics = this.node.addComponent(Graphics);
+        if (!this.ropeGraphics && this.drawRope) {
+            const ropeNode = new Node('RopeGraphics');
+            this.node.addChild(ropeNode);
+            ropeNode.addComponent(UITransform);
+            this.ropeGraphics = ropeNode.addComponent(Graphics);
+            if (this.debugLog) {
+                console.log('[Grapple] 创建绳索绘制节点');
+            }
         }
     }
 
@@ -223,14 +229,21 @@ export class GrappleController extends Component implements IUsableItem {
         const playerWorldPos = this.node.getWorldPosition();
         const anchorWorldPos = this.targetAnchor.getWorldPosition();
 
-        const uiTransform = this.node.getComponent(UITransform);
+        const ropeNode = this.ropeGraphics.node;
+        const uiTransform = ropeNode.getComponent(UITransform);
         if (!uiTransform) return;
 
-        const playerLocalPos = uiTransform.convertToNodeSpaceAR(playerWorldPos);
-        const anchorLocalPos = uiTransform.convertToNodeSpaceAR(anchorWorldPos);
+        const playerLocalPos = ropeNode.parent ? ropeNode.parent.getComponent(UITransform)?.convertToNodeSpaceAR(playerWorldPos) : null;
+        const anchorLocalPos = ropeNode.parent ? ropeNode.parent.getComponent(UITransform)?.convertToNodeSpaceAR(anchorWorldPos) : null;
 
-        this.ropeGraphics.moveTo(playerLocalPos.x, playerLocalPos.y);
-        this.ropeGraphics.lineTo(anchorLocalPos.x, anchorLocalPos.y);
+        if (!playerLocalPos || !anchorLocalPos) {
+            this.ropeGraphics.moveTo(0, 0);
+            this.ropeGraphics.lineTo(anchorWorldPos.x - playerWorldPos.x, anchorWorldPos.y - playerWorldPos.y);
+        } else {
+            this.ropeGraphics.moveTo(playerLocalPos.x, playerLocalPos.y);
+            this.ropeGraphics.lineTo(anchorLocalPos.x, anchorLocalPos.y);
+        }
+        
         this.ropeGraphics.strokeColor = new Color(255, 255, 255, 255);
         this.ropeGraphics.lineWidth = 3;
         this.ropeGraphics.stroke();

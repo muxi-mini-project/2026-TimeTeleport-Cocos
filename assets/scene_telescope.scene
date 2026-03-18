@@ -608,7 +608,7 @@
     },
     "ballObstaclePrefab": null,
     "ballLauncherPrefab": null,
-    "debugDraw": true,
+    "debugDraw": false,
     "stuckForgiveness": 0.15,
     "_id": "9bVVN0SkNMqIbSNZSI987K"
   },

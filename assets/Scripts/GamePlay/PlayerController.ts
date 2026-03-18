@@ -120,6 +120,9 @@ export class PlayerController extends Component {
             console.warn('[PlayerController] GrappleController 未绑定，请在 Inspector 中拖入 GrappleController 组件');
         }
 
+        // 初始化默认出生点为玩家当前位置
+        GameManager.instance.resetLevel(this.node.getWorldPosition());
+
         // 监听玩家冻结事件（望远镜模式等）
         Director.instance.on('PLAYER_FREEZE', this.onPlayerFreeze, this);
 
@@ -275,31 +278,39 @@ export class PlayerController extends Component {
         const gm = GameManager.instance;
         const targetPos = gm.currentCheckpointPos ? gm.currentCheckpointPos : gm.defaultSpawnPos;
 
-        this.node.setWorldPosition(targetPos);
-        this.isDead = false;
-
-        console.log(`玩家复活,位置${targetPos}`);
-
-        // 发送玩家复活事件（通知敌人恢复追踪）
-        this.node.emit('player-respawned');
-
-        const rb = this.getComponent(RigidBody2D);
-        if (rb){
-            rb.enabled = true;
-            rb.linearVelocity = Vec2.ZERO.clone();
-            rb.wakeUp();
-        }
-
-        const collider = this.getComponent(Collider2D);
-        if (collider){
-            collider.enabled = true;
-            collider.apply();
-        }
+        console.log(`玩家准备复活,位置${targetPos}`);
 
         this.node.setScale(new Vec3(1, 1, 1));
         this.node.angle = 0;
         const sprite = this.getComponent(Sprite);
         if (sprite) sprite.color = Color.WHITE;
+
+        this.scheduleOnce(() => {
+            this.isDead = false;
+
+            const rb = this.getComponent(RigidBody2D);
+            const collider = this.getComponent(Collider2D);
+            
+            if (rb && collider) {
+                rb.linearVelocity = Vec2.ZERO.clone();
+                rb.angularVelocity = 0;
+                
+                collider.enabled = true;
+                collider.apply();
+                
+                rb.enabled = true;
+                
+                this.node.setWorldPosition(targetPos);
+                
+                rb.linearVelocity = Vec2.ZERO.clone();
+                rb.wakeUp();
+            } else {
+                this.node.setWorldPosition(targetPos);
+            }
+
+            console.log(`玩家复活完成,位置${targetPos}`);
+            this.node.emit('player-respawned');
+        }, 0);
     }
 
     private applyGravityControl() {
