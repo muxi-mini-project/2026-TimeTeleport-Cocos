@@ -149,8 +149,12 @@ export class LevelMapManager extends Component {
 
         this.pastColRoot = this.generateColliders("Past_Col", GROUP_LEVEL);
         this.futureColRoot = this.generateColliders("Future_Col", GROUP_LEVEL);
-        if (this.pastColRoot) this.pastColRoot.active = false;
-        if (this.futureColRoot) this.futureColRoot.active = false;
+
+        this.scheduleOnce(() => {
+            if (this.pastColRoot) this.pastColRoot.active = false;
+            if (this.futureColRoot) this.futureColRoot.active = false;
+            this.toggleTime();
+        }, 0);
 
         // this.pastArtLayer = this.tiledMap.node.getChildByName("Past_Art");
         // this.futureArtLayer = this.tiledMap.node.getChildByName("Future_Art");
@@ -178,8 +182,6 @@ export class LevelMapManager extends Component {
         this.setupFragmentSpawner();
 
         CollectibleManager.getInstance().initialize(this.node.name || "Level");
-
-        this.toggleTime();
 
         console.log("地图重组与初始化完成");
     }

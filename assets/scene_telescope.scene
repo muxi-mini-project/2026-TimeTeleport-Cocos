@@ -570,7 +570,9 @@
       "__id__": 42
     },
     "fadeDuration": 0.5,
-    "playerNode": null,
+    "playerNode": {
+      "__id__": 6
+    },
     "cameraNode": {
       "__id__": 5
     },
