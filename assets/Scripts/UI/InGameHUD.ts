@@ -155,7 +155,7 @@ export class InGameHUD extends Component {
     }
 
     private unbindPlayer(): void {
-        if (!this.playerNode) return;
+        if (!this.playerNode || !this.playerNode.isValid) return;
         this.playerNode.off('item-picked-up', this.onItemPickedUp, this);
         this.playerNode.off('item-used', this.onItemUsed, this);
         this.playerNode.off('item-removed', this.onItemRemoved, this);

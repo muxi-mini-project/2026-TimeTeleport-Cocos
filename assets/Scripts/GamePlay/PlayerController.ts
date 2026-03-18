@@ -8,6 +8,13 @@ import { BallObstacle } from '../Objects/BallObstacle';
 import { ItemType } from '../Core/ItemType';
 const { ccclass, property } = _decorator;
 
+export enum PlayerState {
+    IDLE = 0,
+    RUN,
+    JUMP,
+    FALL
+}
+
 @ccclass('PlayerController')
 export class PlayerController extends Component {
     // --- 新增/修改的移动参数 ---
@@ -55,7 +62,13 @@ export class PlayerController extends Component {
     grappleController: GrappleController = null;
 
     @property(Animation)
-    deathAnim: Animation = null; // 拖入动画组件
+    deathAnim: Animation = null;
+
+    @property(Animation)
+    anim: Animation = null;
+
+    private sprite: Sprite = null;
+    private currentState: PlayerState = PlayerState.IDLE;
 
     @property(AudioSource)
     deathSound: AudioSource = null; // 拖入死亡音效
@@ -96,6 +109,7 @@ export class PlayerController extends Component {
         this.rb = this.getComponent(RigidBody2D)!;
         this._collider = this.getComponent(Collider2D);
         this._uiTransform = this.getComponent(UITransform);
+        this.sprite = this.getComponent(Sprite);
 
         input.on(Input.EventType.KEY_DOWN, this.onKeyDown, this);
         input.on(Input.EventType.KEY_UP, this.onKeyUp, this);
@@ -189,6 +203,9 @@ export class PlayerController extends Component {
 
         // 更新护盾计时
         this.updateShield(dt);
+        
+        // 更新玩家状态
+        this.updatePlayerState();
     }
 
     public die(){
@@ -674,5 +691,51 @@ export class PlayerController extends Component {
     public resetDash(): void {
         this.canDash = true;
         console.log('[PlayerController] 冲刺次数已重置');
+    }
+
+    changeState(newState: PlayerState) {
+        if (this.currentState === newState) return;
+        this.currentState = newState;
+
+        if (this.anim && this.anim.getState('idle')) {
+            this.anim.play('idle');
+        }
+
+        if (!this.sprite) return;
+        
+        switch (this.currentState) {
+            case PlayerState.IDLE:
+                this.sprite.color = Color.WHITE;
+                break;
+            case PlayerState.RUN:
+                this.sprite.color = Color.GREEN;
+                break;
+            case PlayerState.JUMP:
+                this.sprite.color = Color.YELLOW;
+                break;
+            case PlayerState.FALL:
+                this.sprite.color = Color.RED;
+                break;
+        }
+    }
+
+    private updatePlayerState(): void {
+        if (this.isDashing) return;
+        
+        const vel = this.rb.linearVelocity;
+        
+        if (this._isGrounded) {
+            if (Math.abs(vel.x) > 0.1) {
+                this.changeState(PlayerState.RUN);
+            } else {
+                this.changeState(PlayerState.IDLE);
+            }
+        } else {
+            if (vel.y > 0) {
+                this.changeState(PlayerState.JUMP);
+            } else {
+                this.changeState(PlayerState.FALL);
+            }
+        }
     }
 }
