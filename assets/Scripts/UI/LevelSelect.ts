@@ -188,7 +188,7 @@ export class LevelSelect extends Component {
             {
                 id: 'Level_2',
                 name: '02',
-                sceneName: 'scene_obstacles',  // 使用现有的测试场景
+                sceneName: 'scene-obstacles',  // 使用现有的测试场景
                 description: '探索远古时期的危险',
                 index: 1
             },
@@ -232,7 +232,11 @@ export class LevelSelect extends Component {
     // 创建关卡按钮
     private createLevelButtons() {
         if (!this.levelContainer || !this.levelButtonPrefab) {
-            console.error('[LevelSelect] 缺少 levelContainer 或 levelButtonPrefab');
+            console.error('[LevelSelect] 缺少 levelContainer 或 levelButtonPrefab，请在编辑器中绑定');
+            // 如果 levelContainer 存在只是没预制体，至少清空一下
+            if (this.levelContainer) {
+                this.levelContainer.removeAllChildren();
+            }
             return;
         }
 
