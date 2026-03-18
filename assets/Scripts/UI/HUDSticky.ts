@@ -12,6 +12,9 @@ export class HudSticky extends Component {
   @property
   marginTopPx = 20;
 
+  @property({ tooltip: 'Align to right edge instead of left' })
+  alignRight = false;
+
   private _pos = new Vec3();
 
   lateUpdate() {
@@ -33,13 +36,13 @@ export class HudSticky extends Component {
     if (ui) {
       const a = ui.anchorPoint;
       const s = ui.contentSize;
-      anchorOffsetX = a.x * s.width;
+      anchorOffsetX = this.alignRight ? (1 - a.x) * s.width : a.x * s.width;
       anchorOffsetY = (1 - a.y) * s.height;
     }
 
     const camPos = this.camera.node.worldPosition;
     this._pos.set(
-      camPos.x - halfW + marginX + anchorOffsetX,
+      this.alignRight ? (camPos.x + halfW - marginX - anchorOffsetX) : (camPos.x - halfW + marginX + anchorOffsetX),
       camPos.y + halfH - marginY - anchorOffsetY,
       this.node.worldPosition.z,
     );
