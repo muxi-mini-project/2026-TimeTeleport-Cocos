@@ -4,6 +4,7 @@ import { CollectibleItem } from '../Objects/CollectibleItem';
 import { CollectibleManager } from '../Core/CollectibleManager';
 import { CollectibleType } from '../Core/CollectibleType';
 import { BallLauncher } from '../Objects/BallLauncher';
+import { FragmentSpawner } from '../Objects/FragmentSpawner';
 import { CheckPoint } from '../Objects/CheckPoint';
 const { ccclass, property } = _decorator;
 
@@ -68,6 +69,15 @@ export class LevelMapManager extends Component {
     @property({ type: Prefab, tooltip: "可收集元素预制体"})
     collectiblePrefab: Prefab = null;
 
+    @property({ type: Prefab, tooltip: 'Time fragment prefab' })
+    timeFragmentPrefab: Prefab = null;
+
+    @property({ type: Prefab, tooltip: 'Future chip prefab' })
+    futureChipPrefab: Prefab = null;
+
+    @property({ type: Prefab, tooltip: 'Ancient fossil prefab' })
+    ancientFossilPrefab: Prefab = null;
+
     @property({ type: Prefab, tooltip: "钩爪锚点预制体"})
     anchorPrefab: Prefab = null;
 
@@ -104,6 +114,8 @@ export class LevelMapManager extends Component {
 
     private currentState: TimeState = TimeState.Past;
     private isFading: boolean = false;
+
+    private fragmentSpawner: FragmentSpawner | null = null;
 
     private readonly OBJ_TYPE = {
         CHECKPOINT: "checkpoint",
@@ -161,6 +173,7 @@ export class LevelMapManager extends Component {
         }
 
         this.spawnPrefbs("Objects");
+        this.setupFragmentSpawner();
 
         CollectibleManager.getInstance().initialize(this.node.name || "Level");
 
@@ -699,6 +712,29 @@ export class LevelMapManager extends Component {
 
     public getScopeData(scopeID: number): ScopeData | undefined {
         return this._boundsMap.get(scopeID);
+    }
+
+    private setupFragmentSpawner(): void {
+        if (this.fragmentSpawner) return;
+
+        if (!this.timeFragmentPrefab || !this.futureChipPrefab || !this.ancientFossilPrefab) {
+            console.warn('[LevelMapManager] Fragment prefabs not assigned, skip spawn.');
+            return;
+        }
+
+        this.fragmentSpawner = new FragmentSpawner({
+            mapManager: this,
+            timeFragmentPrefab: this.timeFragmentPrefab,
+            futureChipPrefab: this.futureChipPrefab,
+            ancientFossilPrefab: this.ancientFossilPrefab,
+        });
+    }
+
+    onDestroy() {
+        if (this.fragmentSpawner) {
+            this.fragmentSpawner.dispose();
+            this.fragmentSpawner = null;
+        }
     }
 
     private parseCollectibleType(typeStr: string): CollectibleType {
