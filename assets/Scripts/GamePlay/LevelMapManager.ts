@@ -135,20 +135,26 @@ export class LevelMapManager extends Component {
             return; // 阻止后续运行，防止崩溃
         }
 
+        if (this.debugDraw) {
         PhysicsSystem2D.instance.debugDrawFlags = EPhysics2DDrawFlags.Aabb |
             EPhysics2DDrawFlags.Pair |
             EPhysics2DDrawFlags.CenterOfMass |
             EPhysics2DDrawFlags.Joint |
             EPhysics2DDrawFlags.Shape;
-
+        }
+        
         if (!this.playerNode) {
             console.warn("【警告】LevelMapManager 未绑定 Player Node，防卡墙检测将无法生效！");
         }
 
         this.pastColRoot = this.generateColliders("Past_Col", GROUP_LEVEL);
         this.futureColRoot = this.generateColliders("Future_Col", GROUP_LEVEL);
-        if (this.pastColRoot) this.pastColRoot.active = false;
-        if (this.futureColRoot) this.futureColRoot.active = false;
+
+        this.scheduleOnce(() => {
+            if (this.pastColRoot) this.pastColRoot.active = false;
+            if (this.futureColRoot) this.futureColRoot.active = false;
+            this.toggleTime();
+        }, 0);
 
         // this.pastArtLayer = this.tiledMap.node.getChildByName("Past_Art");
         // this.futureArtLayer = this.tiledMap.node.getChildByName("Future_Art");
@@ -176,8 +182,6 @@ export class LevelMapManager extends Component {
         this.setupFragmentSpawner();
 
         CollectibleManager.getInstance().initialize(this.node.name || "Level");
-
-        this.toggleTime();
 
         console.log("地图重组与初始化完成");
     }
@@ -572,12 +576,6 @@ export class LevelMapManager extends Component {
         // console.log(`[MapDebug] Layer:${layerName} W:${totalW} H:${totalH}`);
 
         for (const object of objects) {
-            const colliderNode = new Node();
-            colliderNode.name = object.name || "Collider";
-
-            // 重要：添加到新建的 rootNode 中
-            rootNode.addChild(colliderNode);
-
             const w = object.width;
             const h = object.height;
             const tiledX = object.x;
@@ -587,8 +585,6 @@ export class LevelMapManager extends Component {
                 console.warn(`[Error Data] 对象 ${object.name || 'Unknown'} 数据不完整，跳过。`, object);
                 continue;
             }
-
-            
 
             // 如果你想直接丢弃 0 尺寸对象（推荐）：
             if (w <= 0 || h <= 0) {
@@ -605,8 +601,16 @@ export class LevelMapManager extends Component {
                 continue; // 绝对不要把 NaN 传给 setPosition
             }
 
+            const colliderNode = new Node(object.name || "Collider");
+            
+            // 先添加 UITransform 并设置位置，再添加物理组件
+            const uiTransform = colliderNode.addComponent(UITransform);
+            uiTransform.setContentSize(w, h);
             colliderNode.setPosition(v3(finalX, finalY, 0));
+            
+            rootNode.addChild(colliderNode);
 
+            // 最后添加物理组件
             const rb = colliderNode.addComponent(RigidBody2D);
             rb.type = ERigidBody2DType.Static;
 

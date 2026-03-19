@@ -570,7 +570,9 @@
       "__id__": 42
     },
     "fadeDuration": 0.5,
-    "playerNode": null,
+    "playerNode": {
+      "__id__": 6
+    },
     "cameraNode": {
       "__id__": 5
     },
@@ -608,7 +610,7 @@
     },
     "ballObstaclePrefab": null,
     "ballLauncherPrefab": null,
-    "debugDraw": true,
+    "debugDraw": false,
     "stuckForgiveness": 0.15,
     "_id": "9bVVN0SkNMqIbSNZSI987K"
   },
