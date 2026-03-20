@@ -250,8 +250,11 @@ export class PlayerController extends Component {
 
         // B. 播放动画 (如果有美术做的 Frame Animation)
         if (this.deathAnim) {
-            this.deathAnim.play(); // 假设动画名叫 die_anim
-        } 
+            this.deathAnim.play();
+            this.scheduleOnce(() => {
+                this.respawn();
+            }, 0.8)
+        }
         // C. 如果没有动画，用代码写一个简单的 Tween (比如变红 + 缩小 + 旋转)
         else {
             const sprite = this.getComponent(Sprite);
@@ -707,9 +710,23 @@ export class PlayerController extends Component {
     changeState(newState: PlayerState) {
         if (this.currentState === newState) return;
         this.currentState = newState;
+        var aniName: string = 'idle';
+        if (this.anim) {
+            switch (newState) {
+                case PlayerState.IDLE: aniName = 'idle';
+                break;
+                case PlayerState.JUMP: aniName = 'jump';
+                break;
+                case PlayerState.FALL: aniName = 'fall';
+                break;
+                case PlayerState.RUN: aniName = 'run';
+                break;
+            }
+        }
 
-        if (this.anim && this.anim.getState('idle')) {
-            this.anim.play('idle');
+
+        if (this.anim.getState(aniName)) {
+            this.anim.play(aniName);
         }
 
         if (!this.sprite) return;
