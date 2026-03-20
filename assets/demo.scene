@@ -23,7 +23,7 @@
     "_active": true,
     "_components": [],
     "_prefab": {
-      "__id__": 46
+      "__id__": 47
     },
     "_lpos": {
       "__type__": "cc.Vec3",
@@ -54,7 +54,7 @@
     },
     "autoReleaseAssets": false,
     "_globals": {
-      "__id__": 47
+      "__id__": 48
     },
     "_id": "5b9cae9b-62b1-48ee-a216-f2ca2b5793bc"
   },
@@ -83,19 +83,19 @@
     "_active": true,
     "_components": [
       {
-        "__id__": 43
-      },
-      {
         "__id__": 44
       },
       {
         "__id__": 45
+      },
+      {
+        "__id__": 46
       }
     ],
     "_prefab": null,
     "_lpos": {
       "__type__": "cc.Vec3",
-      "x": 1280,
+      "x": 960,
       "y": 540,
       "z": 0
     },
@@ -298,6 +298,9 @@
       },
       {
         "__id__": 42
+      },
+      {
+        "__id__": 43
       }
     ],
     "removedComponents": []
@@ -1165,6 +1168,18 @@
     }
   },
   {
+    "__type__": "CCPropertyOverrideInfo",
+    "targetInfo": {
+      "__id__": 19
+    },
+    "propertyPath": [
+      "anim"
+    ],
+    "value": {
+      "__id__": 11
+    }
+  },
+  {
     "__type__": "cc.UITransform",
     "_name": "",
     "_objFlags": 0,
@@ -1176,7 +1191,7 @@
     "__prefab": null,
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 2560,
+      "width": 1920,
       "height": 1080
     },
     "_anchorPoint": {
@@ -1248,28 +1263,28 @@
   {
     "__type__": "cc.SceneGlobals",
     "ambient": {
-      "__id__": 48
-    },
-    "shadows": {
       "__id__": 49
     },
-    "_skybox": {
+    "shadows": {
       "__id__": 50
     },
-    "fog": {
+    "_skybox": {
       "__id__": 51
     },
-    "octree": {
+    "fog": {
       "__id__": 52
     },
-    "skin": {
+    "octree": {
       "__id__": 53
     },
-    "lightProbeInfo": {
+    "skin": {
       "__id__": 54
     },
-    "postSettings": {
+    "lightProbeInfo": {
       "__id__": 55
+    },
+    "postSettings": {
+      "__id__": 56
     },
     "bakedWithStationaryMainLight": false,
     "bakedWithHighpLightmap": false
