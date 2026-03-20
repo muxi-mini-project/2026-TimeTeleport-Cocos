@@ -179,41 +179,33 @@ export class LevelSelect extends Component {
     private initDefaultLevels() {
         this.levels = [
             {
-                id: 'Level_1',
-                name: '01',
-                sceneName: 'scene',  // 使用现有的测试场景
-                description: '初次体验时空穿越的奇妙',
+                id: 'Level_0',
+                name: '序章',
+                sceneName: 'OpeningScene',
+                description: '逃脱无聊的时空之旅',
                 index: 0
             },
             {
-                id: 'Level_2',
+                id: 'Level_1',
                 name: '02',
-                sceneName: 'scene-obstacles',  // 使用现有的测试场景
-                description: '探索远古时期的危险',
+                sceneName: 'scene',
+                description: '初次体验时空穿越的奇妙',
                 index: 1
             },
             {
-                id: 'Level_3',
+                id: 'Level_2',
                 name: '03',
-                sceneName: 'scene_telescope',  // 使用现有的测试场景
-                description: '发现观察时空的独特视角',
+                sceneName: 'scene-obstacles',
+                description: '探索远古时期的危险',
                 index: 2
             },
-            // TODO: 后续添加更多关卡时，在这里继续添加
-            // {
-            //     id: 'Level_4',
-            //     name: '第四章 - 古老遗迹',
-            //     sceneName: 'Level4',
-            //     description: '探索神秘的远古遗迹',
-            //     index: 3
-            // },
-            // {
-            //     id: 'Level_5',
-            //     name: '第五章 - 未来科技',
-            //     sceneName: 'Level5',
-            //     description: '面对高科技的未来威胁',
-            //     index: 4
-            // },
+            {
+                id: 'Level_3',
+                name: '04',
+                sceneName: 'scene_telescope',
+                description: '发现观察时空的独特视角',
+                index: 3
+            },
         ];
 
         console.log(`[LevelSelect] 初始化了 ${this.levels.length} 个默认关卡`);
