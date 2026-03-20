@@ -1,5 +1,6 @@
 import { _decorator, Component, Node, Prefab, instantiate, UITransform, Input, input, EventMouse, Vec3, game, tween } from 'cc';
 import { PaperStack } from './PaperStack'; 
+import { VideoPlayerController } from './VideoPlayerController';
 const { ccclass, property } = _decorator;
 
 @ccclass('StampController')
@@ -7,6 +8,9 @@ export class StampController extends Component {
 
     @property({ type: PaperStack, tooltip: "引用纸张堆栈管理器" })
     paperStack: PaperStack = null;
+
+    @property({ type: VideoPlayerController, tooltip: "引用视频播放控制器" })
+    videoController: VideoPlayerController = null;
 
     @property({ type: Prefab, tooltip: "盖下去留下的印记" })
     markPrefab: Prefab = null;
@@ -284,6 +288,11 @@ export class StampController extends Component {
         // PaperStack 会负责：绑定父子关系 -> 补充新纸 -> 飞出动画
         if (this.paperStack) {
             this.paperStack.processCurrentPaper(mark);
+        }
+
+        // 6. 通知视频播放控制器更新
+        if (this.videoController) {
+            this.videoController.onStampCountChanged();
         }
     }
 }
