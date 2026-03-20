@@ -1,4 +1,4 @@
-import { _decorator, Component, Node, director, Prefab, instantiate, Label, UITransform, Button, sys } from 'cc';
+import { _decorator, Component, Node, director, Prefab, instantiate, Label, UITransform, Button, sys, SpriteFrame } from 'cc';
 import { CollectibleManager } from '../Core/CollectibleManager';
 import { LevelButton, LevelInfo } from './LevelButton';
 const { ccclass, property } = _decorator;
@@ -48,6 +48,9 @@ export class LevelSelect extends Component {
 
     @property({ tooltip: '>0 时在创建时设置每个关卡按钮的高度（含背景图）' })
     levelButtonHeight: number = 0;
+
+    @property({ type: SpriteFrame, tooltip: '各关卡的背景图片（按关卡顺序排列，索引对应关卡索引）' })
+    levelBackgroundSprites: SpriteFrame[] = [];
 
     private levels: LevelInfo[] = [];
 
@@ -187,21 +190,21 @@ export class LevelSelect extends Component {
             },
             {
                 id: 'Level_1',
-                name: '02',
+                name: '01',
                 sceneName: 'scene',
                 description: '初次体验时空穿越的奇妙',
                 index: 1
             },
             {
                 id: 'Level_2',
-                name: '03',
+                name: '02',
                 sceneName: 'scene-obstacles',
                 description: '探索远古时期的危险',
                 index: 2
             },
             {
                 id: 'Level_3',
-                name: '04',
+                name: '03',
                 sceneName: 'scene_telescope',
                 description: '发现观察时空的独特视角',
                 index: 3
@@ -274,6 +277,17 @@ export class LevelSelect extends Component {
 
             // 初始化按钮
             levelButton.init(levelInfo, isLocked, collectedCount, totalCount);
+
+            // 设置对应关卡的背景图片（如果有配置的话）
+            if (this.levelBackgroundSprites.length > i && this.levelBackgroundSprites[i]) {
+                const spriteFrame = this.levelBackgroundSprites[i];
+                levelButton.setBackgroundSprite(spriteFrame);
+                // 如果没配置固定尺寸，则自动使用图片原始大小
+                if (!(this.levelButtonWidth > 0 && this.levelButtonHeight > 0) && spriteFrame) {
+                    const rect = spriteFrame.getRect();
+                    this.applyLevelButtonSize(buttonNode, rect.width, rect.height);
+                }
+            }
 
             // 应用关卡按钮尺寸（若在 Inspector 中配置了 levelButtonWidth/Height）
             if (this.levelButtonWidth > 0 && this.levelButtonHeight > 0) {

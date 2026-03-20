@@ -101,8 +101,8 @@
     },
     "_lpos": {
       "__type__": "cc.Vec3",
-      "x": -0.62,
-      "y": -2.671,
+      "x": 5.535,
+      "y": -17.262,
       "z": 0
     },
     "_lrot": {
@@ -142,8 +142,8 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 160,
-      "height": 158
+      "width": 0,
+      "height": 0
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -184,7 +184,7 @@
     },
     "_type": 0,
     "_fillType": 0,
-    "_sizeMode": 1,
+    "_sizeMode": 0,
     "_fillCenter": {
       "__type__": "cc.Vec2",
       "x": 0,
@@ -223,7 +223,7 @@
       "__id__": 1
     },
     "_children": [],
-    "_active": true,
+    "_active": false,
     "_components": [
       {
         "__id__": 9
@@ -664,6 +664,8 @@
       "__id__": 0
     },
     "fileId": "ecJVdQQZBH5K3u5pdBa1az",
+    "instance": null,
+    "targetOverrides": null,
     "nestedPrefabInstanceRoots": null
   },
   {
@@ -684,17 +686,36 @@
     },
     "levelContainer": null,
     "backBtn": null,
-    "titleLabel": null,
     "totalProgressLabel": null,
     "maxUnlockedIndex": 0,
     "devMode": false,
-    "backgroundNode": null,
+    "backgroundNode": {
+      "__id__": 2
+    },
     "backgroundWidth": 0,
     "backgroundHeight": 0,
-    "backButtonWidth": 120,
-    "backButtonHeight": 120,
-    "levelButtonWidth": 120,
-    "levelButtonHeight": 120,
+    "backButtonWidth": 0,
+    "backButtonHeight": 0,
+    "levelButtonWidth": 0,
+    "levelButtonHeight": 0,
+    "levelBackgroundSprites": [
+      {
+        "__uuid__": "0898e6ca-94d1-49de-aeb4-713ae320b06e@f9941",
+        "__expectedType__": "cc.SpriteFrame"
+      },
+      {
+        "__uuid__": "502f36b6-5a37-45ca-8f0a-c1b4e03e2d08@f9941",
+        "__expectedType__": "cc.SpriteFrame"
+      },
+      {
+        "__uuid__": "5c05ef7b-31a2-47ad-9c45-bf88df0691f3@f9941",
+        "__expectedType__": "cc.SpriteFrame"
+      },
+      {
+        "__uuid__": "5e152fce-ab54-439d-8fea-18a3d104554b@f9941",
+        "__expectedType__": "cc.SpriteFrame"
+      }
+    ],
     "_id": ""
   },
   {
@@ -715,8 +736,8 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 100,
-      "height": 100
+      "width": 0,
+      "height": 0
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
