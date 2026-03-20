@@ -1,4 +1,4 @@
-import { _decorator, Component, Node, VideoPlayer, Vec3, tween, view } from 'cc';
+import { _decorator, Component, Node, VideoPlayer, Vec3, tween, view, director } from 'cc';
 const { ccclass, property } = _decorator;
 
 @ccclass('VideoPlayerController')
@@ -24,6 +24,9 @@ export class VideoPlayerController extends Component {
 
     @property({ tooltip: "全屏时中心位置" })
     centerPosition: Vec3 = new Vec3(0, 0, 0);
+
+    @property({ tooltip: "全屏后延迟多久跳转到选关界面（秒）" })
+    delayBeforeTransition: number = 1.5;
 
     private _currentStampCount: number = 0;
     private _currentTween: any = null;
@@ -70,6 +73,11 @@ export class VideoPlayerController extends Component {
             }, { easing: 'backOut' })
             .call(() => {
                 this._currentTween = null;
+                if (this.isFullScreen) {
+                    this.scheduleOnce(() => {
+                        director.loadScene('LevelSelect');
+                    }, this.delayBeforeTransition);
+                }
             })
             .start();
     }
