@@ -154,7 +154,7 @@
       "__id__": 7
     },
     "tag": 0,
-    "_group": 8,
+    "_group": 1,
     "_density": 1,
     "_sensor": true,
     "_friction": 0.2,
@@ -229,7 +229,7 @@
     "canBeStomped": true,
     "stompBounceForce": 15,
     "shieldBounceBonus": 10,
-    "showBoundaryMarkers": true,
+    "showBoundaryMarkers": false,
     "boundaryMarkerColor": {
       "__type__": "cc.Color",
       "r": 255,
@@ -251,6 +251,8 @@
     "asset": {
       "__id__": 0
     },
-    "fileId": "f03Y3m3H1JvKMNZAf36A/2"
+    "fileId": "f03Y3m3H1JvKMNZAf36A/2",
+    "instance": null,
+    "targetOverrides": null
   }
 ]

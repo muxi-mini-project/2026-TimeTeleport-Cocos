@@ -224,6 +224,12 @@ export class PlayerController extends Component {
 
         console.log("玩家死亡");
 
+        this._currentItemType = null;
+        this._currentItemData = null;
+        if (this._shieldActive) {
+            this.deactivateShield();
+        }
+
         // 发送玩家死亡事件（通知敌人重置位置）
         this.node.emit('player-died');
 

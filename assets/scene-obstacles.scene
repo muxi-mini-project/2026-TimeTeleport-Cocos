@@ -23,7 +23,7 @@
     "_active": true,
     "_components": [],
     "_prefab": {
-      "__id__": 110
+      "__id__": 112
     },
     "_lpos": {
       "__type__": "cc.Vec3",
@@ -54,7 +54,7 @@
     },
     "autoReleaseAssets": false,
     "_globals": {
-      "__id__": 141
+      "__id__": 143
     },
     "_id": "4be03e32-054f-4d4f-ad2c-87c651784697"
   },
@@ -96,18 +96,21 @@
       },
       {
         "__id__": 95
+      },
+      {
+        "__id__": 107
       }
     ],
     "_active": true,
     "_components": [
       {
-        "__id__": 107
-      },
-      {
-        "__id__": 108
-      },
-      {
         "__id__": 109
+      },
+      {
+        "__id__": 110
+      },
+      {
+        "__id__": 111
       }
     ],
     "_prefab": null,
@@ -1621,8 +1624,8 @@
     ],
     "value": {
       "__type__": "cc.Vec3",
-      "x": -429.02,
-      "y": -417.989,
+      "x": -434.297,
+      "y": -406.723,
       "z": 0
     }
   },
@@ -1681,7 +1684,7 @@
     "propertyPath": [
       "showBoundaryMarkers"
     ],
-    "value": false
+    "value": true
   },
   {
     "__type__": "cc.TargetInfo",
@@ -1970,6 +1973,66 @@
     ]
   },
   {
+    "__type__": "cc.Node",
+    "_name": "LevelRespawnManager",
+    "_objFlags": 0,
+    "__editorExtras__": {},
+    "_parent": {
+      "__id__": 2
+    },
+    "_children": [],
+    "_active": true,
+    "_components": [
+      {
+        "__id__": 108
+      }
+    ],
+    "_prefab": null,
+    "_lpos": {
+      "__type__": "cc.Vec3",
+      "x": 0,
+      "y": 0,
+      "z": 0
+    },
+    "_lrot": {
+      "__type__": "cc.Quat",
+      "x": 0,
+      "y": 0,
+      "z": 0,
+      "w": 1
+    },
+    "_lscale": {
+      "__type__": "cc.Vec3",
+      "x": 1,
+      "y": 1,
+      "z": 1
+    },
+    "_mobility": 0,
+    "_layer": 33554432,
+    "_euler": {
+      "__type__": "cc.Vec3",
+      "x": 0,
+      "y": 0,
+      "z": 0
+    },
+    "_id": "22bzgbUxZOvbACWiD1PYBJ"
+  },
+  {
+    "__type__": "e8a1911Wd1I0bPIrWKSwMxR",
+    "_name": "",
+    "_objFlags": 0,
+    "__editorExtras__": {},
+    "node": {
+      "__id__": 107
+    },
+    "_enabled": true,
+    "__prefab": null,
+    "playerNode": {
+      "__id__": 6
+    },
+    "_id": "fcOTtUFghNUoln0GLHI3QP"
+  },
+  {
     "__type__": "cc.UITransform",
     "_name": "",
     "_objFlags": 0,
@@ -2045,34 +2108,34 @@
     "instance": null,
     "targetOverrides": [
       {
-        "__id__": 111
+        "__id__": 113
       },
       {
-        "__id__": 114
+        "__id__": 116
       },
       {
-        "__id__": 117
+        "__id__": 119
       },
       {
-        "__id__": 120
+        "__id__": 122
       },
       {
-        "__id__": 123
+        "__id__": 125
       },
       {
-        "__id__": 126
+        "__id__": 128
       },
       {
-        "__id__": 129
+        "__id__": 131
       },
       {
-        "__id__": 132
+        "__id__": 134
       },
       {
-        "__id__": 135
+        "__id__": 137
       },
       {
-        "__id__": 138
+        "__id__": 140
       }
     ],
     "nestedPrefabInstanceRoots": [
@@ -2105,7 +2168,7 @@
       "__id__": 43
     },
     "sourceInfo": {
-      "__id__": 112
+      "__id__": 114
     },
     "propertyPath": [
       "visualNode"
@@ -2114,28 +2177,28 @@
       "__id__": 43
     },
     "targetInfo": {
-      "__id__": 113
-    }
-  },
-  {
-    "__type__": "cc.TargetInfo",
-    "localID": [
-      "25kOKjljJEO6MT47YTsbEr"
-    ]
-  },
-  {
-    "__type__": "cc.TargetInfo",
-    "localID": [
-      "88h0cEUiNObaXrL+Rko+4f"
-    ]
-  },
-  {
-    "__type__": "cc.TargetOverrideInfo",
-    "source": {
-      "__id__": 43
-    },
-    "sourceInfo": {
       "__id__": 115
+    }
+  },
+  {
+    "__type__": "cc.TargetInfo",
+    "localID": [
+      "25kOKjljJEO6MT47YTsbEr"
+    ]
+  },
+  {
+    "__type__": "cc.TargetInfo",
+    "localID": [
+      "88h0cEUiNObaXrL+Rko+4f"
+    ]
+  },
+  {
+    "__type__": "cc.TargetOverrideInfo",
+    "source": {
+      "__id__": 43
+    },
+    "sourceInfo": {
+      "__id__": 117
     },
     "propertyPath": [
       "hitCollider"
@@ -2144,7 +2207,7 @@
       "__id__": 43
     },
     "targetInfo": {
-      "__id__": 116
+      "__id__": 118
     }
   },
   {
@@ -2165,7 +2228,7 @@
       "__id__": 58
     },
     "sourceInfo": {
-      "__id__": 118
+      "__id__": 120
     },
     "propertyPath": [
       "visualNode"
@@ -2174,7 +2237,7 @@
       "__id__": 58
     },
     "targetInfo": {
-      "__id__": 119
+      "__id__": 121
     }
   },
   {
@@ -2195,7 +2258,7 @@
       "__id__": 58
     },
     "sourceInfo": {
-      "__id__": 121
+      "__id__": 123
     },
     "propertyPath": [
       "hitCollider"
@@ -2204,7 +2267,7 @@
       "__id__": 58
     },
     "targetInfo": {
-      "__id__": 122
+      "__id__": 124
     }
   },
   {
@@ -2225,7 +2288,7 @@
       "__id__": 68
     },
     "sourceInfo": {
-      "__id__": 124
+      "__id__": 126
     },
     "propertyPath": [
       "visualNode"
@@ -2234,7 +2297,7 @@
       "__id__": 68
     },
     "targetInfo": {
-      "__id__": 125
+      "__id__": 127
     }
   },
   {
@@ -2255,7 +2318,7 @@
       "__id__": 68
     },
     "sourceInfo": {
-      "__id__": 127
+      "__id__": 129
     },
     "propertyPath": [
       "hitCollider"
@@ -2264,7 +2327,7 @@
       "__id__": 68
     },
     "targetInfo": {
-      "__id__": 128
+      "__id__": 130
     }
   },
   {
@@ -2285,7 +2348,7 @@
       "__id__": 95
     },
     "sourceInfo": {
-      "__id__": 130
+      "__id__": 132
     },
     "propertyPath": [
       "itemSlot"
@@ -2294,7 +2357,7 @@
       "__id__": 95
     },
     "targetInfo": {
-      "__id__": 131
+      "__id__": 133
     }
   },
   {
@@ -2315,7 +2378,7 @@
       "__id__": 95
     },
     "sourceInfo": {
-      "__id__": 133
+      "__id__": 135
     },
     "propertyPath": [
       "shieldProgressBar"
@@ -2324,7 +2387,7 @@
       "__id__": 95
     },
     "targetInfo": {
-      "__id__": 134
+      "__id__": 136
     }
   },
   {
@@ -2345,7 +2408,7 @@
       "__id__": 95
     },
     "sourceInfo": {
-      "__id__": 136
+      "__id__": 138
     },
     "propertyPath": [
       "shieldProgressRoot"
@@ -2354,7 +2417,7 @@
       "__id__": 95
     },
     "targetInfo": {
-      "__id__": 137
+      "__id__": 139
     }
   },
   {
@@ -2375,7 +2438,7 @@
       "__id__": 95
     },
     "sourceInfo": {
-      "__id__": 139
+      "__id__": 141
     },
     "propertyPath": [
       "shieldTimeLabel"
@@ -2384,7 +2447,7 @@
       "__id__": 95
     },
     "targetInfo": {
-      "__id__": 140
+      "__id__": 142
     }
   },
   {
@@ -2402,28 +2465,28 @@
   {
     "__type__": "cc.SceneGlobals",
     "ambient": {
-      "__id__": 142
-    },
-    "shadows": {
-      "__id__": 143
-    },
-    "_skybox": {
       "__id__": 144
     },
-    "fog": {
+    "shadows": {
       "__id__": 145
     },
-    "octree": {
+    "_skybox": {
       "__id__": 146
     },
-    "skin": {
+    "fog": {
       "__id__": 147
     },
-    "lightProbeInfo": {
+    "octree": {
       "__id__": 148
     },
-    "postSettings": {
+    "skin": {
       "__id__": 149
+    },
+    "lightProbeInfo": {
+      "__id__": 150
+    },
+    "postSettings": {
+      "__id__": 151
     },
     "bakedWithStationaryMainLight": false,
     "bakedWithHighpLightmap": false
