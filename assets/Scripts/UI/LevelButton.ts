@@ -1,4 +1,4 @@
-import { _decorator, Component, Label, Sprite, Color, director, Button, sys } from 'cc';
+import { _decorator, Component, Label, Sprite, SpriteFrame, Color, director, Button, sys } from 'cc';
 const { ccclass, property } = _decorator;
 
 // 关卡信息配置（不使用@property，仅在代码中使用）
@@ -40,15 +40,25 @@ export class LevelButton extends Component {
         btn.node.on(Button.EventType.CLICK, this.onClickLevel, this);
     }
 
+    /** 设置背景图片 */
+    public setBackgroundSprite(spriteFrame: SpriteFrame) {
+        if (this.background && spriteFrame) {
+            this.background.spriteFrame = spriteFrame;
+            console.log(`[LevelButton] 背景已替换: ${spriteFrame.name}`);
+        } else {
+            console.warn(`[LevelButton] 背景替换失败！background: ${this.background}, spriteFrame: ${spriteFrame}`);
+        }
+    }
+
     // 初始化关卡按钮
     public init(levelInfo: LevelInfo, isLocked: boolean, collectedCount: number, totalCount: number) {
         this.levelIndex = levelInfo.index;
         this.sceneName = levelInfo.sceneName;
         this.isLocked = isLocked;
 
-        // 设置关卡名称
+        // 设置关卡名称：锁定时显示???，解锁后清空，由背景图片显示编号
         if (this.nameLabel) {
-            this.nameLabel.string = isLocked ? '???' : levelInfo.name;
+            this.nameLabel.string = isLocked ? '???' : '';
         }
 
         // 设置进度显示
