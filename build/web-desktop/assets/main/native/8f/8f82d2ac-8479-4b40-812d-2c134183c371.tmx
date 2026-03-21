@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<map version="1.4" tiledversion="1.4.3" orientation="orthogonal" renderorder="left-down" width="120" height="45" tilewidth="16" tileheight="16" infinite="0" nextlayerid="11" nextobjectid="36">
+ <tileset firstgid="1" source="floor.tsx"/>
+ <layer id="6" name="Future_Art" width="120" height="45">
+  <data encoding="base64" compression="zlib">
+   eJztmV1KxEAQhOMf6glcFd0TqA/uHsmfO7h6CPXA24ssaYgDzU43U9Oph6LqIRlCoL4UZDMMw6doM0M/Eh2LThLnb9HPTP1KtBBdJ84IPWrlD6JH0VPijNCjVo7Az+iM0KNWjsDP6IzQo1aOwM/ojNAj7mfuZ+5n7mfuZ+5n7uf5OAI/uZ+5n+eyn89FF6JLp/MQ+Mn9PPqd6F60dDoPgZ/cz6M/i1aitdN5CPzkfh5d85n7Od9+1nzmfs63nzWfuZ+5n7mfMXrJ/cz9HNFfBH5yP8f1F4Gf0flN9N6J6331InqtdAR+Rucdq746cc3nj+GPsTWOwM+arN9HKe9Y9duJ6+f26C8CP2uy/l6VMgJ3ra6f26O/CPysyfp7VcoI3LW69/cXgbHRGYG7h/DZo78IjOV+/p/P3M/59rPmM/dzbj5zP+fmM/dzbj5zP+fms0d/T0VnyR2Bu632843oNrkjcLfVfkboV7QjcLfVfkboV7Tvd1YPrvnscR5Cv6J9v7N6cM1nj/MQ+pWtv5Z/lqX79TXsL2Z/Lf8sS/fra9hfzP5a/lmW7tfXsL82t/Cyl8z+Tt3Cy14y+zt1Cy97yezv1LdLrJwW
+  </data>
+ </layer>
+ <layer id="7" name="Past_Art" width="120" height="45">
+  <data encoding="base64" compression="zlib">
+   eJztljtOA0EQRDczBHwugAn4XACTGC5iG87A7wzAtV0rJ+1gpfXsTNf0TgWl6mik1eqV3qbrui2yQzaN3ffIQ4Ce8o0fyCfy1eC9Rl4C9JRv/EX+kP8GbzaXHvy2fLO59OC35ZvNpQe/Newk62Zz6cFvDTspf5Y/y5/lz/Jn3fLndm42l/Jn+XNL/rxAzpDzTG+yuZQ/H983yBK5zfQmm0v58/H9hKyQ50xvsrmUP5fdZzaX8uey+8zmUv5cdp/ZXMqf5c/yZ/nzXPzZ8it/nt9t+ZU/z++2fiV/np8/595nNpce/L4h7w59gVxObLvPOd47pftcBexv5Meh77rD3kxpu8853jul2Rud2pH4tfvszS97o1M7Er92n735Ze9sakfi1+6zN7/snU3tSPzaffbml72zqR2JX/mz/Fn+LH+WP9fJr/xZ/ix/lj/Ln+vkV/4sf5Y/y5/lz+X4tf9o6K7Rn/utuw7Y3vzafzR01+jP/dY9Bmxvfu0/Grpr9Od+614D9pi9jHKX5Je9s6k9Zi+j3CX5Ze9sao/Zyyh3SX7ZO5vae/qPhmU=
+  </data>
+ </layer>
+ <objectgroup id="8" name="Future_Col">
+  <object id="17" x="0" y="672" width="816" height="48"/>
+  <object id="18" x="448" y="624" width="144" height="48"/>
+  <object id="20" x="1776" y="368" width="144" height="48"/>
+  <object id="35" x="688" y="192" width="48" height="480"/>
+ </objectgroup>
+ <objectgroup id="9" name="Past_Col">
+  <object id="21" x="0" y="672" width="816" height="48"/>
+  <object id="22" x="448" y="624" width="144" height="48"/>
+  <object id="33" x="688" y="192" width="48" height="480"/>
+ </objectgroup>
+ <objectgroup id="10" name="Objects">
+  <object id="27" name="checkpoint" x="784" y="624" width="32" height="32"/>
+  <object id="28" name="checkpoint" x="1872" y="320" width="32" height="32"/>
+  <object id="30" name="crumbling_platform" x="992" y="576" width="64" height="16"/>
+  <object id="31" name="crumbling_platform" x="1216" y="480" width="64" height="16"/>
+  <object id="32" name="crumbling_platform" x="1520" y="432" width="64" height="16"/>
+ </objectgroup>
+</map>

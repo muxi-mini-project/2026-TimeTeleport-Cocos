@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<map version="1.4" tiledversion="1.4.3" orientation="orthogonal" renderorder="left-down" width="120" height="45" tilewidth="16" tileheight="16" infinite="0" nextlayerid="11" nextobjectid="36">
+ <tileset firstgid="1" source="floor.tsx"/>
+ <layer id="6" name="Future_Art" width="120" height="45">
+  <data encoding="base64" compression="zlib">
+   eJztmUtOxDAYg2d4CDgBLwEnABbAkYBDAJeAOTDeIFlCoUHtn99JvbDiRdVMlfirm9luNps9aB/aDuoPoMPOxk/oC9rN9KfQGXQ+sL+ALjsbl1rfW+gOuh/YK+QxK78K/Iz2CnnMyq8CP6O9Qh6z8qvAz2ivkMes/Crw0/3Z/dn92Xx2f14nnxXy6P7s/uz+3H9/PoKOoZOJ68znPvvzFXQN3UxcZz732Z8foEfoaeI687nP/sx8dn8erz8zn92fx+vPzGf3Z/dn83ld/Zn3R41X4Kf7c31+eX/UeAV+uj/X55f3R41X4Kf7s/uz+7P7s/vzOvvzM/QCvQp45nOLeRX4Ge3foHfoQ8Azn1vMq8DPaJ+dWfbM5xbzKvAz2mdnlj3zucW8CvyM9tmZZc98bjGvAj+jfXZm2TOfW8yrwE/3Z/fnnvtz6ex/bf2Zn32k/lw6+2/xG5RGfvYl75ud39LZf4vfoDTysy953+z8Zvqfs0qFkfm85H15P5fehXN8Nh/+8gpcjuYz7+fSu3COV8hpyStwOZrPvJ//+/94jVfIackrcDmazwo5yvIRI6+TAp8VcpTlI0ZeJwU+K+RopP7M66TAZ4UcZfmI74UsX9Of1+YjvheyfE1/XpuP+F7I8u7Pv/034dQE9Q==
+  </data>
+ </layer>
+ <layer id="7" name="Past_Art" width="120" height="45">
+  <data encoding="base64" compression="zlib">
+   eJztmUtOxEAQQ7MDFnwuACz4XADYwEmA4Qz8zsBwbQoNkUpCLXVHVV1OlxeWvYoUzfjF6WymaXoRbZL5pegqgX+IPhP6veghgUf3iP1lf9lf9pf9ZX/Z3zwe3ate/ih6Ej0PnI9FJ40e3TsrfxW9id4Hzr//4+tGj+6dlX+JtqLvgXPm/iLw0ztn7i8CP71z5v4i8NM7Z+4vAj+5n7mfuZ+5n0s5c38R+Im4n4/+fue1OwI/EfdzNFfJZ9/9HM3Vku+J9kUHlRmBn4j7OZqrJT8VnYnOKzMCP7mf6/1GdCu6q8wI/OR+5n7mfl7/fta7YNT9rO8x237Wu2DU/azvMRuf9S4YdT/reySfx9vP5LM9n5H2M/lsz2ek/Uw+cz+Tz9zP5DPOfi6d/ZPPY+zn0tk/+TzGfi6d/ffg8+G06zKC63u3vC7Sfu7tF9Ouywiu+Wx5Xd3L1u/jNbkHZ5c6Qm9n13z26m/r9/Ga3IOzSx2ht7NrPnv1t/X7eE1G4HDJEXo7u2Ze9PM3mqtWjvQc1czz6m/0+XNvR3qOcj+vYz8vfY722M/R58+93eN9ISpb9jeaqx7n3WvPlv2N5qqVe7wvRGXu5//+Aw4jHGs=
+  </data>
+ </layer>
+ <objectgroup id="8" name="Future_Col">
+  <object id="16" x="0" y="672" width="816" height="48"/>
+  <object id="17" x="336" y="624" width="48" height="48"/>
+  <object id="18" x="560" y="512" width="48" height="160"/>
+  <object id="19" x="960" y="560" width="336" height="48"/>
+  <object id="20" x="1424" y="496" width="96" height="48"/>
+  <object id="21" x="1472" y="176" width="48" height="320"/>
+  <object id="22" x="1728" y="288" width="192" height="48"/>
+ </objectgroup>
+ <objectgroup id="9" name="Past_Col">
+  <object id="23" x="0" y="672" width="816" height="48"/>
+  <object id="24" x="336" y="624" width="48" height="48"/>
+  <object id="25" x="560" y="368" width="48" height="304"/>
+  <object id="26" x="960" y="560" width="336" height="48"/>
+  <object id="27" x="1424" y="496" width="96" height="48"/>
+  <object id="28" x="1472" y="368" width="48" height="128"/>
+  <object id="29" x="1728" y="288" width="192" height="48"/>
+ </objectgroup>
+ <objectgroup id="10" name="Objects">
+  <object id="30" name="checkpoint" x="752" y="640" width="16" height="16"/>
+  <object id="32" name="spike" x="480" y="624" width="32" height="32"/>
+  <object id="34" name="spike" x="1264" y="512" width="32" height="32"/>
+  <object id="35" name="checkpoint" x="1872" y="240" width="32" height="32"/>
+ </objectgroup>
+</map>
