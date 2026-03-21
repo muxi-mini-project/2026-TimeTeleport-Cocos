@@ -35,7 +35,7 @@ export class LevelRespawnManager extends Component {
             LevelRespawnManager._instance = null;
         }
 
-        if (this.playerNode) {
+        if (this.playerNode && this.playerNode.isValid) {
             this.playerNode.off('player-respawned', this.onPlayerRespawned, this);
         }
     }
