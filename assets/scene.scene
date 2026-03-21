@@ -23,7 +23,7 @@
     "_active": true,
     "_components": [],
     "_prefab": {
-      "__id__": 66
+      "__id__": 68
     },
     "_lpos": {
       "__type__": "cc.Vec3",
@@ -54,7 +54,7 @@
     },
     "autoReleaseAssets": false,
     "_globals": {
-      "__id__": 71
+      "__id__": 79
     },
     "_id": "d17242c4-e938-40e9-ab6a-cdb5ff4ee95a"
   },
@@ -86,13 +86,13 @@
     "_active": true,
     "_components": [
       {
-        "__id__": 63
-      },
-      {
-        "__id__": 64
-      },
-      {
         "__id__": 65
+      },
+      {
+        "__id__": 66
+      },
+      {
+        "__id__": 67
       }
     ],
     "_prefab": null,
@@ -270,6 +270,7 @@
     "instance": {
       "__id__": 8
     },
+    "targetOverrides": null,
     "nestedPrefabInstanceRoots": null
   },
   {
@@ -549,7 +550,7 @@
     "anchorPrefab": null,
     "ballObstaclePrefab": null,
     "ballLauncherPrefab": null,
-    "debugDraw": true,
+    "debugDraw": false,
     "stuckForgiveness": 0.15,
     "_id": "fcPnKgJylC7In27uZG/xI0"
   },
@@ -1178,6 +1179,7 @@
     "instance": {
       "__id__": 48
     },
+    "targetOverrides": null,
     "nestedPrefabInstanceRoots": null
   },
   {
@@ -1205,11 +1207,14 @@
       },
       {
         "__id__": 60
+      },
+      {
+        "__id__": 62
       }
     ],
     "removedComponents": [
       {
-        "__id__": 62
+        "__id__": 64
       }
     ]
   },
@@ -1353,6 +1358,24 @@
     ]
   },
   {
+    "__type__": "CCPropertyOverrideInfo",
+    "targetInfo": {
+      "__id__": 63
+    },
+    "propertyPath": [
+      "mapManager"
+    ],
+    "value": {
+      "__id__": 24
+    }
+  },
+  {
+    "__type__": "cc.TargetInfo",
+    "localID": [
+      "25kOKjljJEO6MT47YTsbEr"
+    ]
+  },
+  {
     "__type__": "cc.TargetInfo",
     "localID": [
       "41al4FPEVMRIjtRqHdrT+/"
@@ -1434,10 +1457,16 @@
     "instance": null,
     "targetOverrides": [
       {
-        "__id__": 67
+        "__id__": 69
       },
       {
-        "__id__": 69
+        "__id__": 71
+      },
+      {
+        "__id__": 73
+      },
+      {
+        "__id__": 76
       }
     ],
     "nestedPrefabInstanceRoots": [
@@ -1462,7 +1491,7 @@
       "__id__": 46
     },
     "targetInfo": {
-      "__id__": 68
+      "__id__": 70
     }
   },
   {
@@ -1484,8 +1513,68 @@
       "__id__": 46
     },
     "targetInfo": {
-      "__id__": 70
+      "__id__": 72
     }
+  },
+  {
+    "__type__": "cc.TargetInfo",
+    "localID": [
+      "2f6V4PkT5DqaHMlWMMt5Il"
+    ]
+  },
+  {
+    "__type__": "cc.TargetOverrideInfo",
+    "source": {
+      "__id__": 46
+    },
+    "sourceInfo": {
+      "__id__": 74
+    },
+    "propertyPath": [
+      "visualNode"
+    ],
+    "target": {
+      "__id__": 46
+    },
+    "targetInfo": {
+      "__id__": 75
+    }
+  },
+  {
+    "__type__": "cc.TargetInfo",
+    "localID": [
+      "25kOKjljJEO6MT47YTsbEr"
+    ]
+  },
+  {
+    "__type__": "cc.TargetInfo",
+    "localID": [
+      "88h0cEUiNObaXrL+Rko+4f"
+    ]
+  },
+  {
+    "__type__": "cc.TargetOverrideInfo",
+    "source": {
+      "__id__": 46
+    },
+    "sourceInfo": {
+      "__id__": 77
+    },
+    "propertyPath": [
+      "hitCollider"
+    ],
+    "target": {
+      "__id__": 46
+    },
+    "targetInfo": {
+      "__id__": 78
+    }
+  },
+  {
+    "__type__": "cc.TargetInfo",
+    "localID": [
+      "25kOKjljJEO6MT47YTsbEr"
+    ]
   },
   {
     "__type__": "cc.TargetInfo",
@@ -1496,28 +1585,28 @@
   {
     "__type__": "cc.SceneGlobals",
     "ambient": {
-      "__id__": 72
+      "__id__": 80
     },
     "shadows": {
-      "__id__": 73
+      "__id__": 81
     },
     "_skybox": {
-      "__id__": 74
+      "__id__": 82
     },
     "fog": {
-      "__id__": 75
+      "__id__": 83
     },
     "octree": {
-      "__id__": 76
+      "__id__": 84
     },
     "skin": {
-      "__id__": 77
+      "__id__": 85
     },
     "lightProbeInfo": {
-      "__id__": 78
+      "__id__": 86
     },
     "postSettings": {
-      "__id__": 79
+      "__id__": 87
     },
     "bakedWithStationaryMainLight": false,
     "bakedWithHighpLightmap": false
