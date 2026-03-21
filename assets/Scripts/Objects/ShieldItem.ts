@@ -1,14 +1,10 @@
-import { _decorator, Component, Collider2D, Contact2DType, IPhysics2DContact } from 'cc';
+import { _decorator, Component, Collider2D, Contact2DType, IPhysics2DContact, Vec3 } from 'cc';
 import { PlayerController } from '../GamePlay/PlayerController';
 import { ItemType } from '../Core/ItemType';
 import { IUsableItem } from '../Core/IUsableItem';
+import { LevelRespawnManager } from '../Core/LevelRespawnManager';
 const { ccclass, property } = _decorator;
 
-/**
- * 护盾道具（手持物版本）
- * 玩家触碰后收集到道具槽，按 I 键激活
- * 护盾期间玩家无敌，且踩踏敌人时获得额外跳跃力
- */
 @ccclass('ShieldItem')
 export class ShieldItem extends Component implements IUsableItem {
     @property({ tooltip: '道具类型' })
@@ -17,11 +13,10 @@ export class ShieldItem extends Component implements IUsableItem {
     @property({ tooltip: '单个护盾的持续时间（秒）' })
     shieldDuration: number = 3.0;
 
-    @property({ tooltip: '拾取后是否销毁道具' })
-    destroyOnPickup: boolean = true;
-
     private collider: Collider2D | null = null;
     private isPickedUp: boolean = false;
+    private initialWorldPosition: Vec3 = new Vec3();
+    private hasInitialized: boolean = false;
 
     onLoad() {
         this.collider = this.getComponent(Collider2D);
@@ -29,12 +24,20 @@ export class ShieldItem extends Component implements IUsableItem {
         if (!this.collider) {
             console.error(`[ShieldItem] ${this.node.name}: 缺少 Collider2D 组件！`);
         } else {
-            // 确保是传感器模式（触发器）
             if (!this.collider.sensor) {
                 console.warn(`[ShieldItem] ${this.node.name}: Collider2D 的 Sensor 未勾选，已自动设置`);
                 this.collider.sensor = true;
             }
+        }
 
+        if (!this.hasInitialized) {
+            this.initialWorldPosition = this.node.worldPosition.clone();
+            this.hasInitialized = true;
+        }
+    }
+
+    onEnable() {
+        if (this.collider) {
             this.collider.on(Contact2DType.BEGIN_CONTACT, this.onBeginContact, this);
         }
     }
@@ -43,6 +46,19 @@ export class ShieldItem extends Component implements IUsableItem {
         if (this.collider) {
             this.collider.off(Contact2DType.BEGIN_CONTACT, this.onBeginContact, this);
         }
+    }
+
+    public resetToInitialState(): void {
+        this.isPickedUp = false;
+
+        if (this.collider) {
+            this.collider.enabled = true;
+        }
+
+        this.node.setWorldPosition(this.initialWorldPosition);
+        this.node.active = true;
+
+        console.log(`[ShieldItem] ${this.node.name} 已重置到初始位置`);
     }
 
     private onBeginContact(selfCollider: Collider2D, otherCollider: Collider2D, contact: IPhysics2DContact | null): void {
@@ -65,13 +81,16 @@ export class ShieldItem extends Component implements IUsableItem {
 
         console.log(`[ShieldItem] 护盾已收集`);
 
-        if (this.destroyOnPickup) {
-            this.node.destroy();
-        } else {
-            if (this.collider) {
-                this.collider.enabled = false;
-            }
+        if (this.collider) {
+            this.collider.enabled = false;
         }
+
+        const respawnManager = LevelRespawnManager.instance;
+        if (respawnManager) {
+            respawnManager.registerDeactivated(this.node);
+        }
+
+        this.node.active = false;
     }
 
     getItemType(): string {

@@ -1,5 +1,6 @@
 import { _decorator, Component, RigidBody2D, Vec2, Collider2D, Contact2DType, IPhysics2DContact, UITransform, v2, PhysicsSystem2D, ERaycast2DType, Node, Sprite, Color, Vec3, Graphics, Camera, Layers } from 'cc';
 import { PlayerController } from '../GamePlay/PlayerController';
+import { LevelRespawnManager } from '../Core/LevelRespawnManager';
 const { ccclass, property } = _decorator;
 
 /**
@@ -48,8 +49,10 @@ export class SimpleEnemy extends Component {
     private uiTransform: UITransform | null = null;
 
     private initialPosition: Vec2 = new Vec2();
+    private initialLocalPosition: Vec3 = new Vec3();
     private currentDirection: number = 1; // 1 = 右, -1 = 左
     private isDead: boolean = false;
+    private hasInitialized: boolean = false;
 
     // 可视化标记节点引用
     private leftMarker: Node | null = null;
@@ -68,20 +71,23 @@ export class SimpleEnemy extends Component {
             console.error(`[SimpleEnemy] ${this.node.name}: 缺少 Collider2D 组件！`);
         }
 
-        // 设置碰撞监听
-        if (this.collider) {
-            this.collider.on(Contact2DType.BEGIN_CONTACT, this.onBeginContact, this);
+        // 首次初始化时记录初始位置（只执行一次）
+        if (!this.hasInitialized) {
+            this.initialPosition.x = this.node.worldPosition.x;
+            this.initialPosition.y = this.node.worldPosition.y;
+            this.initialLocalPosition = this.node.position.clone();
+            this.hasInitialized = true;
+
+            // 创建边界可视化标记
+            if (this.showBoundaryMarkers) {
+                this.createBoundaryMarkers();
+            }
         }
     }
 
     onEnable() {
-        // 初始化位置
-        this.initialPosition.x = this.node.worldPosition.x;
-        this.initialPosition.y = this.node.worldPosition.y;
-
-        // 创建边界可视化标记（在 onEnable 中创建，确保位置已初始化）
-        if (this.showBoundaryMarkers) {
-            this.createBoundaryMarkers();
+        if (this.collider) {
+            this.collider.on(Contact2DType.BEGIN_CONTACT, this.onBeginContact, this);
         }
     }
 
@@ -92,8 +98,30 @@ export class SimpleEnemy extends Component {
     }
 
     onDestroy() {
-        // 清理可视化标记节点
         this.destroyMarkers();
+    }
+
+    public resetToInitialState(): void {
+        this.isDead = false;
+        this.currentDirection = 1;
+
+        if (this.rb) {
+            this.rb.linearVelocity = Vec2.ZERO.clone();
+            this.rb.angularVelocity = 0;
+        }
+
+        this.node.setWorldPosition(new Vec3(this.initialPosition.x, this.initialPosition.y, 0));
+        this.node.setScale(1, 1, 1);
+
+        if (this.collider) {
+            this.collider.enabled = true;
+        }
+
+        this.toggleMarkers(true);
+
+        console.log(`[SimpleEnemy] ${this.node.name} 已重置到初始位置 (${this.initialPosition.x.toFixed(1)}, ${this.initialPosition.y.toFixed(1)})`);
+
+        this.node.active = true;
     }
 
     update(deltaTime: number) {
@@ -266,24 +294,22 @@ export class SimpleEnemy extends Component {
     private die(): void {
         this.isDead = true;
 
-        // 停止移动
         if (this.rb) {
             this.rb.linearVelocity = Vec2.ZERO.clone();
         }
 
-        // 禁用碰撞体
         if (this.collider) {
             this.collider.enabled = false;
         }
 
-        // 隐藏边界标记
         this.toggleMarkers(false);
 
-        // 简单的死亡动画：缩小并消失
-        // 这里可以使用 tween，但由于没有导入，暂时直接销毁
-        this.scheduleOnce(() => {
-            this.node.destroy();
-        }, 0.1);
+        const respawnManager = LevelRespawnManager.instance;
+        if (respawnManager) {
+            respawnManager.registerDeactivated(this.node);
+        }
+
+        this.node.active = false;
     }
 
     // ========== 可视化边界标记方法 ==========
