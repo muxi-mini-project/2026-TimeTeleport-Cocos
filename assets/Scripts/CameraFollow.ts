@@ -74,27 +74,27 @@ export class CameraFollow extends Component {
             this.tiledMap = null; 
             return;
         }
-        console.log("========== 📷 镜头脚本启动诊断 ==========");
+        // console.log("========== 📷 镜头脚本启动诊断 ==========");
         
         const mapTrans = this.tiledMap.node.getComponent(UITransform);
-        console.log(`🗺️ 地图信息: 
-        - 世界坐标: ${this.tiledMap.node.worldPosition}
-        - 尺寸(ContentSize): ${mapTrans.contentSize}
-        - 锚点(Anchor): ${mapTrans.anchorPoint}
-        - 缩放(Scale): ${this.tiledMap.node.scale}`);
+        // console.log(`🗺️ 地图信息: 
+        // - 世界坐标: ${this.tiledMap.node.worldPosition}
+        // - 尺寸(ContentSize): ${mapTrans.contentSize}
+        // - 锚点(Anchor): ${mapTrans.anchorPoint}
+        // - 缩放(Scale): ${this.tiledMap.node.scale}`);
 
-        console.log(`📺 屏幕信息: 
-        - 可见尺寸(VisibleSize): ${view.getVisibleSize()}`);
+        // console.log(`📺 屏幕信息: 
+        // - 可见尺寸(VisibleSize): ${view.getVisibleSize()}`);
         
         if (this.tiledMap) {
             this.calculateMapBounds();
         }
 
-        console.log(`🔒 计算出的边界限制: 
-        - X轴范围: [${this._minX}, ${this._maxX}]
-        - Y轴范围: [${this._minY}, ${this._maxY}]`);
+        // console.log(`🔒 计算出的边界限制: 
+        // - X轴范围: [${this._minX}, ${this._maxX}]
+        // - Y轴范围: [${this._minY}, ${this._maxY}]`);
         
-        console.log("========================================");
+        // console.log("========================================");
         // 初始化当前位置
         this.node.getPosition(this._currentPos);
     }
@@ -175,8 +175,8 @@ export class CameraFollow extends Component {
             initY = minY;  // 最底部
         }
 
-        console.log(`[Camera] 初始位置配置: ${positionName}`);
-        console.log(`[Camera] Clamp 范围: minX=${minX.toFixed(1)}, maxX=${maxX.toFixed(1)}, minY=${minY.toFixed(1)}, maxY=${maxY.toFixed(1)}`);
+        // console.log(`[Camera] 初始位置配置: ${positionName}`);
+        // console.log(`[Camera] Clamp 范围: minX=${minX.toFixed(1)}, maxX=${maxX.toFixed(1)}, minY=${minY.toFixed(1)}, maxY=${maxY.toFixed(1)}`);
 
         // 获取当前相机的 z 坐标并设置到初始位置
         this.node.getWorldPosition(this._targetPos);
@@ -188,15 +188,15 @@ export class CameraFollow extends Component {
         // 清空输入方向
         this._telescopeInputDir.set(0, 0, 0);
 
-        console.log(`[Camera] 进入望远镜模式，bounds: x=${bounds.x.toFixed(1)}, y=${bounds.y.toFixed(1)}, w=${bounds.width}, h=${bounds.height}`);
-        console.log(`[Camera] 相机初始化到${positionName}: (${initX.toFixed(1)}, ${initY.toFixed(1)})`);
+    //     console.log(`[Camera] 进入望远镜模式，bounds: x=${bounds.x.toFixed(1)}, y=${bounds.y.toFixed(1)}, w=${bounds.width}, h=${bounds.height}`);
+    //     console.log(`[Camera] 相机初始化到${positionName}: (${initX.toFixed(1)}, ${initY.toFixed(1)})`);
     }
 
     public exitTelescopeMode() {
         this._state = CameraState.FOLLOW_PLAYER;
         this._viewBounds = null;
         this._telescopeInputDir.set(0, 0, 0);
-        console.log("[Camera] 退出望远镜模式");
+        // console.log("[Camera] 退出望远镜模式");
     }
 
     /**
@@ -312,8 +312,8 @@ export class CameraFollow extends Component {
             let minY = this._viewBounds.y + halfH;
             let maxY = this._viewBounds.y + this._viewBounds.height - halfH;
 
-            console.log(`[Camera] ViewZone: x=${this._viewBounds.x.toFixed(1)}, y=${this._viewBounds.y.toFixed(1)}, w=${this._viewBounds.width.toFixed(1)}, h=${this._viewBounds.height.toFixed(1)}`);
-            console.log(`[Camera] Clamp范围: minX=${minX.toFixed(1)}, maxX=${maxX.toFixed(1)}, halfW=${halfW.toFixed(1)}, halfH=${halfH.toFixed(1)}`);
+            // console.log(`[Camera] ViewZone: x=${this._viewBounds.x.toFixed(1)}, y=${this._viewBounds.y.toFixed(1)}, w=${this._viewBounds.width.toFixed(1)}, h=${this._viewBounds.height.toFixed(1)}`);
+            // console.log(`[Camera] Clamp范围: minX=${minX.toFixed(1)}, maxX=${maxX.toFixed(1)}, halfW=${halfW.toFixed(1)}, halfH=${halfH.toFixed(1)}`);
 
             // 安全保护：确保 minY <= maxY, minX <= maxX
             if (minX > maxX) {

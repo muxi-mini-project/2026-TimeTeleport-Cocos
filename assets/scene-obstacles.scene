@@ -396,8 +396,8 @@
     ],
     "value": {
       "__type__": "cc.Vec3",
-      "x": -876.595,
-      "y": -385.888,
+      "x": -897.406,
+      "y": -415.317,
       "z": 0
     }
   },
@@ -561,7 +561,7 @@
     "anchorPrefab": null,
     "ballObstaclePrefab": null,
     "ballLauncherPrefab": null,
-    "debugDraw": true,
+    "debugDraw": false,
     "stuckForgiveness": 0.15,
     "_id": "fcPnKgJylC7In27uZG/xI0"
   },
@@ -1684,7 +1684,7 @@
     "propertyPath": [
       "showBoundaryMarkers"
     ],
-    "value": true
+    "value": false
   },
   {
     "__type__": "cc.TargetInfo",

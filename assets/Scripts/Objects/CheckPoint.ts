@@ -13,23 +13,22 @@ export class CheckPoint extends Component {
     isEndPoint: boolean = false;
 
     private isActivated: boolean = false;
+    private isLoadingScene: boolean = false;
 
     start() {
         const collider = this.getComponent(Collider2D);
         if (collider) {
-            // 监听碰撞
             collider.on(Contact2DType.BEGIN_CONTACT, this.onBeginContact, this);
         }
     }
 
     private onBeginContact(self: Collider2D, other: Collider2D, contact: IPhysics2DContact | null) {
-        if (this.isActivated) return;
+        if (this.isActivated || this.isLoadingScene) return;
 
         try {
             const otherNode = other?.node;
             if (!otherNode) return;
 
-            // 确认撞击者是玩家：优先通过 PlayerController 组件判断（支持碰撞体在子节点上）
             const isPlayer =
                 !!otherNode.getComponent(PlayerController) ||
                 !!otherNode.getComponentInChildren(PlayerController) ||
@@ -38,6 +37,10 @@ export class CheckPoint extends Component {
             if (isPlayer) {
                 console.log(`激活存档点`);
                 this.isActivated = true;
+                const collider = this.getComponent(Collider2D);
+                if (collider) {
+                    collider.enabled = false;
+                }
                 this.saveLocation();
             }
         } catch (e) {
@@ -60,7 +63,6 @@ export class CheckPoint extends Component {
         // 如果是终点，发送通关事件
         if (this.isEndPoint) {
             console.log(`[CheckPoint] 触发终点，关卡完成！`);
-            director.emit('level-completed');
 
             // === 额外逻辑：通关后直接解锁下一关并回到选关界面（无需在编辑器里做任何设置） ===
             try {
@@ -89,9 +91,11 @@ export class CheckPoint extends Component {
             }
 
             // 回到关卡选择界面（避免在物理回调帧内直接切场景导致潜在报错）
+            this.isLoadingScene = true;
             this.scheduleOnce(() => {
+                if (!this.node || !this.node.isValid) return;
                 director.loadScene('LevelSelect');
-            }, 0);
+            }, 0.1);
         }
     }
 

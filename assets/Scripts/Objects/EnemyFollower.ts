@@ -274,7 +274,7 @@ export class EnemyFollower extends Component {
         }
 
         // 移除玩家死亡/复活监听
-        if (this.playerController && this.playerController.node) {
+        if (this.playerController && this.playerController.node && this.playerController.node.isValid) {
             this.playerController.node.off('player-died', this.onPlayerDied, this);
             this.playerController.node.off('player-respawned', this.onPlayerRespawned, this);
         }
