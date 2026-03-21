@@ -41,7 +41,7 @@ export class LevelRespawnManager extends Component {
     }
 
     public registerDeactivated(node: Node): void {
-        if (!this.deactivatedNodes.includes(node)) {
+        if (this.deactivatedNodes.indexOf(node) === -1) {
             this.deactivatedNodes.push(node);
         }
     }
