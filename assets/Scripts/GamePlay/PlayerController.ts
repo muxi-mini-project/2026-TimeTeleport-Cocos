@@ -224,8 +224,10 @@ export class PlayerController extends Component {
 
         console.log("玩家死亡");
 
-        this._currentItemType = null;
-        this._currentItemData = null;
+        if (this._currentItemType === ItemType.SHIELD) {
+            this._currentItemType = null;
+            this._currentItemData = null;
+        }
         if (this._shieldActive) {
             this.deactivateShield();
         }
@@ -319,6 +321,14 @@ export class PlayerController extends Component {
 
             console.log(`玩家复活完成,位置${targetPos}`);
             this.node.emit('player-respawned');
+
+            // 如果持有 Grapple，重新通知 HUD 显示
+            if (this._currentItemType === ItemType.GRAPPLE) {
+                this.node.emit('item-picked-up', {
+                    itemType: this._currentItemType,
+                    itemData: this._currentItemData
+                });
+            }
         }, 0);
     }
 
