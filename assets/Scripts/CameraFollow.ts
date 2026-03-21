@@ -312,8 +312,8 @@ export class CameraFollow extends Component {
             let minY = this._viewBounds.y + halfH;
             let maxY = this._viewBounds.y + this._viewBounds.height - halfH;
 
-            // console.log(`[Camera] ViewZone: x=${this._viewBounds.x.toFixed(1)}, y=${this._viewBounds.y.toFixed(1)}, w=${this._viewBounds.width}, h=${this._viewBounds.height}`);
-            // console.log(`[Camera] Clamp前: minX=${minX.toFixed(1)}, maxX=${maxX.toFixed(1)}, minY=${minY.toFixed(1)}, maxY=${maxY.toFixed(1)}, halfW=${halfW.toFixed(1)}, halfH=${halfH.toFixed(1)}`);
+            console.log(`[Camera] ViewZone: x=${this._viewBounds.x.toFixed(1)}, y=${this._viewBounds.y.toFixed(1)}, w=${this._viewBounds.width.toFixed(1)}, h=${this._viewBounds.height.toFixed(1)}`);
+            console.log(`[Camera] Clamp范围: minX=${minX.toFixed(1)}, maxX=${maxX.toFixed(1)}, halfW=${halfW.toFixed(1)}, halfH=${halfH.toFixed(1)}`);
 
             // 安全保护：确保 minY <= maxY, minX <= maxX
             if (minX > maxX) {

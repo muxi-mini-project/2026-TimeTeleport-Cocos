@@ -288,10 +288,12 @@ export class LevelMapManager extends Component {
 
                     console.log(`[ViewZone] 地图实际边界: left=${mapLeft}, right=${mapRight}, bottom=${mapBottom}, top=${mapTop}`);
 
-                    // 【关键】限制 ViewZone 高度不超过地图高度，避免显示黑边
-                    // 如果 ViewZone 高度大于地图高度，使用地图高度
-                    const desiredViewZoneHeight = Math.min(1440, mapSize.height);
-                    const desiredViewZoneWidth = Math.min(1600, mapSize.width);
+                    // 【修复】直接使用 Tiled Map 中定义的 ViewZone 尺寸
+                    // 不再强制限制为 1600x1440，让设计师自由控制
+                    const desiredViewZoneWidth = w;
+                    const desiredViewZoneHeight = h;
+
+                    console.log(`[ViewZone] 使用原始尺寸: ${desiredViewZoneWidth}x${desiredViewZoneHeight}`);
 
                     // 以地图内容中心为基准，创建 ViewZone
                     const mapCenterX = (mapLeft + mapRight) / 2;
