@@ -17,7 +17,6 @@ export enum PlayerState {
 
 @ccclass('PlayerController')
 export class PlayerController extends Component {
-    // --- 新增/修改的移动参数 ---
     @property({ group: "Movement", tooltip: "最大移动速度" })
     moveSpeed: number = 10;
 
@@ -30,7 +29,6 @@ export class PlayerController extends Component {
     @property({ group: "Movement", tooltip: "反向制动力：移动时按反方向键的减速力度 (建议比加速度大)" })
     turnAcceleration: number = 80;
 
-    // --- 原有参数 ---
     @property({ group: "Movement", tooltip: "跳跃力度" })
     jumpForce: number = 18;
     
@@ -71,37 +69,31 @@ export class PlayerController extends Component {
     private currentState: PlayerState = PlayerState.IDLE;
 
     @property(AudioSource)
-    deathSound: AudioSource = null; // 拖入死亡音效
+    deathSound: AudioSource = null;
 
-    // --- 护盾设置 ---
     @property({ group: "Shield", tooltip: "护盾是否激活（仅供调试查看）" })
     private _shieldActive: boolean = false;
 
     @property({ group: "Shield", tooltip: "护盾剩余时间（仅供调试查看）" })
     private _shieldTimeRemaining: number = 0;
 
-    // --- 道具系统 ---
     private _currentItemType: ItemType | null = null;
     private _currentItemData: any = null;
 
-    // --- 内部变量 ---
     private rb: RigidBody2D = null!;
     private inputDir: Vec2 = v2(0, 0);
     private facingDir: number = 1;
 
-    // 状态标记
     private isDashing: boolean = false;
     private canDash: boolean = true;
     private isDead: boolean = false;
-    private isFrozen: boolean = false;  // 是否被冻结（望远镜模式等）
+    private isFrozen: boolean = false;
     private _isGrounded: boolean = false;
     private _collider: Collider2D | null = null;
     private _uiTransform: UITransform | null = null;
 
-    // 输入控制标志
     private _inputEnabled: boolean = true;
 
-    // 地面检测与土狼时间
     private groundContactSet: Set<string> = new Set();
     private coyoteTimer: number = 0;
 
@@ -120,17 +112,22 @@ export class PlayerController extends Component {
             console.warn('[PlayerController] GrappleController 未绑定，请在 Inspector 中拖入 GrappleController 组件');
         }
 
-        // 初始化默认出生点为玩家当前位置
         GameManager.instance.resetLevel(this.node.getWorldPosition());
 
-        // 监听玩家冻结事件（望远镜模式等）
         Director.instance.on('PLAYER_FREEZE', this.onPlayerFreeze, this);
+    }
 
+    onEnable() {
         const collider = this.getComponent(Collider2D);
         if (collider) {
             collider.on(Contact2DType.BEGIN_CONTACT, this.onBeginContact, this);
-        } else {
-            console.error("【严重错误】Player 节点上找不到任何 Collider2D 组件！请检查 Inspector。");
+        }
+    }
+
+    onDisable() {
+        const collider = this.getComponent(Collider2D);
+        if (collider) {
+            collider.off(Contact2DType.BEGIN_CONTACT, this.onBeginContact, this);
         }
     }
 
@@ -138,21 +135,12 @@ export class PlayerController extends Component {
         input.off(Input.EventType.KEY_DOWN, this.onKeyDown, this);
         input.off(Input.EventType.KEY_UP, this.onKeyUp, this);
         Director.instance.off('PLAYER_FREEZE', this.onPlayerFreeze, this);
-        const collider = this.getComponent(Collider2D);
-        if (collider) {
-            collider.off(Contact2DType.BEGIN_CONTACT, this.onBeginContact, this);
-        }
     }
 
-    /**
-     * 设置输入是否激活
-     * @param enabled true=启用输入，false=禁用输入
-     */
     public setInputActive(enabled: boolean): void {
         this._inputEnabled = enabled;
         console.log(`[PlayerController] 输入${enabled ? '启用' : '禁用'}`);
 
-        // 如果禁用输入，清空当前输入方向和速度
         if (!enabled) {
             this.inputDir.set(0, 0);
             if (this.rb) {
@@ -161,26 +149,19 @@ export class PlayerController extends Component {
         }
     }
 
-    /**
-     * 获取输入是否激活
-     * @returns 输入是否激活
-     */
     public isInputActive(): boolean {
         return this._inputEnabled;
     }
 
-   update(dt: number) {
+    update(dt: number) {
         if (this.isDead) return;
 
-        // 检查是否被冻结（望远镜模式等）
         if (this.isFrozen) {
-            // 清空速度和输入
             this.rb.linearVelocity = Vec2.ZERO.clone();
             this.inputDir.set(0, 0);
-            return; // 跳过所有更新逻辑
+            return;
         }
 
-        // 掉落死亡检测
         if (this.node.getWorldPosition().y < this.minYThreshold){
             console.log(`[Info]玩家掉出世界, y:${this.node.getWorldPosition().y}`);
             this.die();
@@ -193,10 +174,8 @@ export class PlayerController extends Component {
             return;
         }
 
-        // 1. 先检测地面
         this.checkGroundedWithRaycast();
         
-        // 2. 处理土狼时间倒计时 (如果在空中)
         if (!this._isGrounded && this.coyoteTimer > 0) {
             this.coyoteTimer -= dt;
         }
@@ -204,17 +183,14 @@ export class PlayerController extends Component {
         this.applyGravityControl();
         this.handleMovement(dt);
 
-        // 更新护盾计时
         this.updateShield(dt);
         
-        // 更新玩家状态
         this.updatePlayerState();
     }
 
     public die(){
         if (this.isDead) return;
 
-        // 护盾期间无敌
         if (this._shieldActive) {
             console.log("护盾保护中，免疫伤害！");
             return;
@@ -232,7 +208,6 @@ export class PlayerController extends Component {
             this.deactivateShield();
         }
 
-        // 发送玩家死亡事件（通知敌人重置位置）
         this.node.emit('player-died');
 
         const rb = this.getComponent(RigidBody2D);
@@ -251,33 +226,26 @@ export class PlayerController extends Component {
     }
 
     private playDeathEffect() {
-        // A. 播放音效
         if (this.deathSound) {
             this.deathSound.play();
         }
 
-        // B. 播放动画 (如果有美术做的 Frame Animation)
         if (this.deathAnim) {
             this.deathAnim.play();
             this.scheduleOnce(() => {
                 this.respawn();
             }, 0.8)
         }
-        // C. 如果没有动画，用代码写一个简单的 Tween (比如变红 + 缩小 + 旋转)
         else {
             const sprite = this.getComponent(Sprite);
             if (sprite) {
-                sprite.color = Color.RED; // 变红
+                sprite.color = Color.RED;
             }
             
             tween(this.node)
-            .delay(0.1) // 稍微停顿一下，让玩家意识到“我死了”
-            // 第一阶段：向上跳 (用 cubicOut 模拟减速上升)
+            .delay(0.1)
             .by(0.4, { position: new Vec3(0, 20, 0) }, { easing: 'cubicOut' })
-            // 第二阶段：掉出屏幕 (用 cubicIn 模拟重力加速下落)
-            // 下落 2000 像素确保肯定出屏幕
             .by(0.8, { position: new Vec3(0, -2000, 0) }, { easing: 'cubicIn' })
-            // 动画结束的回调
             .call(() => {
                 this.respawn();
             })
@@ -322,7 +290,6 @@ export class PlayerController extends Component {
             console.log(`玩家复活完成,位置${targetPos}`);
             this.node.emit('player-respawned');
 
-            // 如果持有 Grapple，重新通知 HUD 显示
             if (this._currentItemType === ItemType.GRAPPLE) {
                 this.node.emit('item-picked-up', {
                     itemType: this._currentItemType,
@@ -341,15 +308,10 @@ export class PlayerController extends Component {
         }
     }
 
-    /**
-     * 处理玩家冻结事件（望远镜模式等）
-     * @param frozen true=冻结玩家, false=解冻玩家
-     */
     private onPlayerFreeze(frozen: boolean) {
         this.isFrozen = frozen;
         console.log(`[Dash_and_Contact] 玩家${frozen ? '已冻结' : '已解冻'}`);
 
-        // 如果被冻结，立即清空速度
         if (frozen && this.rb) {
             this.rb.linearVelocity = Vec2.ZERO.clone();
             this.inputDir.set(0, 0);
@@ -357,7 +319,6 @@ export class PlayerController extends Component {
     }
 
     private onKeyDown(event: EventKeyboard) {
-        // 如果输入被禁用，不处理按键
         if (!this._inputEnabled) {
             return;
         }
@@ -388,7 +349,6 @@ export class PlayerController extends Component {
     }
 
     private onKeyUp(event: EventKeyboard) {
-        // 如果输入被禁用，不处理按键
         if (!this._inputEnabled) {
             return;
         }
@@ -401,54 +361,40 @@ export class PlayerController extends Component {
         }
     }
 
-    // --- 修改的核心部分：基于加速度的移动 ---
     private handleMovement(dt: number) {
-        // 1. 处理朝向 (按键即转身，保持操作响应快)
         if (this.inputDir.x !== 0) {
             this.facingDir = this.inputDir.x;
             this.node.setScale(this.facingDir, 1, 1);
         }
 
-        // 2. 获取当前速度和目标速度
         const currentVel = this.rb.linearVelocity;
         const targetSpeedX = this.inputDir.x * this.moveSpeed;
 
-        // 3. 计算这一帧应该使用多大的加速度
         let currentAccel = 0;
 
-        // 情况 A: 没有输入 -> 使用减速度 (摩擦力)
         if (this.inputDir.x === 0) {
             currentAccel = this.deceleration;
         } 
-        // 情况 B: 有输入，且输入方向与当前速度方向相反 -> 使用反向制动力 (转身)
-        // (currentVel.x * inputDir.x < 0) 说明符号相反
         else if (currentVel.x !== 0 && (Math.sign(currentVel.x) !== this.inputDir.x)) {
             currentAccel = this.turnAcceleration;
         }
-        // 情况 C: 正常加速
         else {
             currentAccel = this.acceleration;
         }
 
-        // 4. 应用平滑移动 (MoveTowards 逻辑)
-        // 这里的逻辑是：让 currentVel.x 向 targetSpeedX 靠近，每秒变化 currentAccel
         let newX = currentVel.x;
         const speedDiff = targetSpeedX - newX;
-        const step = currentAccel * dt; // 这一帧允许变化的速度量
+        const step = currentAccel * dt;
 
         if (Math.abs(speedDiff) <= step) {
-            // 如果差距很小，直接设为目标值 (避免抖动)
             newX = targetSpeedX;
         } else {
-            // 否则，向目标方向移动 step
             newX += Math.sign(speedDiff) * step;
         }
 
-        // 5. 应用最终速度
         this.rb.linearVelocity = v2(newX, currentVel.y);
     }
 
-    // --- 跳跃逻辑 ---
     private tryJump() {
         const isGrounded = this.groundContactSet.size > 0;
         const canJump = this._isGrounded || this.coyoteTimer > 0;
@@ -460,7 +406,6 @@ export class PlayerController extends Component {
         }
     }
 
-    // --- 冲刺逻辑 ---
     private tryDash() {
         if (!this.canDash) return;
         this.startDash();
@@ -483,7 +428,6 @@ export class PlayerController extends Component {
     private endDash() {
         this.isDashing = false;
         this.rb.gravityScale = 1;
-        // 冲刺结束后减速，防止冲刺惯性过大导致飞出去
         this.rb.linearVelocity = this.rb.linearVelocity.multiplyScalar(0.5);
     }
 
@@ -491,12 +435,10 @@ export class PlayerController extends Component {
         if (!this._collider || !this._uiTransform) return;
 
         const aabb = this._collider.worldAABB;
-        // 建议稍微调大一点，避免因为浮点数精度问题导致判定失效
         const startY = aabb.center.y; 
         const halfHeight = aabb.height / 2;
         const totalRayLength = halfHeight + this.raycastLength;
 
-        // 收缩一点 X 范围，防止贴墙时卡在墙缝里被判定为着地
         const xMin = aabb.xMin + 5; 
         const xMax = aabb.xMax - 5;
         const xCenter = aabb.center.x;
@@ -511,9 +453,6 @@ export class PlayerController extends Component {
 
         for (const startPoint of startPoints) {
             const p2 = v2(startPoint.x, startPoint.y - totalRayLength); 
-            
-            // 绘制调试射线 (Cocos Creator 3.x 调试用，不用时注释掉)
-            // PhysicsSystem2D.instance.debugDrawFlags = 1; 
 
             const results = PhysicsSystem2D.instance.raycast(startPoint, p2, ERaycast2DType.All, this.groundLayerMask);
 
@@ -528,14 +467,12 @@ export class PlayerController extends Component {
                 }
 
                 break; 
-                
             }
             if (isHitGround) break;
         }
 
         this._isGrounded = isHitGround;
 
-        // 【关键修复】着地时重置土狼时间
         if (isHitGround) {
             this.coyoteTimer = this.coyoteTime;
             this.canDash = true;
@@ -549,21 +486,17 @@ export class PlayerController extends Component {
     ) {
         if (this.isDead) return;
 
-        // 撞到球障碍 → 死亡
         if (other.getComponent(BallObstacle)) {
             console.log("玩家撞到球障碍！");
             this.die();
             return;
         }
 
-        // 撞到其他危险物
         if (other.getComponent(Hazard)) {
             console.log("撞到了危险物！");
             this.die();
         }
     }
-
-    // ========== 道具系统 ==========
 
     public setCurrentItem(itemType: ItemType, itemData?: any): void {
         if (this._currentItemType === ItemType.SHIELD && this._shieldActive) {
@@ -576,13 +509,11 @@ export class PlayerController extends Component {
 
         console.log(`[PlayerController] 设置当前道具: ${itemType}`);
 
-        // 发送道具拾取事件（更新UI）
         this.node.emit('item-picked-up', {
             itemType: itemType,
             itemData: itemData
         });
 
-        // 如果是钩爪，启用 GrappleController
         if (itemType === ItemType.GRAPPLE && this.grappleController) {
             this.grappleController.grappleEnabled = true;
         }
@@ -618,7 +549,6 @@ export class PlayerController extends Component {
                 itemType: this._currentItemType
             });
 
-            // 护盾是一次性的，使用后清空
             if (this._currentItemType === ItemType.SHIELD) {
                 this._currentItemType = null;
                 this._currentItemData = null;
@@ -649,23 +579,15 @@ export class PlayerController extends Component {
         return this._currentItemType === ItemType.SHIELD ? 1 : 0;
     }
 
-    /**
-     * 激活护盾
-     * @param duration 护盾持续时间（秒）
-     */
     public activateShield(duration: number): void {
         this._shieldActive = true;
         this._shieldTimeRemaining = duration;
 
         console.log(`[护盾] 激活护盾，持续 ${duration} 秒`);
 
-        // 发送护盾激活事件（可用于播放特效、音效等）
         this.node.emit('shield-activated', { duration: duration });
     }
 
-    /**
-     * 更新护盾计时
-     */
     private updateShield(dt: number): void {
         if (!this._shieldActive) return;
 
@@ -676,9 +598,6 @@ export class PlayerController extends Component {
         }
     }
 
-    /**
-     * 停用护盾
-     */
     private deactivateShield(): void {
         if (!this._shieldActive) return;
 
@@ -687,37 +606,23 @@ export class PlayerController extends Component {
 
         console.log("[护盾] 护盾已失效");
 
-        // 发送护盾失效事件
         this.node.emit('shield-deactivated');
     }
 
-    /**
-     * 检查是否拥有护盾
-     */
     public hasShield(): boolean {
         return this._shieldActive;
     }
 
-    /**
-     * 获取护盾剩余时间
-     */
     public getShieldTimeRemaining(): number {
         return this._shieldTimeRemaining;
     }
 
-    /**
-     * 向上弹跳（用于踩踏敌人）
-     * @param force 弹跳力度
-     */
     public bounceUp(force: number): void {
         const vel = this.rb.linearVelocity;
         this.rb.linearVelocity = v2(vel.x, force);
         console.log(`[弹跳] 向上跳跃，力度: ${force}`);
     }
 
-    /**
-     * 重置冲刺次数（用于钩爪、复活等场景）
-     */
     public resetDash(): void {
         this.canDash = true;
         console.log('[PlayerController] 冲刺次数已重置');
@@ -739,7 +644,6 @@ export class PlayerController extends Component {
                 break;
             }
         }
-
 
         if (this.anim.getState(aniName)) {
             this.anim.play(aniName);

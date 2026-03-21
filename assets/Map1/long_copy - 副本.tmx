@@ -24,7 +24,11 @@
   <object id="57" name="anchor" x="2080" y="256" width="32" height="32"/>
   <object id="59" name="checkpoint" x="2512" y="304" width="32" height="32"/>
   <object id="60" name="checkpoint" x="1568" y="976" width="32" height="32"/>
-  <object id="62" name="ViewZone" x="448" y="16" width="2112" height="992"/>
+  <object id="62" name="ViewZone" x="512" y="0" width="2032" height="1072">
+   <properties>
+    <property name="boundID" type="int" value="101"/>
+   </properties>
+  </object>
  </objectgroup>
  <objectgroup id="9" name="Past_Col">
   <object id="50" x="0" y="1040" width="816" height="48"/>
