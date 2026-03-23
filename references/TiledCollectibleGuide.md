@@ -6,7 +6,21 @@
 
 - 已安装 Tiled 地图编辑器
 - 已有项目地图文件（.tmx）
-- 已准备好收集物预制体
+- 已在 LevelMapManager 中配置收集物预制体
+
+### 预制体配置
+
+在 Cocos Creator 中，选择挂载 `LevelMapManager` 组件的节点，在 Inspector 中配置预制体：
+
+| 属性 | 说明 | 必填 |
+|------|------|------|
+| `collectiblePrefab` | 通用后备预制体 | 推荐 |
+| `fragmentPrefab` | 时间碎片专用预制体 | 可选 |
+| `chipPrefab` | 未来芯片专用预制体 | 可选 |
+| `fossilPrefab` | 远古化石专用预制体 | 可选 |
+| `letterPrefab` | 信件专用预制体 | 可选 |
+
+> 如果未配置类型专用预制体，系统会使用 `collectiblePrefab` 作为后备。
 
 ## 快速开始
 

@@ -1,6 +1,6 @@
-import { _decorator, Component, Collider2D, Contact2DType, IPhysics2DContact, Sprite, SpriteFrame, Vec3, Enum, director } from 'cc';
+import { _decorator, Component, Collider2D, Contact2DType, IPhysics2DContact, Sprite, SpriteFrame, Vec3, Enum, director, resources } from 'cc';
 import { CollectibleManager } from '../Core/CollectibleManager';
-import { CollectibleType, CollectibleConfig, TimeState } from '../Core/CollectibleType';
+import { CollectibleType, CollectibleConfig, TimeState, COLLECTIBLE_ICON_PATHS } from '../Core/CollectibleType';
 import { CollectibleInfo } from '../Core/CollectibleData';
 const { ccclass, property } = _decorator;
 
@@ -52,7 +52,7 @@ export class CollectibleItem extends Component {
 
         director.on('time-state-changed', this.onTimeStateChanged, this);
 
-        this.updateSprite();
+        this.loadIcon();
     }
 
     onDisable() {
@@ -137,6 +137,39 @@ export class CollectibleItem extends Component {
         }
     }
 
+    private loadIcon(): void {
+        if (!this.sprite) {
+            console.warn(`[CollectibleItem] ${this.collectibleId}: 缺少 Sprite 组件，无法加载图标`);
+            return;
+        }
+
+        if (this.icon) {
+            this.sprite.spriteFrame = this.icon;
+            console.log(`[CollectibleItem] ${this.collectibleId}: 使用预设图标`);
+            return;
+        }
+
+        const defaultPath = COLLECTIBLE_ICON_PATHS[this.collectibleType];
+        console.log(`[CollectibleItem] ${this.collectibleId}: 尝试加载图标, type=${this.collectibleType}, path=${defaultPath}`);
+        
+        if (defaultPath) {
+            resources.load(defaultPath, SpriteFrame, (err, spriteFrame) => {
+                if (err) {
+                    console.error(`[CollectibleItem] ${this.collectibleId}: 加载图标失败: ${defaultPath}`, err);
+                    return;
+                }
+
+                if (spriteFrame && this.sprite && this.node.isValid) {
+                    this.sprite.spriteFrame = spriteFrame;
+                    this.icon = spriteFrame;
+                    console.log(`[CollectibleItem] ${this.collectibleId}: 图标加载成功`);
+                }
+            });
+        } else {
+            console.warn(`[CollectibleItem] ${this.collectibleId}: 找不到类型 ${this.collectibleType} 的默认图标路径`);
+        }
+    }
+
     public getCollectibleConfig(): CollectibleConfig {
         return {
             id: this.collectibleId,
@@ -148,21 +181,30 @@ export class CollectibleItem extends Component {
     }
 
     private onTimeStateChanged(newState: string): void {
+        console.log(`[CollectibleItem] ${this.collectibleId}: onTimeStateChanged 触发, newState=${newState}, isCollected=${this.isCollected}`);
         if (this.isCollected) return;
         this.updateVisibilityByTimeState(newState as TimeState);
     }
 
     public updateVisibilityByTimeState(currentState: TimeState): void {
+        console.log(`[CollectibleItem] ${this.collectibleId}: updateVisibilityByTimeState called, timeState=${this.timeState}, currentState=${currentState}, isCollected=${this.isCollected}`);
+        
         if (this.isCollected) {
             this.node.active = false;
+            console.log(`[CollectibleItem] ${this.collectibleId}: 已收集，隐藏节点`);
             return;
         }
 
         const shouldShow = this.timeState === TimeState.Both || this.timeState === currentState;
-        this.node.active = shouldShow;
 
+        // 保持节点激活以接收事件，只控制 Sprite 和 Collider 的启用状态
+        if (this.sprite) {
+            this.sprite.enabled = shouldShow;
+        }
         if (this.collider) {
             this.collider.enabled = shouldShow;
         }
+
+        console.log(`[CollectibleItem] ${this.collectibleId}: shouldShow=${shouldShow}, sprite.enabled=${this.sprite?.enabled}, collider.enabled=${this.collider?.enabled}`);
     }
 }

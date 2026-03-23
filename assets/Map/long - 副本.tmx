@@ -34,20 +34,20 @@
   <object id="32" name="spike" x="480" y="624" width="32" height="32"/>
   <object id="34" name="spike" x="1264" y="512" width="32" height="32"/>
   <object id="35" name="checkpoint" x="1872" y="240" width="32" height="32"/>
-  <object id="36" name="collectible" x="800" y="640">
+  <object id="36" name="collectible" x="784" y="624" width="32" height="32">
    <properties>
     <property name="collectibleId" value="Level_1_fragment_01"/>
     <property name="type" value="fragment"/>
    </properties>
   </object>
-  <object id="37" name="collectible" x="1504" y="336">
+  <object id="37" name="collectible" x="1424" y="448" width="32" height="32">
    <properties>
     <property name="collectibleId" value="Level_1_fossil_01"/>
     <property name="timeState" value="past"/>
     <property name="type" value="fossil"/>
    </properties>
   </object>
-  <object id="38" name="collectible" x="1760" y="272">
+  <object id="38" name="collectible" x="1728" y="240" width="32" height="32">
    <properties>
     <property name="collectibleId" value="Level_1_chip_01"/>
     <property name="timeState" value="future"/>

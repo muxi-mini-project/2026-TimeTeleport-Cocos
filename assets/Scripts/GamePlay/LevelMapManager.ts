@@ -10,8 +10,9 @@ const { ccclass, property } = _decorator;
 const GROUP_LEVEL = 1 << 2;
 
 export enum TimeState {
-    Past,
-    Future
+    Past = 'past',
+    Future = 'future',
+    Both = 'both'
 }
 
 export interface ScopeData {
@@ -65,8 +66,20 @@ export class LevelMapManager extends Component {
     @property({ type: Prefab, tooltip: "碎裂地面预制体"})
     crumblingPlatformPrefab: Prefab = null!;
 
-    @property({ type: Prefab, tooltip: "可收集元素预制体"})
+    @property({ type: Prefab, tooltip: "可收集元素预制体（通用后备）"})
     collectiblePrefab: Prefab = null;
+
+    @property({ type: Prefab, tooltip: "时间碎片预制体" })
+    fragmentPrefab: Prefab = null;
+
+    @property({ type: Prefab, tooltip: "未来芯片预制体" })
+    chipPrefab: Prefab = null;
+
+    @property({ type: Prefab, tooltip: "远古化石预制体" })
+    fossilPrefab: Prefab = null;
+
+    @property({ type: Prefab, tooltip: "信件预制体" })
+    letterPrefab: Prefab = null;
 
     @property({ type: Prefab, tooltip: "钩爪锚点预制体"})
     anchorPrefab: Prefab = null;
@@ -360,11 +373,14 @@ export class LevelMapManager extends Component {
                     targetPrefab = this.crumblingPlatformPrefab;
                     break;
                 case "collectible":
-                    if (!this.collectiblePrefab) {
-                        console.warn(`未绑定${name}预制体`)
-                        return;
+                    const collectibleProps = object.properties || {};
+                    const collectibleTypeStr = String(collectibleProps["type"] || "time_fragment");
+                    const collectibleType = this.parseCollectibleType(collectibleTypeStr);
+                    targetPrefab = this.getCollectiblePrefab(collectibleType);
+                    if (!targetPrefab) {
+                        console.warn(`[Collectible] 未配置 ${collectibleType} 类型的预制体，且无通用后备预制体`);
+                        continue;
                     }
-                    targetPrefab = this.collectiblePrefab;
                     break;
                 case "anchor":
                     if (!this.anchorPrefab) {
@@ -460,11 +476,11 @@ export class LevelMapManager extends Component {
                     const manager = CollectibleManager.getInstance();
                     manager.registerCollectible(this.node.name || "Level", collectibleId, collectibleType);
 
-                    collectibleItem.updateVisibilityByTimeState(
-                        this.currentState === TimeState.Past ? CollectibleTimeState.Past : CollectibleTimeState.Future
-                    );
-
-                    console.log(`[Collectible] 生成收集物: ${collectibleId}, 类型: ${collectibleType}, 时间状态: ${collectibleItem.timeState}, 位置: (${finalX.toFixed(1)}, ${finalY.toFixed(1)})`);
+                    const currentTimeState = this.currentState === TimeState.Past ? CollectibleTimeState.Past : CollectibleTimeState.Future;
+                    console.log(`[Collectible] 生成收集物: ${collectibleId}, 类型: ${collectibleType}, timeState=${collectibleItem.timeState}, 当前时间=${currentTimeState}, 位置: (${finalX.toFixed(1)}, ${finalY.toFixed(1)})`);
+                    
+                    collectibleItem.updateVisibilityByTimeState(currentTimeState);
+                    console.log(`[Collectible] ${collectibleId}: updateVisibilityByTimeState 调用完成, node.active=${collectibleItem.node.active}`);
                 }
             }
 
@@ -750,6 +766,21 @@ export class LevelMapManager extends Component {
             case 'both':
             default:
                 return CollectibleTimeState.Both;
+        }
+    }
+
+    private getCollectiblePrefab(type: CollectibleType): Prefab | null {
+        switch (type) {
+            case CollectibleType.FRAGMENT:
+                return this.fragmentPrefab || this.collectiblePrefab;
+            case CollectibleType.CHIP:
+                return this.chipPrefab || this.collectiblePrefab;
+            case CollectibleType.FOSSIL:
+                return this.fossilPrefab || this.collectiblePrefab;
+            case CollectibleType.LETTER:
+                return this.letterPrefab || this.collectiblePrefab;
+            default:
+                return this.collectiblePrefab;
         }
     }
 }
