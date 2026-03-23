@@ -643,10 +643,10 @@ export class PlayerController extends Component {
                 case PlayerState.RUN: aniName = 'run';
                 break;
             }
-        }
 
-        if (this.anim.getState(aniName)) {
-            this.anim.play(aniName);
+            if (this.anim.getState(aniName)) {
+                this.anim.play(aniName);
+            }
         }
 
         if (!this.sprite) return;

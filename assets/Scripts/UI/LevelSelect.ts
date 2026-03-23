@@ -1,6 +1,6 @@
 import { _decorator, Component, Node, director, Prefab, instantiate, Label, UITransform, Button, sys, SpriteFrame } from 'cc';
 import { CollectibleManager } from '../Core/CollectibleManager';
-import { LevelButton, LevelInfo } from './LevelButton';
+import { LevelButton, LevelInfo, LevelCollectiblesConfig } from './LevelButton';
 const { ccclass, property } = _decorator;
 
 @ccclass('LevelSelect')
@@ -186,28 +186,32 @@ export class LevelSelect extends Component {
                 name: '序章',
                 sceneName: 'OpeningScene',
                 description: '逃脱无聊的时空之旅',
-                index: 0
+                index: 0,
+                collectibles: { fragment: 0, chip: 0, fossil: 0 }
             },
             {
                 id: 'Level_1',
                 name: '01',
                 sceneName: 'scene',
                 description: '初次体验时空穿越的奇妙',
-                index: 1
+                index: 1,
+                collectibles: { fragment: 1, chip: 1, fossil: 1 }
             },
             {
                 id: 'Level_2',
                 name: '02',
                 sceneName: 'scene-obstacles',
                 description: '探索远古时期的危险',
-                index: 2
+                index: 2,
+                collectibles: { fragment: 1, chip: 1, fossil: 1 }
             },
             {
                 id: 'Level_3',
                 name: '03',
                 sceneName: 'scene_telescope',
                 description: '发现观察时空的独特视角',
-                index: 3
+                index: 3,
+                collectibles: { fragment: 1, chip: 1, fossil: 1 }
             },
         ];
 
