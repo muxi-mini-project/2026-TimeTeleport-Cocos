@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.4" tiledversion="1.4.3" orientation="orthogonal" renderorder="left-down" width="120" height="45" tilewidth="16" tileheight="16" infinite="0" nextlayerid="11" nextobjectid="36">
+<map version="1.4" tiledversion="1.4.3" orientation="orthogonal" renderorder="left-down" width="120" height="45" tilewidth="16" tileheight="16" infinite="0" nextlayerid="11" nextobjectid="39">
  <tileset firstgid="1" source="floor.tsx"/>
  <layer id="6" name="Future_Art" width="120" height="45">
   <data encoding="base64" compression="zlib">
@@ -34,5 +34,25 @@
   <object id="32" name="spike" x="480" y="624" width="32" height="32"/>
   <object id="34" name="spike" x="1264" y="512" width="32" height="32"/>
   <object id="35" name="checkpoint" x="1872" y="240" width="32" height="32"/>
+  <object id="36" name="collectible" x="800" y="640">
+   <properties>
+    <property name="collectibleId" value="Level_1_fragment_01"/>
+    <property name="type" value="fragment"/>
+   </properties>
+  </object>
+  <object id="37" name="collectible" x="1504" y="336">
+   <properties>
+    <property name="collectibleId" value="Level_1_fossil_01"/>
+    <property name="timeState" value="past"/>
+    <property name="type" value="fossil"/>
+   </properties>
+  </object>
+  <object id="38" name="collectible" x="1760" y="272">
+   <properties>
+    <property name="collectibleId" value="Level_1_chip_01"/>
+    <property name="timeState" value="future"/>
+    <property name="type" value="chip"/>
+   </properties>
+  </object>
  </objectgroup>
 </map>

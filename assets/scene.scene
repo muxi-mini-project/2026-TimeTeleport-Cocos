@@ -534,17 +534,8 @@
       "__uuid__": "fb763646-5c01-4809-90e9-37e5ee4c9dfa",
       "__expectedType__": "cc.Prefab"
     },
-    "collectiblePrefab": null,
-    "timeFragmentPrefab": {
-      "__uuid__": "f657c783-9af9-442c-97f5-0cfd0661acb9",
-      "__expectedType__": "cc.Prefab"
-    },
-    "futureChipPrefab": {
-      "__uuid__": "babe3058-93ff-4133-b32b-d52f857c757d",
-      "__expectedType__": "cc.Prefab"
-    },
-    "ancientFossilPrefab": {
-      "__uuid__": "95966c43-1db7-4bbd-85a0-25d7dc8804a2",
+    "collectiblePrefab": {
+      "__uuid__": "4077bdfd-9347-43cf-ac7b-6361939491f4",
       "__expectedType__": "cc.Prefab"
     },
     "anchorPrefab": null,

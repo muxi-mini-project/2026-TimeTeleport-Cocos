@@ -8,6 +8,12 @@ export enum CollectibleType {
     LETTER = 'ccnu_letter'
 }
 
+export enum TimeState {
+    Past = 'past',
+    Future = 'future',
+    Both = 'both'
+}
+
 export interface CollectibleConfig {
     id: string;
     type: CollectibleType;

@@ -1,6 +1,6 @@
 import { _decorator, Component, Collider2D, Contact2DType, IPhysics2DContact, Sprite, SpriteFrame, Vec3, Enum, director } from 'cc';
 import { CollectibleManager } from '../Core/CollectibleManager';
-import { CollectibleType, CollectibleConfig } from '../Core/CollectibleType';
+import { CollectibleType, CollectibleConfig, TimeState } from '../Core/CollectibleType';
 import { CollectibleInfo } from '../Core/CollectibleData';
 const { ccclass, property } = _decorator;
 
@@ -12,6 +12,9 @@ export class CollectibleItem extends Component {
 
     @property({ type: Enum(CollectibleType), tooltip: "Collectible type" })
     collectibleType: CollectibleType = CollectibleType.FRAGMENT;
+
+    @property({ type: Enum(TimeState), tooltip: "Time state: past, future, or both" })
+    timeState: TimeState = TimeState.Both;
 
     @property({ type: SpriteFrame, tooltip: "Icon (optional)" })
     icon: SpriteFrame = null;
@@ -47,6 +50,8 @@ export class CollectibleItem extends Component {
             console.error(`[CollectibleItem] ${this.node.name}: collectibleId not set`);
         }
 
+        director.on('time-state-changed', this.onTimeStateChanged, this);
+
         this.updateSprite();
     }
 
@@ -54,6 +59,7 @@ export class CollectibleItem extends Component {
         if (this.collider) {
             this.collider.off(Contact2DType.BEGIN_CONTACT, this.onBeginContact, this);
         }
+        director.off('time-state-changed', this.onTimeStateChanged, this);
     }
 
     start() {
@@ -139,5 +145,24 @@ export class CollectibleItem extends Component {
             description: `Collectible type: ${this.collectibleType}`,
             icon: this.icon,
         };
+    }
+
+    private onTimeStateChanged(newState: string): void {
+        if (this.isCollected) return;
+        this.updateVisibilityByTimeState(newState as TimeState);
+    }
+
+    public updateVisibilityByTimeState(currentState: TimeState): void {
+        if (this.isCollected) {
+            this.node.active = false;
+            return;
+        }
+
+        const shouldShow = this.timeState === TimeState.Both || this.timeState === currentState;
+        this.node.active = shouldShow;
+
+        if (this.collider) {
+            this.collider.enabled = shouldShow;
+        }
     }
 }

@@ -1,10 +1,9 @@
-import { _decorator, Component, Node, TiledMap, math, RigidBody2D, Collider2D, BoxCollider2D, ERigidBody2DType, Size, v3, PhysicsSystem2D, EPhysics2DDrawFlags, UIOpacity, UITransform, Prefab, instantiate, Rect, Vec3 } from 'cc';
+import { _decorator, Component, Node, TiledMap, math, RigidBody2D, Collider2D, BoxCollider2D, ERigidBody2DType, Size, v3, PhysicsSystem2D, EPhysics2DDrawFlags, UIOpacity, UITransform, Prefab, instantiate, Rect, Vec3, director, Enum } from 'cc';
 import { CameraFollow } from '../CameraFollow';
 import { CollectibleItem } from '../Objects/CollectibleItem';
 import { CollectibleManager } from '../Core/CollectibleManager';
-import { CollectibleType } from '../Core/CollectibleType';
+import { CollectibleType, TimeState as CollectibleTimeState } from '../Core/CollectibleType';
 import { BallLauncher } from '../Objects/BallLauncher';
-import { FragmentSpawner } from '../Objects/FragmentSpawner';
 import { CheckPoint } from '../Objects/CheckPoint';
 const { ccclass, property } = _decorator;
 
@@ -69,15 +68,6 @@ export class LevelMapManager extends Component {
     @property({ type: Prefab, tooltip: "可收集元素预制体"})
     collectiblePrefab: Prefab = null;
 
-    @property({ type: Prefab, tooltip: 'Time fragment prefab' })
-    timeFragmentPrefab: Prefab = null;
-
-    @property({ type: Prefab, tooltip: 'Future chip prefab' })
-    futureChipPrefab: Prefab = null;
-
-    @property({ type: Prefab, tooltip: 'Ancient fossil prefab' })
-    ancientFossilPrefab: Prefab = null;
-
     @property({ type: Prefab, tooltip: "钩爪锚点预制体"})
     anchorPrefab: Prefab = null;
 
@@ -114,8 +104,6 @@ export class LevelMapManager extends Component {
 
     private currentState: TimeState = TimeState.Past;
     private isFading: boolean = false;
-
-    private fragmentSpawner: FragmentSpawner | null = null;
 
     private readonly OBJ_TYPE = {
         CHECKPOINT: "checkpoint",
@@ -179,7 +167,6 @@ export class LevelMapManager extends Component {
         }
 
         this.spawnPrefbs("Objects");
-        this.setupFragmentSpawner();
 
         CollectibleManager.getInstance().initialize(this.node.name || "Level");
 
@@ -452,6 +439,7 @@ export class LevelMapManager extends Component {
                     const props = object.properties || {};
                     const rawCollectibleId = props["collectibleId"];
                     const rawTypeStr = props["type"] || "time_fragment";
+                    const rawTimeState = props["timeState"] || "both";
 
                     if (!rawCollectibleId) {
                         console.error(`[Collectible] collectibleId 必须在 Tiled 中指定！对象位置: (${finalX.toFixed(1)}, ${finalY.toFixed(1)})`);
@@ -460,16 +448,23 @@ export class LevelMapManager extends Component {
 
                     const collectibleId = String(rawCollectibleId);
                     const typeStr = String(rawTypeStr);
+                    const timeStateStr = String(rawTimeState).toLowerCase();
 
                     collectibleItem.collectibleId = collectibleId;
 
                     const collectibleType = this.parseCollectibleType(typeStr);
                     collectibleItem.collectibleType = collectibleType;
 
+                    collectibleItem.timeState = this.parseTimeState(timeStateStr);
+
                     const manager = CollectibleManager.getInstance();
                     manager.registerCollectible(this.node.name || "Level", collectibleId, collectibleType);
 
-                    console.log(`[Collectible] 生成收集物: ${collectibleId}, 类型: ${collectibleType}, 位置: (${finalX.toFixed(1)}, ${finalY.toFixed(1)})`);
+                    collectibleItem.updateVisibilityByTimeState(
+                        this.currentState === TimeState.Past ? CollectibleTimeState.Past : CollectibleTimeState.Future
+                    );
+
+                    console.log(`[Collectible] 生成收集物: ${collectibleId}, 类型: ${collectibleType}, 时间状态: ${collectibleItem.timeState}, 位置: (${finalX.toFixed(1)}, ${finalY.toFixed(1)})`);
                 }
             }
 
@@ -536,7 +531,7 @@ export class LevelMapManager extends Component {
         if (this.pastColRoot) this.pastColRoot.active = isPast;
         if (this.futureColRoot) this.futureColRoot.active = !isPast;
 
-        // 2. 处理画面
+        //2. 处理画面
         if (this.pastArtLayer) this.pastArtLayer.active = isPast;
         if (this.futureArtLayer) this.futureArtLayer.active = !isPast;
         //3.通知所有监听者
@@ -544,6 +539,9 @@ export class LevelMapManager extends Component {
             const cb = this.timeListeners[i];
             cb(this.currentState);
         }
+        //4. 发送全局事件，通知收集物更新可见性
+        const timeStateStr = isPast ? CollectibleTimeState.Past : CollectibleTimeState.Future;
+        director.emit('time-state-changed', timeStateStr);
 
     }
 
@@ -720,29 +718,6 @@ export class LevelMapManager extends Component {
         return this._boundsMap.get(scopeID);
     }
 
-    private setupFragmentSpawner(): void {
-        if (this.fragmentSpawner) return;
-
-        if (!this.timeFragmentPrefab || !this.futureChipPrefab || !this.ancientFossilPrefab) {
-            console.warn('[LevelMapManager] Fragment prefabs not assigned, skip spawn.');
-            return;
-        }
-
-        this.fragmentSpawner = new FragmentSpawner({
-            mapManager: this,
-            timeFragmentPrefab: this.timeFragmentPrefab,
-            futureChipPrefab: this.futureChipPrefab,
-            ancientFossilPrefab: this.ancientFossilPrefab,
-        });
-    }
-
-    onDestroy() {
-        if (this.fragmentSpawner) {
-            this.fragmentSpawner.dispose();
-            this.fragmentSpawner = null;
-        }
-    }
-
     private parseCollectibleType(typeStr: string): CollectibleType {
         const normalizedType = typeStr.toLowerCase();
 
@@ -762,6 +737,19 @@ export class LevelMapManager extends Component {
             default:
                 console.warn(`[LevelMapManager] 未知的收集物类型: ${typeStr}, 使用默认类型 FRAGMENT`);
                 return CollectibleType.FRAGMENT;
+        }
+    }
+
+    private parseTimeState(timeStateStr: string): CollectibleTimeState {
+        const normalized = timeStateStr.toLowerCase();
+        switch (normalized) {
+            case 'past':
+                return CollectibleTimeState.Past;
+            case 'future':
+                return CollectibleTimeState.Future;
+            case 'both':
+            default:
+                return CollectibleTimeState.Both;
         }
     }
 }

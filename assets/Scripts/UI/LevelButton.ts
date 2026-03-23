@@ -1,6 +1,14 @@
 import { _decorator, Component, Label, Sprite, SpriteFrame, Color, director, Button, sys } from 'cc';
 const { ccclass, property } = _decorator;
 
+// 关卡收集物配置
+export interface LevelCollectiblesConfig {
+    fragment: number;
+    chip: number;
+    fossil: number;
+    letter?: number;
+}
+
 // 关卡信息配置（不使用@property，仅在代码中使用）
 export interface LevelInfo {
     id: string;           // 关卡ID (如 "Level_1")
@@ -8,6 +16,7 @@ export interface LevelInfo {
     sceneName: string;    // 场景文件名 (如 "scene")
     description?: string;  // 关卡描述 (可选)
     index: number;         // 关卡序号 (从0开始)
+    collectibles?: LevelCollectiblesConfig;  // 各类型收集物数量配置
 }
 
 // 关卡按钮预制体组件
