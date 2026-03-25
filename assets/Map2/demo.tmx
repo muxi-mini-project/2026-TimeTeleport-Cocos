@@ -23,11 +23,10 @@
   <object id="10" x="2416" y="592" width="96" height="48"/>
   <object id="16" x="1008" y="912" width="240" height="48"/>
   <object id="17" x="864" y="480" width="48" height="432"/>
-  <object id="18" x="720" y="864" width="48" height="48"/>
  </objectgroup>
  <layer id="2" name="Past_Art" width="160" height="60">
   <data encoding="base64" compression="zlib">
-   eJzt2kEKAjEMBdDZqYdQD6Fz/6uZZTctCCmZlvcgkFX4WQZyHAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA/OMWdY96VAcZyM7Yzlth/509o15R7+ogA9kZ23kr7L+zT9Q36qwOMpCdsZ23wv4AAD1uOSq55ajklgMAAAAAAACuqPejv1M/Y3dy9H70d+pn7E6O3o/+Tv2M3cnxA381Hpc=
+   eJzt2lEKwjAMAFD/1EOoh1DvfzX7uY+NDUxIu74HgX2VBJqmg14uAAAAAAAAAAAAAAAAAAAAAAAAwL+uLW4t7tWJMKVHi2eLV3UiTOnd4tPiW50IUzJ/qWT+Usn8pZL5S6Xe5u8I/RCd43K9EeqP1Nv87a0f1kTnuFxvhPoj9dZvvfXDmugcl+uNUH+k2fqNvszWb/Slt/nLXDLnr73Nnsz5627Jnswzyt2SPc4oKjmjqOQfgUrmL5WOzl/nJBmO7ivnJBmO7iv/KWSwr6jkXkcl9zoqmb9j2Hqjf6bvjNqJsfVG/0zfGbUTY+uN/pm+M2onxg+dgCkj
   </data>
  </layer>
 </map>
