@@ -52,27 +52,15 @@ export class ParallaxLayer extends Component {
     private orthoWidth: number = 0;
     private verticalOffset: number = 0;
     private horizontalStartOffset: number = 0;
+    private _initialized: boolean = false;
 
     onLoad() {
-        const uiTransform = this.node.getComponent(UITransform);
-        if (!uiTransform) {
-            console.error('[ParallaxLayer] 缺少 UITransform 组件！');
-            return;
-        }
-
-        this.bgWidth = uiTransform.contentSize.width;
-        this.bgHeight = uiTransform.contentSize.height;
-
         const visibleSize = view.getVisibleSize();
         this.viewWidth = visibleSize.width;
         this.viewHeight = visibleSize.height;
 
-        if (this.infiniteScroll && this.bgWidth < this.viewWidth) {
-            console.warn(`[ParallaxLayer] ${this.node.name}: 背景宽度(${this.bgWidth})小于屏幕宽度(${this.viewWidth})，建议使用更宽的背景图`);
-        }
-
         if (this.camera) {
-            this.calculateOffsets();
+            this.orthoHeight = this.camera.orthoHeight;
         }
 
         if (this.infiniteScroll) {
@@ -80,14 +68,30 @@ export class ParallaxLayer extends Component {
         }
     }
 
-    start() {
-        if (this.camera && this.orthoHeight === 0) {
-            this.calculateOffsets();
+    private updateBackgroundSize() {
+        const uiTransform = this.node.getComponent(UITransform);
+        if (!uiTransform) {
+            console.error(`[ParallaxLayer] ${this.node.name} 缺少 UITransform 组件！`);
+            return false;
         }
+
+        this.bgWidth = uiTransform.width;
+        this.bgHeight = uiTransform.height;
+
+        if (this.bgWidth <= 0 || this.bgHeight <= 0) {
+            console.warn(`[ParallaxLayer] ${this.node.name} 尺寸无效: ${this.bgWidth}x${this.bgHeight}`);
+            return false;
+        }
+
+        return true;
     }
 
     private calculateOffsets() {
-        this.orthoHeight = this.camera.orthoHeight;
+        if (this.bgHeight <= 0 || this.bgWidth <= 0) {
+            console.warn(`[ParallaxLayer] ${this.node.name} 尺寸未初始化，跳过计算`);
+            return;
+        }
+
         const ratio = this.viewWidth / this.viewHeight;
         this.orthoWidth = this.orthoHeight * ratio;
 
@@ -114,10 +118,16 @@ export class ParallaxLayer extends Component {
                 this.horizontalStartOffset = -this.bgWidth / 2;
                 break;
         }
+
+        console.log(`[ParallaxLayer] ${this.node.name} 初始化完成:`);
+        console.log(`  - 背景尺寸: ${this.bgWidth}x${this.bgHeight}`);
+        console.log(`  - orthoHeight: ${this.orthoHeight}, orthoWidth: ${this.orthoWidth}`);
+        console.log(`  - verticalOffset: ${this.verticalOffset}`);
+        console.log(`  - horizontalStartOffset: ${this.horizontalStartOffset}`);
     }
 
     private createDuplicates() {
-        if (this.bgWidth <= 0) return;
+        if (!this.updateBackgroundSize()) return;
 
         this.layers = [this.node];
 
@@ -141,7 +151,7 @@ export class ParallaxLayer extends Component {
         const copy = new Node(`${this.node.name}_copy_${index}`);
         
         const uiTransform = copy.addComponent(UITransform);
-        uiTransform.setContentSize(originalTransform.contentSize);
+        uiTransform.setContentSize(this.bgWidth, this.bgHeight);
 
         const originalSprite = this.node.getComponent(Sprite);
         if (originalSprite && originalSprite.spriteFrame) {
@@ -159,7 +169,9 @@ export class ParallaxLayer extends Component {
     lateUpdate(_dt: number) {
         if (!this.camera) return;
 
-        if (this.orthoHeight === 0) {
+        if (!this._initialized) {
+            this._initialized = true;
+            this.updateBackgroundSize();
             this.calculateOffsets();
         }
 
@@ -235,6 +247,7 @@ export class ParallaxLayer extends Component {
 
     public setCamera(cam: Camera) {
         this.camera = cam;
-        this.calculateOffsets();
+        this.orthoHeight = cam.orthoHeight;
+        this._initialized = false;
     }
 }
