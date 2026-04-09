@@ -1,4 +1,4 @@
-import { _decorator, Component, Node, VideoPlayer, Vec3, tween, view, director } from 'cc';
+import { _decorator, Component, Node, VideoPlayer, Vec3, tween, view, director, sys } from 'cc';
 const { ccclass, property } = _decorator;
 
 @ccclass('VideoPlayerController')
@@ -75,6 +75,27 @@ export class VideoPlayerController extends Component {
                 this._currentTween = null;
                 if (this.isFullScreen) {
                     this.scheduleOnce(() => {
+                        // 在切换到 LevelSelect 前解锁下一关（第1关）
+                        try {
+                            const storage = sys?.localStorage;
+                            if (storage) {
+                                // 第0关（序章）完成后，解锁第1关
+                                const completedIndex = 0; // 序章的索引
+                                const nextIndex = completedIndex + 1;
+                                
+                                const rawMax = storage.getItem('LevelSelect_MaxUnlockedIndex');
+                                const oldMax = rawMax != null ? parseInt(rawMax) : 0;
+                                const safeOldMax = isNaN(oldMax) ? 0 : oldMax;
+                                
+                                const newMax = Math.max(safeOldMax, nextIndex);
+                                storage.setItem('LevelSelect_MaxUnlockedIndex', String(newMax));
+                                
+                                console.log(`[VideoPlayerController] 序章完成，解锁第1关，新最大解锁索引=${newMax}`);
+                            }
+                        } catch (e) {
+                            console.warn('[VideoPlayerController] 更新解锁进度失败', e);
+                        }
+                        
                         director.loadScene('LevelSelect');
                     }, this.delayBeforeTransition);
                 }
