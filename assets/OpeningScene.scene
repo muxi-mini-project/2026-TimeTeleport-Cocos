@@ -184,7 +184,7 @@
     "_priority": 0,
     "_fov": 45,
     "_fovAxis": 0,
-    "_orthoHeight": 701.3747228381375,
+    "_orthoHeight": 700.310421286031,
     "_near": 0,
     "_far": 2000,
     "_color": {
@@ -578,6 +578,7 @@
       "y": 0,
       "z": 0
     },
+    "delayBeforeTransition": 1.5,
     "_id": "07JNy1MdVKVZu5731+YCEV"
   },
   {
@@ -666,7 +667,7 @@
     "_resourceType": 1,
     "_remoteURL": "",
     "_clip": {
-      "__uuid__": "170bcb66-2b72-454a-b9f9-cd15bb164297",
+      "__uuid__": "565682f9-5bcb-4a5b-9219-624d3fb1b57f",
       "__expectedType__": "cc.VideoClip"
     },
     "_playOnAwake": true,

@@ -8,7 +8,7 @@ export class VideoPlayerController extends Component {
     videoPlayer: VideoPlayer = null;
 
     @property({ tooltip: "最大盖章次数，达到后视频覆盖全屏" })
-    maxStamps: number = 5;
+    maxStamps: number = 10;
 
     @property({ tooltip: "初始缩放比例（左上角小窗）" })
     startScale: number = 0.2;
