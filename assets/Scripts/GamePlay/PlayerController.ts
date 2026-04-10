@@ -11,6 +11,7 @@ const { ccclass, property } = _decorator;
 export enum PlayerState {
     IDLE = 0,
     RUN,
+    PREPARE_JUMP,
     JUMP,
     FALL
 }
@@ -43,6 +44,12 @@ export class PlayerController extends Component {
 
     @property({ group: "Feel", tooltip: "土狼时间 (秒): 离开平台后多久内仍可起跳" })
     coyoteTime: number = 0.1;
+
+    @property({ group: "Feel", tooltip: "跳跃蓄力时间 (秒): 蓄力动画播放时长" })
+    chargeTime: number = 0.08;
+
+    @property({ group: "Feel", tooltip: "蓄力期间移动速度系数 (参考蔚蓝: 0.5)" })
+    chargeMoveSpeedMultiplier: number = 0.5;
 
     @property({ group: "Feel", tooltip: "射线检测的长度（超出脚底的距离）" })
     raycastLength: number = 10;
@@ -96,6 +103,8 @@ export class PlayerController extends Component {
 
     private groundContactSet: Set<string> = new Set();
     private coyoteTimer: number = 0;
+    private chargeTimer: number = 0;
+    private isCharging: boolean = false;
 
     onLoad() {
         this.rb = this.getComponent(RigidBody2D)!;
@@ -180,6 +189,15 @@ export class PlayerController extends Component {
             this.coyoteTimer -= dt;
         }
 
+        if (this.isCharging) {
+            this.chargeTimer -= dt;
+            if (this.chargeTimer <= 0) {
+                this.executeJump();
+            } else if (!this._isGrounded && this.coyoteTimer <= 0) {
+                this.executeJump();
+            }
+        }
+
         this.applyGravityControl();
         this.handleMovement(dt);
 
@@ -195,6 +213,9 @@ export class PlayerController extends Component {
             console.log("护盾保护中，免疫伤害！");
             return;
         }
+
+        this.isCharging = false;
+        this.chargeTimer = 0;
 
         this.isDead = true;
 
@@ -266,6 +287,8 @@ export class PlayerController extends Component {
 
         this.scheduleOnce(() => {
             this.isDead = false;
+            this.isCharging = false;
+            this.chargeTimer = 0;
 
             const rb = this.getComponent(RigidBody2D);
             const collider = this.getComponent(Collider2D);
@@ -368,7 +391,11 @@ export class PlayerController extends Component {
         }
 
         const currentVel = this.rb.linearVelocity;
-        const targetSpeedX = this.inputDir.x * this.moveSpeed;
+        let speedMultiplier = 1.0;
+        if (this.isCharging) {
+            speedMultiplier = this.chargeMoveSpeedMultiplier;
+        }
+        const targetSpeedX = this.inputDir.x * this.moveSpeed * speedMultiplier;
 
         let currentAccel = 0;
 
@@ -396,14 +423,26 @@ export class PlayerController extends Component {
     }
 
     private tryJump() {
-        const isGrounded = this.groundContactSet.size > 0;
         const canJump = this._isGrounded || this.coyoteTimer > 0;
 
-        if (canJump) {
-            const vel = this.rb.linearVelocity;
-            this.rb.linearVelocity = v2(vel.x, this.jumpForce);
-            this.coyoteTimer = 0;
+        if (canJump && !this.isCharging) {
+            this.startCharge();
         }
+    }
+
+    private startCharge() {
+        this.isCharging = true;
+        this.chargeTimer = this.chargeTime;
+        this.changeState(PlayerState.PREPARE_JUMP);
+    }
+
+    private executeJump() {
+        this.isCharging = false;
+        this.chargeTimer = 0;
+        const vel = this.rb.linearVelocity;
+        this.rb.linearVelocity = v2(vel.x, this.jumpForce);
+        this.coyoteTimer = 0;
+        this.changeState(PlayerState.JUMP);
     }
 
     private tryDash() {
@@ -413,7 +452,9 @@ export class PlayerController extends Component {
 
     private startDash() {
         this.isDashing = true;
-        this.canDash = false; 
+        this.canDash = false;
+        this.isCharging = false;
+        this.chargeTimer = 0;
 
         let dashDir = this.inputDir.clone();
         if (dashDir.x === 0 && dashDir.y === 0) dashDir.x = this.facingDir;
@@ -636,6 +677,8 @@ export class PlayerController extends Component {
             switch (newState) {
                 case PlayerState.IDLE: aniName = 'idle';
                 break;
+                case PlayerState.PREPARE_JUMP: aniName = 'prepare_jump';
+                break;
                 case PlayerState.JUMP: aniName = 'jump';
                 break;
                 case PlayerState.FALL: aniName = 'fall';
@@ -651,24 +694,28 @@ export class PlayerController extends Component {
 
         if (!this.sprite) return;
         
-        switch (this.currentState) {
-            case PlayerState.IDLE:
-                this.sprite.color = Color.WHITE;
-                break;
-            case PlayerState.RUN:
-                this.sprite.color = Color.GREEN;
-                break;
-            case PlayerState.JUMP:
-                this.sprite.color = Color.YELLOW;
-                break;
-            case PlayerState.FALL:
-                this.sprite.color = Color.RED;
-                break;
-        }
+        // switch (this.currentState) {
+        //     case PlayerState.IDLE:
+        //         this.sprite.color = Color.WHITE;
+        //         break;
+        //     case PlayerState.RUN:
+        //         this.sprite.color = Color.GREEN;
+        //         break;
+        //     case PlayerState.PREPARE_JUMP:
+        //         this.sprite.color = Color.CYAN;
+        //         break;
+        //     case PlayerState.JUMP:
+        //         this.sprite.color = Color.YELLOW;
+        //         break;
+        //     case PlayerState.FALL:
+        //         this.sprite.color = Color.RED;
+        //         break;
+        // }
     }
 
     private updatePlayerState(): void {
         if (this.isDashing) return;
+        if (this.isCharging) return;
         
         const vel = this.rb.linearVelocity;
         
