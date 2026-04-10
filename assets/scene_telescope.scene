@@ -422,6 +422,18 @@
       {
         "__uuid__": "9ac3b106-9976-4e0d-9d82-bfa179411667",
         "__expectedType__": "cc.AnimationClip"
+      },
+      {
+        "__uuid__": "cbb2d512-e1a2-4bfb-977e-4ebc7ef7b690",
+        "__expectedType__": "cc.AnimationClip"
+      },
+      {
+        "__uuid__": "1fc207f6-dce4-43f8-a9b8-06421c2ebeaa",
+        "__expectedType__": "cc.AnimationClip"
+      },
+      {
+        "__uuid__": "c210d0e8-95cb-4c3f-9c4a-8e9bb1cbec0b",
+        "__expectedType__": "cc.AnimationClip"
       }
     ],
     "_defaultClip": {
@@ -619,18 +631,10 @@
       "__uuid__": "4077bdfd-9347-43cf-ac7b-6361939491f4",
       "__expectedType__": "cc.Prefab"
     },
-    "timeFragmentPrefab": {
-      "__uuid__": "f657c783-9af9-442c-97f5-0cfd0661acb9",
-      "__expectedType__": "cc.Prefab"
-    },
-    "futureChipPrefab": {
-      "__uuid__": "babe3058-93ff-4133-b32b-d52f857c757d",
-      "__expectedType__": "cc.Prefab"
-    },
-    "ancientFossilPrefab": {
-      "__uuid__": "95966c43-1db7-4bbd-85a0-25d7dc8804a2",
-      "__expectedType__": "cc.Prefab"
-    },
+    "fragmentPrefab": null,
+    "chipPrefab": null,
+    "fossilPrefab": null,
+    "letterPrefab": null,
     "anchorPrefab": {
       "__uuid__": "ea064a63-531a-4058-8969-477c09bb6d0e",
       "__expectedType__": "cc.Prefab"
