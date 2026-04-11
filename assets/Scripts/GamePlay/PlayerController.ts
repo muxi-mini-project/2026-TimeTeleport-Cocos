@@ -1,6 +1,7 @@
-import { _decorator, Component, Sprite, UITransform, Color, Input, input, EventKeyboard, KeyCode, Vec2, ERaycast2DType, RigidBody2D, v2, Collider2D, Contact2DType, IPhysics2DContact, AudioSource, tween, Vec3, PhysicsSystem2D, Director, Animation } from 'cc';
+import { _decorator, Component, Sprite, UITransform, Color, Input, input, EventKeyboard, KeyCode, Vec2, ERaycast2DType, RigidBody2D, v2, Collider2D, Contact2DType, IPhysics2DContact, AudioSource, AudioClip, tween, Vec3, PhysicsSystem2D, Director, Animation } from 'cc';
 import { TimeTravelManager } from './TimeTravelManager';
 import { GameManager } from '../Core/GameManager';
+import { AudioManager } from '../Core/AudioManager';
 import { Hazard } from '../Objects/Hazard';
 import { CrumblingPlatform } from '../Objects/CrumblingPlatform';
 import { GrappleController } from '../Objects/GrappleController';
@@ -75,8 +76,8 @@ export class PlayerController extends Component {
     private sprite: Sprite = null;
     private currentState: PlayerState = PlayerState.IDLE;
 
-    @property(AudioSource)
-    deathSound: AudioSource = null;
+    @property(AudioClip)
+    deathSound: AudioClip = null;
 
     @property({ group: "Shield", tooltip: "护盾是否激活（仅供调试查看）" })
     private _shieldActive: boolean = false;
@@ -248,7 +249,7 @@ export class PlayerController extends Component {
 
     private playDeathEffect() {
         if (this.deathSound) {
-            this.deathSound.play();
+            AudioManager.getInstance().playSfx(this.deathSound);
         }
 
         if (this.deathAnim) {

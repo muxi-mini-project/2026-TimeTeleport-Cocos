@@ -82,7 +82,7 @@ export class StartMenu extends Component {
     // onClickSettings: 设置按钮点击
     onClickSettings() {
         console.log('打开设置界面');
-        // TODO: 创建并显示设置面板
+        director.loadScene('Settings');
     }
 
     // onClickAbout: 关于按钮点击
