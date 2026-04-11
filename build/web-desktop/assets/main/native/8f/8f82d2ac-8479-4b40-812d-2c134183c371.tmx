@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <map version="1.4" tiledversion="1.4.3" orientation="orthogonal" renderorder="left-down" width="190" height="60" tilewidth="16" tileheight="16" infinite="0" nextlayerid="11" nextobjectid="70">
  <tileset firstgid="1" source="floor.tsx"/>
- <layer id="6" name="Future_Art" width="190" height="60">
-  <data encoding="base64" compression="zlib">
-   eJzt2DFOBDEQBMDLgEcAjwD+/zUcbmLJwc66ramSLG046pPcc369AAAAAAAAAAAAAAAAAOq8jfM+zsfuQeBBn+N8jfO9exB40M84v+P87R4EHmTPoSN7Dh3Zc+jInkNH9hw6sufQkT2nhlyz2XNqyDWbPaeGXLPp4xpyzaaPa8g1mz6uIVc6sufQkT2Hjtz3dOS+pyP/a+nInpPN71NDrtnsoTXkms0eWkOu2fRxDblm08c15JpNH9eQa7bEPr7OlDjfilPn7iKxj68zJc634tS5u0js4+tMifOtOHXuLvRxDblm08c15JpNH9eQazZ9XEOu2fRxDbnWueOdWx/XkGudO9659fHc7F5ZyUyude5459bHc7N7ZSUzuWbTx3Oze2UlM7lmO6mPV/aOU77Z66Q+Xtk7Tvlmr5P6eGXvOOUbVv0Db9gwAQ==
-  </data>
- </layer>
  <layer id="7" name="Past_Art" width="190" height="60">
   <data encoding="base64" compression="zlib">
    eJzt2EEKwjAQBVB36iHUQ6j3v5rZCN0UWlImmc57EOgyhOHnN5cLAAAAAAAAAAAAAAAAAAAAAAAAAMB+17ZuozcBwR5tPdt6jd4IBHq39WnrO3ojEOjfc+6jNwKB9Bwq0nOoSM+hIj2HiuQ9Fcl7KvJfS0V6DhXpOVSk51CRnkNFeg4V6TlUpOew13Jmss6PnsNey5nJOj96DnstZybr/GS9p6BH1ntqRmu9V7bMJ+s9NaO13itb5iOLjrPWe2XLfGRRLDkzB1kUS87MQf7EkjPH6XlHkD/jyJw+Pe8I8mccmdOn5x1B5oxztszZ0juyfBPjDGe+pXdk+SbGGc58S+/I8k2MM5z5DxH5J4g=
+  </data>
+ </layer>
+ <layer id="6" name="Future_Art" width="190" height="60">
+  <data encoding="base64" compression="zlib">
+   eJzt2kFqhjAYBNB/1/YQbQ/R9v5Xq0tdCIKOTsh7EMgyDOJ8hLxeAAAAAAAAAAAAAAAAADlvy3pf1sfTB4EbfS7ra1nfTx8EbvSzrN9l/T19ELiROYcZmXOYkTmHGZlzmJE5hxmZc5iROSdDrt3MORly7WbOyZBrN32cIddu+jhDrt30cYZcu+njDLl208cZcu2mjzP875mR/z0z0qPd9HGGXLfWeezt76SPM3z3W+vvbG9/J32c4X+ytf7O9vZPnYfryLWbPs6Qazd9nCHXbvo4Q67dGvu44Z7rrFHPPYvGPm645zpr1HPPorGPG+65zhr13LPQxxly7aaPM+TaTR9nyLWbPs6Qazd9nCHXnCvuufVxhlxzrrjn1sf7zrwZl2vOFffc+njfmTfjcu2mj/edeTMu124j9fGRuWOUPc8aqY+PzB2j7HnWSH18ZO4YZQ9H/QP15zTV
   </data>
  </layer>
  <objectgroup id="8" name="Future_Col">
@@ -17,9 +17,8 @@
   <object id="20" x="1776" y="608" width="144" height="48"/>
   <object id="35" x="688" y="432" width="48" height="480"/>
   <object id="58" x="2082" y="831.333" width="92.6667" height="46"/>
-  <object id="59" x="2353.33" y="607.333" width="47.3333" height="336.667"/>
-  <object id="63" name="spike" x="2640.33" y="798.333" width="43.3333" height="25.3333"/>
-  <object id="64" x="2352" y="273.333" width="49.3333" height="240"/>
+  <object id="59" x="2352" y="592" width="48" height="352"/>
+  <object id="64" x="2352" y="272" width="48" height="288"/>
   <object id="67" x="2943.33" y="705.333" width="94" height="46.6667"/>
  </objectgroup>
  <objectgroup id="9" name="Past_Col">
@@ -27,9 +26,9 @@
   <object id="22" x="448" y="864" width="144" height="48"/>
   <object id="33" x="688" y="432" width="48" height="480"/>
   <object id="40" x="2016.67" y="767.333" width="141.333" height="48.6667"/>
-  <object id="41" x="2160.67" y="818.667" width="46.6667" height="45.3333"/>
+  <object id="41" x="2160" y="816" width="46.6667" height="45.3333"/>
   <object id="42" x="2209.33" y="865.333" width="46" height="45.3333"/>
-  <object id="43" x="2258" y="912.667" width="46" height="144"/>
+  <object id="43" x="2256" y="912" width="48" height="48"/>
   <object id="68" x="2947.33" y="704" width="88.6667" height="48.6667"/>
  </objectgroup>
  <objectgroup id="10" name="Objects">
@@ -39,6 +38,6 @@
   <object id="31" name="crumbling_platform" x="1216" y="720" width="64" height="16"/>
   <object id="32" name="crumbling_platform" x="1520" y="672" width="64" height="16"/>
   <object id="48" name="crumbling_platform" x="2561.33" y="825.333" width="122.667" height="25.3333"/>
-  <object id="66" name="checkpoint" x="2969.33" y="650.667" width="68" height="38.6667"/>
+  <object id="66" name="checkpoint" x="2976" y="656" width="38.67" height="37.333"/>
  </objectgroup>
 </map>
