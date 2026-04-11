@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.4" tiledversion="1.4.3" orientation="orthogonal" renderorder="left-down" width="160" height="68" tilewidth="16" tileheight="16" infinite="0" nextlayerid="6" nextobjectid="43">
+<map version="1.4" tiledversion="1.4.3" orientation="orthogonal" renderorder="left-down" width="200" height="68" tilewidth="16" tileheight="16" infinite="0" nextlayerid="6" nextobjectid="88">
  <tileset firstgid="1" source="floor.tsx"/>
- <layer id="1" name="Future_Art" width="160" height="68">
+ <tileset firstgid="243" source="../Map/floor.tsx"/>
+ <layer id="1" name="Future_Art" width="200" height="68">
   <data encoding="base64" compression="zlib">
-   eJzt1VGKwjAQBmDfdA+hHsLd262X0AsbHwqlUFqhTf7g98Ew86BkkpLJ4QAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAANDOfydr1eyzV3uekfOf52xgP3vdr8R72+qNXPPfrX5DPb5Hrve3ucsf5YQe1uZ0jxJP+aOc0MPanC7hjvaWE3ow/743J/Rg/uXlY4lTiZ9Jbf7lSrijW+VziUuJ66Q2/3Il3NGt8q3Eb4m/SW3+5Zp7s3qvxzMgoZ+hrr1m6/0u9TT3ZvVej2dAQj9DXXvN1vtd6mnuzeq9Hs+/hH6Guvaarfe71NMLE4LzKA==
+   eJzt3VFKw0AUBdDpl/qlLkD9Uheg7k43oatVfxyhgRC4TRGbmZBz4JEXaJlJG9ILzZBSAAAAAAAAgB591vqq9X2gh6263JVyVet6l3vYqvt6/j/UetzlHgAAAAAAAAAAAOiHe8Qhc484ZO4Rh0y+gky+gky+gm2RGSGTGSGTGSGTryCTryCTryCTryCTryCTryCTryCTryCTryCTryCTryCTryDzjELIPKMQMs8ohOPIWpDJWpDJWgAALOV1JWMtOU9O45TfofMj89kAvTrV9anH616rDHTMe//rNTBwvgAAAMByzmqd17qY9EApN7Vua91NeqCUp1rPtV4mPfxVyiRr799rfey3Pcxn6Jces/Xxzs0prdtr2Y/3UyZZe//7n+DbftvDfIZ+6TFbH+/cnNK6vZb9eD9lkrX349+PHuYz9EuP2fp45+aU1u217Mf7P6XUpvI=
   </data>
  </layer>
  <objectgroup id="2" name="Future_Col">
@@ -12,16 +13,40 @@
   <object id="3" x="816" y="992" width="96" height="48"/>
   <object id="6" x="912" y="1040" width="1008" height="48"/>
   <object id="41" x="1920" y="1040" width="640" height="48"/>
+  <object id="47" name="crumbling_platform" x="2558" y="594" width="194" height="61"/>
+  <object id="50" name="anchor" x="2215" y="467" width="39" height="32"/>
+  <object id="54" x="2211" y="368" width="43" height="93"/>
+  <object id="55" x="3057" y="654" width="45" height="97"/>
+  <object id="56" x="3107" y="708" width="41" height="88"/>
+  <object id="58" x="3154" y="754" width="43" height="41"/>
+  <object id="59" x="2563" y="1041" width="635" height="48"/>
+  <object id="60" name="spike" x="2627" y="985" width="241" height="54"/>
+  <object id="84" x="3057.5" y="465.75" width="45.25" height="186.75"/>
+  <object id="85" name="spike" x="3053.25" y="426.5" width="51.5" height="36.5"/>
+  <object id="86" x="2865.33" y="129.333" width="142.667" height="48"/>
+  <object id="87" name="anchor" x="2922.5" y="179.5" width="40.5" height="21"/>
  </objectgroup>
- <layer id="3" name="Past_Art" width="160" height="68">
+ <layer id="3" name="Past_Art" width="200" height="68">
   <data encoding="base64" compression="zlib">
-   eJzt1LENhDAMBVC6gyGAhpvgoDn23wtvkCaSrfCeZH3LTdLY0wQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA73FEfeWwWd0/6pbDZnXZ+yndvwp7Kt0/OV5Wl72f0v2rsKfS/ZPjZXXZ+ynfff8+UXPUoi/zj5599vtLY7ZGbVG7vsw/evbZ7++N2S/qjLr0Zf7Rs89+/2rMHkxB+30=
+   eJzt2lEKgkAQBmB9Kg9RHqI8dHWI6hDVdZpHQQYtDJf8PhgY9sV9Wf5lnaoCAAAAAAAAAAAAAAAAAOZ0qqvqHHWpl94JlOca5+IWdXc+YOAR5+IZ9XI+YEB+QE5+QE5+QE5+QE5+QE5+QE5+QK6fH/1/6VkPa9LPjyk9rEk/P6b0AAAAAAAAAPBrU+afzEWxVp/OQpmLYk0+nYUyF8W/c1+CnPsS5NyXAAD4lrcIyHmLgJy3CAAAAAAAAAAAAAAASraJ2kY1+mL2MWe/9PebkbXS7aL2Ua2+mH3M2S/9/XZkrXSHqGNUpy9mH3P2S3+/G1kr3RvXjqhe
   </data>
  </layer>
  <objectgroup id="4" name="Past_Col">
   <object id="8" x="0" y="1040" width="1696" height="48"/>
   <object id="9" x="1696" y="1040" width="224" height="48"/>
   <object id="42" x="1920" y="1040" width="640" height="48"/>
+  <object id="66" name="crumbling_platform" x="2867" y="1000" width="91" height="20"/>
+  <object id="67" x="2210" y="627" width="238" height="40"/>
+  <object id="68" x="2161" y="674" width="43" height="45"/>
+  <object id="69" name="anchor" x="2133" y="684" width="24" height="31"/>
+  <object id="70" x="3105" y="754" width="95" height="45"/>
+  <object id="71" x="2675" y="275" width="42" height="200"/>
+  <object id="72" x="2723" y="432" width="141" height="46"/>
+  <object id="74" x="2212" y="674" width="42" height="42"/>
+  <object id="75" name="anchor" x="2638" y="274" width="30" height="30"/>
+  <object id="76" name="spike" x="2820" y="395" width="42" height="30"/>
+  <object id="79" name="crumbling_platform" x="2922" y="615" width="43" height="52"/>
+  <object id="80" name="spike" x="2637" y="368" width="31" height="110"/>
  </objectgroup>
  <objectgroup id="5" name="Objects">
   <object id="13" name="spike" x="1056" y="960" width="64" height="64"/>
@@ -30,7 +55,7 @@
   <object id="24" name="crumbling_platform" x="1392" y="992" width="64" height="16"/>
   <object id="25" name="crumbling_platform" x="1520" y="944" width="64" height="16"/>
   <object id="26" name="crumbling_platform" x="1632" y="880" width="64" height="16"/>
-  <object id="34" name="ViewZone" x="176" y="20" width="1680" height="976">
+  <object id="34" name="ViewZone" x="176" y="20" width="2432" height="1004">
    <properties>
     <property name="boundID" value="101"/>
    </properties>
@@ -46,5 +71,8 @@
   <object id="38" name="anchor" x="544" y="496" width="32" height="32"/>
   <object id="39" name="anchor" x="1024" y="432" width="32" height="32"/>
   <object id="40" name="anchor" x="1264" y="304" width="32" height="32"/>
+  <object id="52" name="checkpoint" x="3164" y="719" width="31" height="26"/>
+  <object id="62" name="spike" x="2092" y="984" width="120" height="52"/>
+  <object id="63" name="spike" x="2320" y="983" width="193" height="54"/>
  </objectgroup>
 </map>
