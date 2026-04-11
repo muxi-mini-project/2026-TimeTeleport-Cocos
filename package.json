@@ -3,5 +3,8 @@
   "uuid": "ee61f4e6-9425-4415-9067-f9695196189d",
   "creator": {
     "version": "3.8.8"
+  },
+  "dependencies": {
+    "electrobun": "^1.16.0"
   }
 }
