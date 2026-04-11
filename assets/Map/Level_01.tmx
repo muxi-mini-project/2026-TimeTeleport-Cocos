@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<map version="1.4" tiledversion="1.4.3" orientation="orthogonal" renderorder="left-down" width="200" height="60" tilewidth="16" tileheight="16" infinite="0" nextlayerid="6" nextobjectid="27">
+ <tileset firstgid="1" source="floor.tsx"/>
+ <layer id="1" name="Future_Art" width="200" height="60">
+  <data encoding="base64" compression="zlib">
+   eJzt2UFqBCEQQNG5/4WSHGKSQyS5x7jsTS1aHMoq3wOhlyKNfPXxAAAAAAAAAAAAAAAAAAAAAAAAAIA5H2N8jvGVPRHY0HOM7zF+sicCG/od42+M/+yJwIb0FcT0FcT0Fatdm6R6n1SZf6c17+7aJNX7pMr8O615d9cmqd4nVebfac2pQ6tATKtAbLZVnJc5wey/7bzMCWb/bedlTuDfPocmvs86nUMT32edzqGJ77NOENNXENNXENNXENNXENNXa3lj6EVfreWNYQ+r9iZ73FreGPawam969x6nN8iwam969x6nN8hQpa/0Bhmq9BVkqNJXkKFKX0EGfUU10V1mp2+YFd1ldvqGWdFdZqdvmPUC18lAng==
+  </data>
+ </layer>
+ <objectgroup id="3" name="Future_Col">
+  <object id="1" x="0" y="912" width="912" height="48"/>
+  <object id="2" x="432" y="784" width="48" height="128"/>
+  <object id="3" x="720" y="400" width="48" height="512"/>
+  <object id="4" x="944" y="576" width="96" height="48"/>
+  <object id="5" x="1104" y="800" width="96" height="48"/>
+  <object id="6" x="1392" y="496" width="96" height="48"/>
+  <object id="8" x="2064" y="752" width="96" height="48"/>
+  <object id="9" x="2688" y="624" width="96" height="48"/>
+  <object id="10" x="3104" y="480" width="96" height="48"/>
+ </objectgroup>
+ <objectgroup id="4" name="Past_Col">
+  <object id="11" x="0" y="912" width="912" height="48"/>
+  <object id="13" x="432" y="784" width="96" height="128"/>
+  <object id="14" x="720" y="688" width="48" height="224"/>
+  <object id="15" x="944" y="576" width="96" height="48"/>
+  <object id="16" x="1104" y="800" width="96" height="48"/>
+  <object id="17" x="1600" y="832" width="96" height="48"/>
+  <object id="18" x="3104" y="480" width="96" height="48"/>
+ </objectgroup>
+ <objectgroup id="5" name="Objects">
+  <object id="19" name="checkpoint" x="848" y="848" width="32" height="32"/>
+  <object id="20" name="crumbling_platform" x="1776" y="656" width="64" height="16"/>
+  <object id="21" name="crumbling_platform" x="2384" y="672" width="64" height="16"/>
+  <object id="23" name="checkpoint" x="3152" y="416" width="32" height="32"/>
+  <object id="26" name="ViewZone" x="784" y="192" width="2400" height="736">
+   <properties>
+    <property name="boundID" value="101"/>
+   </properties>
+  </object>
+ </objectgroup>
+ <layer id="2" name="Past_Art" width="200" height="60">
+  <data encoding="base64" compression="zlib">
+   eJzt20EKAjEMBdDu1EOohxi9/9UMuBvIpnQIbd+DQE7Q/oa0NQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAgL9b1D3qceqB1p5Rr6j3qQdaO6I+Ud9TDwAAvcwoIGdGATkzCgAAABjHbBZyZrOQM5uFnHwFOfkKcvIVKxq1HyhfsaJR+4FX5yt7vlQYtR94db6y50uFWfJV5Z6vu2tfs+SrSu6ufc2Sryr5o7KvWfIVVJCvmE12pq/UQ6/sTF+ph17Ze3ClHnr9AIWuJkE=
+  </data>
+ </layer>
+</map>
